@@ -1,5 +1,5 @@
 use std::fmt::Debug;
 
-pub trait Action: Debug + Send{
+pub trait Action: Debug + Send + Clone{
 
 }

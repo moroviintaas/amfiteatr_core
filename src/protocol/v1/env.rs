@@ -9,6 +9,6 @@ pub enum EnvMessage<Spec: ProtocolSpecification>{
     GameFinished,
     Kill,
     UpdateState(Spec::UpdateType),
-    ActionNotify(AgentActionPair<Spec::AgentType, Spec::ActionType>),
+    ActionNotify(AgentActionPair<Spec::AgentId, Spec::ActionType>),
     ErrorNotify(TurError<Spec>)
 }

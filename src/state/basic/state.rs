@@ -5,5 +5,5 @@ pub trait State{
     type UpdateType: StateUpdate;
     type Error: Error;
 
-    fn update(&mut self, update: Self::UpdateType) -> Result<(), Self::Error>;
+    fn update(&mut self, update: &Self::UpdateType) -> Result<(), Self::Error>;
 }

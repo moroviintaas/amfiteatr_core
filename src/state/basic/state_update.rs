@@ -1,4 +1,4 @@
 use std::fmt::Debug;
 
-pub trait StateUpdate: Debug + Send {}
+pub trait StateUpdate: Debug + Send + Clone{}
 

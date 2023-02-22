@@ -8,5 +8,5 @@ use crate::protocol::{ProtocolSpecification};
 pub enum TurError<Spec: ProtocolSpecification>{
     GameError(Spec::GameErrorType),
     CommError(CommError),
-    ProtocolError(ProtocolError<Spec::AgentType>)
+    ProtocolError(ProtocolError<Spec>)
 }
