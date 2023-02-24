@@ -3,5 +3,5 @@ mod tur;
 mod protocol;
 
 pub use comm::*;
-pub use tur::*;
+pub use self::tur::*;
 pub use protocol::*;

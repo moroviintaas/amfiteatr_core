@@ -4,11 +4,14 @@ use std::marker::PhantomData;
 use std::sync::mpsc::{channel, Receiver, RecvError, Sender, SendError, TryRecvError};
 use crate::comm::endpoint::CommEndpoint;
 
+
 #[derive(Debug)]
 /// # Example:
 /// ```
 /// use std::thread::spawn;
-/// use tur::comm::{CommEndpoint, CommError, SyncComm};
+/// use tur::comm::{CommEndpoint};
+/// use tur::error::CommError;
+/// use tur::comm::SyncComm;
 /// let (mut com1, mut com2) = SyncComm::<String, String, CommError>::new_pair();
 /// let h1 = spawn(move || {
 ///     com1.send(format!("Hello")).unwrap();
