@@ -5,3 +5,4 @@ pub mod protocol;
 pub mod comm;
 pub mod error;
 pub mod automatons;
+pub mod env;

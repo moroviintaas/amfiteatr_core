@@ -1,5 +1,5 @@
 use std::marker::PhantomData;
-use crate::agent::{CommunicatingAgent, IdentifiableAgent, PolicyAgent, StatefulAgent};
+use crate::agent::{CommunicatingAgent, PolicyAgent, StatefulAgent};
 use crate::automatons::policy::Policy;
 use crate::comm::CommEndpoint;
 use crate::error::CommError;
@@ -46,7 +46,7 @@ impl<Spec: ProtocolSpecification, P: Policy,
     StatefulAgent for AgentGen<Spec, P, Comm>{
     type State = <P as Policy>::StateType;
 
-    fn update(&mut self, state_update: &<Self::State as State>::UpdateType) -> Result<(), <Self::State as State>::Error> {
+    fn update(&mut self, state_update: <Self::State as State>::UpdateType) -> Result<(), <Self::State as State>::Error> {
         self.state.update(state_update)
     }
 

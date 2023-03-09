@@ -1,5 +1,4 @@
 use thiserror::Error;
-use crate::agent::AgentIdentifier;
 use crate::error::TurError;
 use crate::protocol::ProtocolSpecification;
 
@@ -16,6 +15,8 @@ pub enum ProtocolError<Spec: ProtocolSpecification>{
     ReceivedKill(Spec::AgentId),
     #[error("agent {:} has no possible action", .0)]
     NoPossibleAction(Spec::AgentId),
+    #[error("agent {} has exited the game", .0)]
+    PlayerExited(Spec::AgentId)
 }
 
 impl<Spec: ProtocolSpecification> From<ProtocolError<Spec>> for TurError<Spec>{

@@ -1,5 +1,5 @@
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 
-pub trait Action: Debug + Send + Clone{
+pub trait Action: Debug + Send + Clone + Display{
 
 }

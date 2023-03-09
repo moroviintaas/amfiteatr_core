@@ -11,7 +11,8 @@ pub enum CommError{
     SendError,
     TrySendError,
     RecvError,
-    TryRecvError
+    TryRecvEmptyError,
+    TryRecvDisconnectedError
 }
 impl Display for CommError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -30,8 +31,11 @@ impl<T> From<SendError<T>> for CommError{
     }
 }
 impl From<TryRecvError> for CommError{
-    fn from(_: TryRecvError) -> Self {
-        Self::TryRecvError
+    fn from(e: TryRecvError) -> Self {
+        match e{
+            TryRecvError::Empty => Self::TryRecvEmptyError,
+            TryRecvError::Disconnected => Self::TryRecvDisconnectedError
+        }
     }
 }
 impl<T> From<TrySendError<T>> for CommError{

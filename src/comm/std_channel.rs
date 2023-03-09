@@ -43,7 +43,8 @@ where SyncComm<OT, IT, E> :  CommEndpoint<OutwardType = OT, InwardType = IT, Err
 }
 
 impl<OT, IT, E> CommEndpoint for SyncComm<OT, IT, E>
-where E: Debug + Error + From<RecvError> + From<SendError<OT>> + From<TryRecvError> + From<SendError<IT>>{
+where E: Debug + Error + From<RecvError> + From<SendError<OT>> + From<TryRecvError> + From<SendError<IT>>,
+OT: Debug, IT:Debug{
     type OutwardType = OT;
 
     type InwardType = IT;

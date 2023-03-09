@@ -2,8 +2,8 @@ use std::error::Error;
 use std::fmt::Debug;
 
 pub trait CommEndpoint{
-    type OutwardType;
-    type InwardType;
+    type OutwardType: Debug;
+    type InwardType: Debug;
     type Error: Debug + Error;
 
     fn send(&mut self, message: Self::OutwardType) -> Result<(), Self::Error>;

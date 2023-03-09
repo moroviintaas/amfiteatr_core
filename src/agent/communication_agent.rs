@@ -1,5 +1,4 @@
 use std::error::Error;
-use std::fmt::Debug;
 
 pub trait CommunicatingAgent{
     type Outward;
