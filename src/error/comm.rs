@@ -7,18 +7,27 @@ use crate::protocol::ProtocolSpecification;
 #[derive(Debug, Clone, PartialEq, Eq, Error)]
 #[cfg_attr(feature = "speedy", derive(speedy::Writable, speedy::Readable))]
 pub enum CommError{
-
+    #[error("Send Error")]
     SendError,
+    #[error("TrySend Error")]
     TrySendError,
+    #[error("RecvSend Error")]
     RecvError,
+    #[error("TryRecv Error (empty)")]
     TryRecvEmptyError,
-    TryRecvDisconnectedError
+    #[error("TryRecv Error (disconnected)")]
+    TryRecvDisconnectedError,
+    #[error("Serialize Error")]
+    SerializeError,
+    #[error("Deserialize Error")]
+    DeserializeError,
 }
+/*
 impl Display for CommError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{self:?}")
     }
-}
+}*/
 
 impl From<RecvError> for CommError{
     fn from(_: RecvError) -> Self {

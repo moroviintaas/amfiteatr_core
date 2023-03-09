@@ -147,7 +147,7 @@ Spec: ProtocolSpecification<
                     },
                     Err(e) => match e{
 
-                        CommError::TryRecvEmptyError => {
+                        CommError::TryRecvEmptyError | CommError::TryRecvDisconnectedError => {
                             //debug!("Empty channel");
                         },
                         err => {
