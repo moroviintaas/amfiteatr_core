@@ -1,5 +1,4 @@
-use log::{debug, error, info, warn};
-use crate::agent::AgentActionPair;
+use log::{error, info, warn};
 use crate::env::{BroadcastingEnv, CommunicatingEnv, Environment, StatefulEnvironment};
 use crate::error::{CommError, TurError};
 use crate::error::ProtocolError::PlayerExited;
@@ -164,11 +163,6 @@ Spec: ProtocolSpecification<
             }
         }
 
-        todo!()
-        /*while let Some(current_player) = self.current_player(){
-            todo!()
-        }
-        Ok(())*/
 
     }
 }

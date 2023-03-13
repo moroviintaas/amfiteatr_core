@@ -1,8 +1,6 @@
 use std::marker::PhantomData;
 use crate::state::agent::AgentState;
-use rand::thread_rng;
 use rand::seq::IteratorRandom;
-use crate::state::State;
 
 pub trait Policy{
     type StateType: AgentState;

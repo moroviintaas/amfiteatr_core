@@ -1,6 +1,5 @@
 use std::error::Error;
 use crate::agent::AgentIdentifier;
-use crate::protocol::ProtocolSpecification;
 
 pub trait CommunicatingEnv{
     type Outward;

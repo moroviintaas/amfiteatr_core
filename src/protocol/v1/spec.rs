@@ -1,8 +1,7 @@
-use std::error::Error;
 use std::fmt::{Debug, Display};
 use crate::action::Action;
 use crate::agent::AgentIdentifier;
-use crate::error::{InternalGameError, TurError};
+use crate::error::{InternalGameError};
 use crate::state::StateUpdate;
 
 pub trait ProtocolSpecification: Clone + Debug{

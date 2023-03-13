@@ -1,5 +1,4 @@
 use crate::action::Action;
-use crate::agent::AgentIdentifier;
 use crate::state::env::EnvironmentState;
 use crate::state::State;
 

@@ -1,4 +1,3 @@
-use std::fmt::{Display, Formatter};
 use std::sync::mpsc::{RecvError, SendError, TryRecvError, TrySendError};
 use thiserror::Error;
 use crate::error::TurError;
