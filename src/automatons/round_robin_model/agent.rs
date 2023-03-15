@@ -62,7 +62,7 @@ TurError<Spec>: From<<<Agnt as StatefulAgent>::State as State>::Error>
 
                         //debug!("Agent's {:?} possible actions: {:?}", self.state().id(), Vec::from_iter(self.state().available_actions().into_iter()));
                         debug!("Agent's {:?} possible actions: {}]", self.state().id(), self.state().available_actions().into_iter()
-                            .fold(String::from("["), |a, b| a + &format!("{:#}", b) + ", ").trim_end());
+                            .fold(String::from("["), |a, b| a + &format!("{b:#}") + ", ").trim_end());
                         match self.select_action(){
                             None => {
                                 error!("Agent {} has no possible action", self.state().id());

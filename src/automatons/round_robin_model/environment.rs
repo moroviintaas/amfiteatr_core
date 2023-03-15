@@ -42,13 +42,13 @@ Spec: ProtocolSpecification<
         self.send_to(agent, message)
             .map_err(|e| {
                 self.notify_error(e.clone().into())
-                    .expect(&format!("Failed broadcasting error message {}", &e));
+                    .unwrap_or_else(|_| panic!("Failed broadcasting error message {}", &e));
                 e
             })
     }
 
     fn process_action_and_inform(&mut self, player: Spec::AgentId, action: Spec::ActionType) -> Result<(), TurError<Spec>> {
-        match self.process_action(&player, action.clone()){
+        match self.process_action(&player, action){
             Ok(iter) => {
                 //let mut n=0;
                 for (ag, update) in iter{

@@ -8,7 +8,7 @@ pub trait Policy{
     fn select_action(&self, state: &Self::StateType) -> Option<<Self::StateType as AgentState>::ActionType>;
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct RandomPolicy<State: AgentState>{
     state: PhantomData<State>
 }

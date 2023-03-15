@@ -14,9 +14,9 @@ pub enum TurError<Spec: ProtocolSpecification>{
 impl <Spec: ProtocolSpecification> Display for TurError<Spec>{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self{
-            TurError::GameError(e) => write!(f, "GameError: {}", e),
-            TurError::CommError(e) => write!(f, "CommError: {}", e),
-            TurError::ProtocolError(e) => write!(f, "ProtocolError: {}", e),
+            TurError::GameError(e) => write!(f, "GameError: {e}"),
+            TurError::CommError(e) => write!(f, "CommError: {e}"),
+            TurError::ProtocolError(e) => write!(f, "ProtocolError: {e}"),
 
         }
 
