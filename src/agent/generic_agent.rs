@@ -4,7 +4,7 @@ use crate::automatons::policy::Policy;
 use crate::comm::CommEndpoint;
 use crate::error::CommError;
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
-use crate::state::agent::AgentState;
+use crate::state::agent::InformationSet;
 use crate::state::State;
 
 pub struct AgentGen<Spec: ProtocolSpecification, P: Policy,
@@ -58,7 +58,7 @@ impl<Spec: ProtocolSpecification, P: Policy,
 impl<Spec: ProtocolSpecification, P: Policy,
     Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError>>
     PolicyAgent for AgentGen<Spec, P, Comm>{
-    type Act = <<P as Policy>::StateType as AgentState>::ActionType ;
+    type Act = <<P as Policy>::StateType as InformationSet>::ActionType ;
 
     fn select_action(&self) -> Option<Self::Act> {
         self.policy.select_action(&self.state)

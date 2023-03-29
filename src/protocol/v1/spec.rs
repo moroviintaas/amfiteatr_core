@@ -9,5 +9,4 @@ pub trait ProtocolSpecification: Clone + Debug{
     type GameErrorType: InternalGameError<Self> + Clone + Eq + PartialEq + Debug + Display ;
     type UpdateType: StateUpdate;
     type AgentId: AgentIdentifier;
-    //type ActionIteratorType: IntoIterator<Item=Action>;
 }

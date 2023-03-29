@@ -3,7 +3,7 @@ use crate::error::{CommError, TurError};
 use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
 use crate::error::TurError::ProtocolError;
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
-use crate::state::agent::AgentState;
+use crate::state::agent::InformationSet;
 use log::{info,  debug, error};
 use crate::protocol::AgentMessage::{NotifyError, TakeAction};
 use crate::state::State;
@@ -46,7 +46,7 @@ impl<Agnt, Spec > AgentRR<Spec> for Agnt
 where Agnt: StatefulAgent+ PolicyAgent<Act=Spec::ActionType> +
     CommunicatingAgent<Outward=AgentMessage<Spec>, Inward=EnvMessage<Spec>, CommunicationError=CommError>,
 Spec: ProtocolSpecification<
-    AgentId=<<Agnt as StatefulAgent>::State as AgentState>::Id,
+    AgentId=<<Agnt as StatefulAgent>::State as InformationSet>::Id,
     UpdateType=<<Agnt as StatefulAgent>::State as State>::UpdateType,
     GameErrorType=<<Agnt as StatefulAgent>::State as State>::Error>,
 //<<Agnt as StatefulAgent>::State as State>::Error: Into<TurError<Spec>>

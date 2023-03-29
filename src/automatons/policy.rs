@@ -1,28 +1,28 @@
 use std::marker::PhantomData;
-use crate::state::agent::AgentState;
+use crate::state::agent::InformationSet;
 use rand::seq::IteratorRandom;
 
 pub trait Policy{
-    type StateType: AgentState;
+    type StateType: InformationSet;
 
-    fn select_action(&self, state: &Self::StateType) -> Option<<Self::StateType as AgentState>::ActionType>;
+    fn select_action(&self, state: &Self::StateType) -> Option<<Self::StateType as InformationSet>::ActionType>;
 }
 
 #[derive(Debug, Copy, Clone, Default)]
-pub struct RandomPolicy<State: AgentState>{
+pub struct RandomPolicy<State: InformationSet>{
     state: PhantomData<State>
 }
-impl<State: AgentState> RandomPolicy<State>{
+impl<State: InformationSet> RandomPolicy<State>{
     pub fn new() -> Self{
         Self{state: PhantomData::default()}
     }
 }
 
-impl<State: AgentState> Policy for RandomPolicy<State>
-where <<State as AgentState>::ActionIteratorType as IntoIterator>::IntoIter : ExactSizeIterator{
+impl<State: InformationSet> Policy for RandomPolicy<State>
+where <<State as InformationSet>::ActionIteratorType as IntoIterator>::IntoIter : ExactSizeIterator{
     type StateType = State;
 
-    fn select_action(&self, state: &Self::StateType) -> Option<<Self::StateType as AgentState>::ActionType> {
+    fn select_action(&self, state: &Self::StateType) -> Option<<Self::StateType as InformationSet>::ActionType> {
         let mut rng = rand::thread_rng();
         state.available_actions().into_iter().choose(&mut rng)
     }
