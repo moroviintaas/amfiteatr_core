@@ -5,7 +5,7 @@ pub trait AgentIdentifier: Debug + Send + Copy + Hash + Display{
 
 }
 
-pub trait IdentifiableAgent{
+pub trait DistinctAgent {
     type Id: AgentIdentifier;
 
     fn id(&self) -> &Self::Id;

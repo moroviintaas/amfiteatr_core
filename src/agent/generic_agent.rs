@@ -1,5 +1,5 @@
 use std::marker::PhantomData;
-use crate::agent::{CommunicatingAgent, PolicyAgent, StatefulAgent};
+use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent};
 use crate::automatons::policy::Policy;
 use crate::comm::CommEndpoint;
 use crate::error::CommError;
@@ -57,10 +57,10 @@ impl<Spec: ProtocolSpecification, P: Policy,
 
 impl<Spec: ProtocolSpecification, P: Policy,
     Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError>>
-    PolicyAgent for AgentGen<Spec, P, Comm>{
+ActingAgent for AgentGen<Spec, P, Comm>{
     type Act = <<P as Policy>::StateType as InformationSet>::ActionType ;
 
-    fn select_action(&self) -> Option<Self::Act> {
+    fn take_action(&self) -> Option<Self::Act> {
         self.policy.select_action(&self.state)
     }
 }

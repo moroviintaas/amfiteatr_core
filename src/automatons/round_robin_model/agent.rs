@@ -1,4 +1,4 @@
-use crate::agent::{CommunicatingAgent, PolicyAgent, StatefulAgent};
+use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent};
 use crate::error::{CommError, TurError};
 use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
 use crate::error::TurError::ProtocolError;
@@ -43,7 +43,7 @@ impl <Spec: ProtocolSpecification, P: Policy,
 */
 
 impl<Agnt, Spec > AgentRR<Spec> for Agnt
-where Agnt: StatefulAgent+ PolicyAgent<Act=Spec::ActionType> +
+where Agnt: StatefulAgent+ ActingAgent<Act=Spec::ActionType> +
     CommunicatingAgent<Outward=AgentMessage<Spec>, Inward=EnvMessage<Spec>, CommunicationError=CommError>,
 Spec: ProtocolSpecification<
     AgentId=<<Agnt as StatefulAgent>::State as InformationSet>::Id,
@@ -63,7 +63,7 @@ TurError<Spec>: From<<<Agnt as StatefulAgent>::State as State>::Error>
                         //debug!("Agent's {:?} possible actions: {:?}", self.state().id(), Vec::from_iter(self.state().available_actions().into_iter()));
                         debug!("Agent's {:?} possible actions: {}]", self.state().id(), self.state().available_actions().into_iter()
                             .fold(String::from("["), |a, b| a + &format!("{b:#}") + ", ").trim_end());
-                        match self.select_action(){
+                        match self.take_action(){
                             None => {
                                 error!("Agent {} has no possible action", self.state().id());
                                 self.send(NotifyError(NoPossibleAction(*self.state().id()).into()))?;

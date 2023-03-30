@@ -1,7 +1,7 @@
 use crate::action::Action;
 
-pub trait PolicyAgent{
+pub trait ActingAgent {
     type Act: Action;
 
-    fn select_action(&self) -> Option<Self::Act>;
+    fn take_action(&self) -> Option<Self::Act>;
 }

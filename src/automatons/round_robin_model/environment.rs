@@ -30,7 +30,7 @@ where Env: CommunicatingEnv<AgentId = <<Env as StatefulEnvironment>::State as En
 Spec: ProtocolSpecification<
     AgentId = <<Env as StatefulEnvironment>::State as EnvironmentState>::AgentId,
     UpdateType = <<Env as StatefulEnvironment>::State as State>::UpdateType,
-    ActionType = <Env as StatefulEnvironment>::Action,
+    ActionType = <Env as StatefulEnvironment>::Act,
     GameErrorType = <<Env as StatefulEnvironment>::State as State>::Error>
  //Spec::AgentId =  <<Env as StatefulEnvironment>::State as EnvironmentState>::PlayerId
 {
@@ -78,7 +78,7 @@ where Env: CommunicatingEnv<AgentId = <<Env as StatefulEnvironment>::State as En
 Spec: ProtocolSpecification<
     AgentId = <<Env as StatefulEnvironment>::State as EnvironmentState>::AgentId,
     UpdateType = <<Env as StatefulEnvironment>::State as State>::UpdateType,
-    ActionType = <Env as StatefulEnvironment>::Action,
+    ActionType = <Env as StatefulEnvironment>::Act,
     GameErrorType = <<Env as StatefulEnvironment>::State as State>::Error>
  //Spec::AgentId =  <<Env as StatefulEnvironment>::State as EnvironmentState>::PlayerId
 {
