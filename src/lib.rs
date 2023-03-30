@@ -1,8 +1,15 @@
-pub mod state;
-pub mod agent;
-pub mod action;
+mod state;
+mod agent;
+mod action;
 pub mod protocol;
-pub mod comm;
+mod comm;
 pub mod error;
 pub mod automatons;
-pub mod env;
+mod env;
+
+use log::error;
+pub use state::*;
+pub use agent::*;
+pub use action::*;
+pub use comm::*;
+pub use env::*;

@@ -9,9 +9,9 @@ use crate::comm::endpoint::CommEndpoint;
 /// # Example:
 /// ```
 /// use std::thread::spawn;
-/// use tur::comm::{CommEndpoint};
+/// use tur::{CommEndpoint};
 /// use tur::error::CommError;
-/// use tur::comm::SyncComm;
+/// use tur::SyncComm;
 /// let (mut com1, mut com2) = SyncComm::<String, String, CommError>::new_pair();
 /// let h1 = spawn(move || {
 ///     com1.send(format!("Hello")).unwrap();

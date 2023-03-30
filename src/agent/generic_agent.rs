@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent};
-use crate::automatons::policy::Policy;
+use crate::agent::policy::Policy;
 use crate::comm::CommEndpoint;
 use crate::error::CommError;
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
