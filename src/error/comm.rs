@@ -1,6 +1,6 @@
 use std::sync::mpsc::{RecvError, SendError, TryRecvError, TrySendError};
 use thiserror::Error;
-use crate::error::TurError;
+use crate::error::SztormError;
 use crate::protocol::ProtocolSpecification;
 
 #[derive(Debug, Clone, PartialEq, Eq, Error)]
@@ -52,7 +52,7 @@ impl<T> From<TrySendError<T>> for CommError{
     }
 }
 
-impl <Spec: ProtocolSpecification> From<CommError> for TurError<Spec>{
+impl <Spec: ProtocolSpecification> From<CommError> for SztormError<Spec>{
     fn from(value: CommError) -> Self {
         Self::CommError(value)
     }

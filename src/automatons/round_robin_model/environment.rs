@@ -1,6 +1,6 @@
 use log::{error, info, warn};
 use crate::env::{BroadcastingEnv, CommunicatingEnv, Environment, StatefulEnvironment};
-use crate::error::{CommError, TurError};
+use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::PlayerExited;
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
 use crate::protocol::EnvMessage::ErrorNotify;
@@ -8,13 +8,13 @@ use crate::state::env::EnvironmentState;
 use crate::state::State;
 
 pub trait EnvironmentRR<Spec: ProtocolSpecification>{
-    fn env_run_rr(&mut self) -> Result<(), TurError<Spec>>;
+    fn env_run_rr(&mut self) -> Result<(), SztormError<Spec>>;
 }
 
 pub(crate) trait EnvironmentRRInternal<Spec: ProtocolSpecification>{
-    fn notify_error(&mut self, error: TurError<Spec>) -> Result<(), CommError>;
+    fn notify_error(&mut self, error: SztormError<Spec>) -> Result<(), CommError>;
     fn send_message(&mut self, agent: &Spec::AgentId, message: EnvMessage<Spec>) -> Result<(), CommError>;
-    fn process_action_and_inform(&mut self, player: Spec::AgentId, action: Spec::ActionType) -> Result<(), TurError<Spec>>;
+    fn process_action_and_inform(&mut self, player: Spec::AgentId, action: Spec::ActionType) -> Result<(), SztormError<Spec>>;
 
     //fn broadcast_message(&mut self ,message: EnvMessage<Spec>) -> Result<(), CommError>;
 }
@@ -34,7 +34,7 @@ Spec: ProtocolSpecification<
     GameErrorType = <<Env as StatefulEnvironment>::State as State>::Error>
  //Spec::AgentId =  <<Env as StatefulEnvironment>::State as EnvironmentState>::PlayerId
 {
-    fn notify_error(&mut self, error: TurError<Spec>) -> Result<(), CommError> {
+    fn notify_error(&mut self, error: SztormError<Spec>) -> Result<(), CommError> {
         self.send_to_all(ErrorNotify(error))
     }
 
@@ -47,7 +47,7 @@ Spec: ProtocolSpecification<
             })
     }
 
-    fn process_action_and_inform(&mut self, player: Spec::AgentId, action: Spec::ActionType) -> Result<(), TurError<Spec>> {
+    fn process_action_and_inform(&mut self, player: Spec::AgentId, action: Spec::ActionType) -> Result<(), SztormError<Spec>> {
         match self.process_action(&player, action){
             Ok(iter) => {
                 //let mut n=0;
@@ -59,7 +59,7 @@ Spec: ProtocolSpecification<
                 }
                 Ok(())
             }
-            Err(e) => {Err(TurError::GameError(e))}
+            Err(e) => {Err(SztormError::GameError(e))}
         }
     }
 
@@ -82,7 +82,7 @@ Spec: ProtocolSpecification<
     GameErrorType = <<Env as StatefulEnvironment>::State as State>::Error>
  //Spec::AgentId =  <<Env as StatefulEnvironment>::State as EnvironmentState>::PlayerId
 {
-    fn env_run_rr(&mut self) -> Result<(), TurError<Spec>> {
+    fn env_run_rr(&mut self) -> Result<(), SztormError<Spec>> {
 
         /*fn internal_error_notify(e: TurError<Spec>) -> Result<(), CommError>{
             self.send_to_all()
@@ -140,8 +140,8 @@ Spec: ProtocolSpecification<
                         }
                         AgentMessage::Quit => {
                             error!("Player {} exited game.", player);
-                            self.notify_error(TurError::ProtocolError(PlayerExited(*player)))?;
-                            return Err(TurError::ProtocolError(PlayerExited(*player)))
+                            self.notify_error(SztormError::ProtocolError(PlayerExited(*player)))?;
+                            return Err(SztormError::ProtocolError(PlayerExited(*player)))
                         }
                     },
                     Err(e) => match e{
@@ -152,7 +152,7 @@ Spec: ProtocolSpecification<
                         err => {
                             error!("Failed trying to receive from {}", player);
                             self.send_to_all(EnvMessage::ErrorNotify(err.clone().into()))?;
-                            return Err(TurError::CommError(err));
+                            return Err(SztormError::CommError(err));
                         }
 
                         /*error!("Failed trying to receive from {}", player);

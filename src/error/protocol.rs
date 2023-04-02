@@ -1,5 +1,5 @@
 use thiserror::Error;
-use crate::error::TurError;
+use crate::error::SztormError;
 use crate::protocol::ProtocolSpecification;
 
 #[derive(Debug, Clone, PartialEq, Eq, Error)]
@@ -19,7 +19,7 @@ pub enum ProtocolError<Spec: ProtocolSpecification>{
     PlayerExited(Spec::AgentId)
 }
 
-impl<Spec: ProtocolSpecification> From<ProtocolError<Spec>> for TurError<Spec>{
+impl<Spec: ProtocolSpecification> From<ProtocolError<Spec>> for SztormError<Spec>{
     fn from(value: ProtocolError<Spec>) -> Self {
         Self::ProtocolError(value)
     }

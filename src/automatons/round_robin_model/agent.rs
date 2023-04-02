@@ -1,7 +1,7 @@
 use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent};
-use crate::error::{CommError, TurError};
+use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
-use crate::error::TurError::ProtocolError;
+use crate::error::SztormError::ProtocolError;
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
 use crate::state::agent::InformationSet;
 use log::{info,  debug, error};
@@ -26,7 +26,7 @@ impl <Spec: ProtocolSpecification, P: Policy,
  */
 
 pub trait AgentRR<Spec: ProtocolSpecification>{
-    fn run_rr(&mut self) -> Result<(), TurError<Spec>>;
+    fn run_rr(&mut self) -> Result<(), SztormError<Spec>>;
 }
 
 /*
@@ -45,14 +45,14 @@ impl <Spec: ProtocolSpecification, P: Policy,
 impl<Agnt, Spec > AgentRR<Spec> for Agnt
 where Agnt: StatefulAgent+ ActingAgent<Act=Spec::ActionType> +
     CommunicatingAgent<Outward=AgentMessage<Spec>, Inward=EnvMessage<Spec>, CommunicationError=CommError>,
-Spec: ProtocolSpecification<
+      Spec: ProtocolSpecification<
     AgentId=<<Agnt as StatefulAgent>::State as InformationSet>::Id,
     UpdateType=<<Agnt as StatefulAgent>::State as State>::UpdateType,
     GameErrorType=<<Agnt as StatefulAgent>::State as State>::Error>,
 //<<Agnt as StatefulAgent>::State as State>::Error: Into<TurError<Spec>>
-TurError<Spec>: From<<<Agnt as StatefulAgent>::State as State>::Error>
+SztormError<Spec>: From<<<Agnt as StatefulAgent>::State as State>::Error>
 {
-    fn run_rr(&mut self) -> Result<(), TurError<Spec>> {
+    fn run_rr(&mut self) -> Result<(), SztormError<Spec>> {
 
         loop{
             match self.recv(){
@@ -92,8 +92,8 @@ TurError<Spec>: From<<<Agnt as StatefulAgent>::State as State>::Error>
                             }
                             Err(err) => {
                                 error!("Agent error on updating state: {}", &err);
-                                self.send(AgentMessage::NotifyError(TurError::GameError(err.clone())))?;
-                                return Err(TurError::GameError(err));
+                                self.send(AgentMessage::NotifyError(SztormError::GameError(err.clone())))?;
+                                return Err(SztormError::GameError(err));
                             }
                         }
                     }
