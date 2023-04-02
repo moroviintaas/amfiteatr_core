@@ -8,7 +8,6 @@ pub mod automatons;
 mod env;
 mod reward;
 
-use log::error;
 pub use state::*;
 pub use agent::*;
 pub use action::*;
