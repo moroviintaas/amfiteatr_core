@@ -6,3 +6,4 @@ pub trait EnvironmentState: State{
 
     fn current_player(&self) -> Option<Self::AgentId>;
 }
+
