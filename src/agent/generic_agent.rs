@@ -3,6 +3,7 @@ use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent};
 use crate::agent::policy::Policy;
 use crate::comm::CommEndpoint;
 use crate::error::CommError;
+use crate::PolicyAgent;
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
 use crate::state::agent::InformationSet;
 use crate::state::State;
@@ -65,3 +66,12 @@ ActingAgent for AgentGen<Spec, P, Comm>{
     }
 }
 
+impl<Spec: ProtocolSpecification, P: Policy,
+    Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError>>
+PolicyAgent for AgentGen<Spec, P, Comm>{
+    type Policy = P;
+
+    fn policy(&self) -> &Self::Policy {
+        &self.policy
+    }
+}

@@ -1,6 +1,6 @@
-use std::fmt::{Display, Formatter};
+use std::fmt::{Display, Formatter, write};
 use thiserror::Error;
-use crate::error::{CommError, ProtocolError};
+use crate::error::{CommError, ProtocolError, SetupError};
 use crate::protocol::{ProtocolSpecification};
 
 #[derive(Debug, Clone,  Error)]
@@ -9,6 +9,7 @@ pub enum SztormError<Spec: ProtocolSpecification>{
     GameError(Spec::GameErrorType),
     CommError(CommError),
     ProtocolError(ProtocolError<Spec>),
+    SetupError(SetupError<Spec>)
 }
 
 impl <Spec: ProtocolSpecification> Display for SztormError<Spec>{
@@ -17,6 +18,7 @@ impl <Spec: ProtocolSpecification> Display for SztormError<Spec>{
             SztormError::GameError(e) => write!(f, "GameError: {e}"),
             SztormError::CommError(e) => write!(f, "CommError: {e}"),
             SztormError::ProtocolError(e) => write!(f, "ProtocolError: {e}"),
+            SztormError::SetupError(e) => write!(f, "SetupError: {e}")
 
         }
 

@@ -3,6 +3,8 @@ use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::sync::mpsc::{channel, Receiver, RecvError, Sender, SendError, TryRecvError};
 use crate::comm::endpoint::CommEndpoint;
+use crate::error::CommError;
+use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
 
 
 #[derive(Debug)]
@@ -24,6 +26,9 @@ pub struct SyncComm<OT, IT, E: Error>{
     receiver: Receiver<IT>,
     _phantom: PhantomData<E>
 }
+
+pub type SyncCommEnv<Spec> = SyncComm<EnvMessage<Spec>, AgentMessage<Spec>, CommError>;
+pub type SyncCommAgent<Spec> = SyncComm<AgentMessage<Spec>, EnvMessage<Spec>,  CommError>;
 
 impl<OT, IT, E: Error> SyncComm<OT, IT, E>
 where SyncComm<OT, IT, E> :  CommEndpoint<OutwardType = OT, InwardType = IT, Error = E>{

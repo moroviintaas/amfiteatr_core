@@ -5,6 +5,7 @@ use crate::error::SztormError::ProtocolError;
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
 use crate::state::agent::InformationSet;
 use log::{info,  debug, error};
+use crate::{Policy, PolicyAgent};
 use crate::protocol::AgentMessage::{NotifyError, TakeAction};
 use crate::state::State;
 /*AgentState<ActionIteratorType=Spec::ActionIteratorType,
@@ -44,11 +45,14 @@ impl <Spec: ProtocolSpecification, P: Policy,
 
 impl<Agnt, Spec > AgentRR<Spec> for Agnt
 where Agnt: StatefulAgent+ ActingAgent<Act=Spec::ActionType> +
-    CommunicatingAgent<Outward=AgentMessage<Spec>, Inward=EnvMessage<Spec>, CommunicationError=CommError>,
+        CommunicatingAgent<Outward=AgentMessage<Spec>, Inward=EnvMessage<Spec>, CommunicationError=CommError>
+        + PolicyAgent,
       Spec: ProtocolSpecification<
-    AgentId=<<Agnt as StatefulAgent>::State as InformationSet>::Id,
-    UpdateType=<<Agnt as StatefulAgent>::State as State>::UpdateType,
-    GameErrorType=<<Agnt as StatefulAgent>::State as State>::Error>,
+          AgentId=<<Agnt as StatefulAgent>::State as InformationSet>::Id,
+          UpdateType=<<Agnt as StatefulAgent>::State as State>::UpdateType,
+          GameErrorType=<<Agnt as StatefulAgent>::State as State>::Error,
+          ActionType = <<<Agnt as PolicyAgent>::Policy as Policy>::StateType as InformationSet>::ActionType>,
+
 //<<Agnt as StatefulAgent>::State as State>::Error: Into<TurError<Spec>>
 SztormError<Spec>: From<<<Agnt as StatefulAgent>::State as State>::Error>
 {
@@ -63,7 +67,7 @@ SztormError<Spec>: From<<<Agnt as StatefulAgent>::State as State>::Error>
                         //debug!("Agent's {:?} possible actions: {:?}", self.state().id(), Vec::from_iter(self.state().available_actions().into_iter()));
                         debug!("Agent's {:?} possible actions: {}]", self.state().id(), self.state().available_actions().into_iter()
                             .fold(String::from("["), |a, b| a + &format!("{b:#}") + ", ").trim_end());
-                        match self.take_action(){
+                        match self.policy_select_action(){
                             None => {
                                 error!("Agent {} has no possible action", self.state().id());
                                 self.send(NotifyError(NoPossibleAction(*self.state().id()).into()))?;
