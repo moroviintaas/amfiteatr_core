@@ -1,118 +1,56 @@
-use std::collections::{HashMap, HashSet};
-use std::marker::PhantomData;
-use std::ops::Index;
-use crate::automatons::rr::{AgentRR, EnvironmentRR};
-use crate::{ActingAgent, AgentGen, CommEndpoint, EnvironmentBuilder, EnvironmentState, InformationSet, Policy, Reward, StatefulAgent, StatefulEnvironment, SyncComm, SyncCommEnv};
-use crate::error::{CommError, SetupError, SztormError};
-use crate::error::SetupError::DuplicateId;
-use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
+use std::collections::HashMap;
+use std::thread;
+use crate::protocol::ProtocolSpecification;
+use crate::{AutomaticEnvironment, CommunicatingEnv, StatefulEnvironment};
+use crate::automatons::rr::{AgentAuto, EnvironmentRR};
+use crate::error::SztormError;
 
-pub struct RoundRobinModel<S: ProtocolSpecification, B: EnvironmentBuilder<ProtocolSpec=S>>{
-    builder: B,
-    //_spec: PhantomData<S>,
-
-    //environment_state: E,
-    local_agents: HashMap<S::AgentId, Box<dyn AgentRR<S> + Send>>,
-    comm_endpoints: HashMap<S::AgentId,
-        Box<dyn CommEndpoint<
-            OutwardType=EnvMessage<S>,
-            InwardType=AgentMessage<S>,
-            Error=CommError>>
-        >
-
-
-
-
+pub struct RoundRobinModel<Spec: ProtocolSpecification, Env: EnvironmentRR<Spec>>{
+    environment: Env,
+    local_agents: HashMap<Spec::AgentId, Box<dyn AgentAuto<Spec, Id = Spec::AgentId> + Send>>,
 }
 
-impl<S: ProtocolSpecification, B: EnvironmentBuilder<ProtocolSpec=S>> RoundRobinModel<S, B>{
-    pub fn with_env_state(&mut self, environment_state: <B::Environment as StatefulEnvironment>::State){
-        self.builder.with_state(environment_state)
-    }
-    pub fn get_agent(&self, s: &S::AgentId) -> Option<&Box<dyn AgentRR<S> + Send>>{
-        self.local_agents.get(s).and_then(|a| Some(a))
-
+impl <Spec: ProtocolSpecification, Env: EnvironmentRR<Spec>> RoundRobinModel<Spec, Env>{
+    pub fn new(environment: Env, local_agents: HashMap<Spec::AgentId, Box<dyn AgentAuto<Spec, Id = Spec::AgentId> + Send>>) -> Self{
+        Self{environment, local_agents}
     }
 
+    pub fn play(&mut self) -> Result<(), SztormError<Spec>>{
+        let mut agent_collectors = HashMap::<Spec::AgentId, std::sync::mpsc::Receiver<Box<dyn AgentAuto<Spec, Id = Spec::AgentId> + Send>>>::new();
+        //let mut join_handles = Vec::with_capacity(self.local_agents.len());
 
-    /*pub fn add_local_agent(&mut self,
-                           agent_id: &S::AgentId,
-                           information_set: Box<dyn InformationSet<
-                               ActionIteratorType=Vec<S::ActionType>,
-                               ActionType=S::ActionType,
-                               Error: Into<SztormError<S>>,
-                               Id=S::AgentId,
-                               RewardType: Reward,
-                               UpdateType=S::UpdateType>>,
-                           policy: Box<dyn Policy<StateType=Box<dyn InformationSet<
-                               ActionIteratorType=Vec<S::ActionType>,
-                               ActionType=S::ActionType,
-                               Error: Into<SztormError<S>>,
-                               Id=S::AgentId,
-                               RewardType: Reward,
-                               UpdateType=S::UpdateType>>>>) -> Result<(), SetupError<S>>{
+        //let moved_agents = std::mem::take(self.local_agents);
+        /*thread::scope(|s|{
+            for (id, agent) in self.local_agents.drain().take(1){
+                let (agent_return_sender, agent_return_receiver) = std::sync::mpsc::channel();
+                agent_collectors.insert(id, agent_return_receiver);
+                s.spawn(||{
+                    agent_return_sender
+                })
 
+            }
+        });
 
+         */
 
-    }*/
-/*
-    pub fn add_local_agent<Agnt: AgentRR<S>, P: Policy>(&mut self,
-                                                        information_set: <Agnt as StatefulAgent>::State,
-                                                        policy: <Agnt as ActingAgent>::)
-                                                -> Result<(), SetupError<S>>
-    //where InfSet = P::StateType
-    {
+        for (id, mut agent) in self.local_agents.drain().take(1){
+            let (agent_return_sender, agent_return_receiver) = std::sync::mpsc::channel();
+            agent_collectors.insert(id, agent_return_receiver);
+            thread::spawn(move ||{
+                agent.run_rr().unwrap();
+                agent_return_sender.send(agent).expect("Error sending back agent for collection");
+            });
 
-        let (comm_env, comm_agent) = SyncCommEnv::<S>::new_pair();
-        let id = information_set.id();
-        if self.comm_endpoints.contains_key(id){
-            return Err(DuplicateId(*id));
         }
-        let agent = AgentGen::new(information_set, comm_agent, policy);
 
-        self.comm_endpoints.insert(id, Box::new(comm_env));
-        self.local_agents.insert(id, Box::new(agent));
-        Ok(())
+        self.environment.env_run_rr().unwrap();
 
-    }
-
- */
-
-
-
-
-}
-/*
-impl<S: ProtocolSpecification,
-    B: EnvironmentBuilder<ProtocolSpec=S>,
-    P: Policy<StateType: InformationSet<Id=S::AgentId>>>  RoundRobinModel<S, B>{
-
-    pub fn add_local_agent(&mut self, information_set: P::StateType, policy: P)
-        -> Result<(), SetupError<S>>
-    {
-
-        let (comm_env, comm_agent) = SyncCommEnv::<S>::new_pair();
-        let id = information_set.id();
-        if self.comm_endpoints.contains_key(id){
-            return Err(DuplicateId(*id));
+        for (id, col) in agent_collectors.drain().take(1){
+            let agent = col.recv().unwrap();
+            self.local_agents.insert(id, agent);
         }
-        let agent = AgentGen::new(information_set, comm_agent, policy);
 
-        self.comm_endpoints.insert(id, Box::new(comm_env));
-        self.local_agents.insert(id, Box::new(agent));
         Ok(())
-
+        //todo!()
     }
 }
-
-
- */
-/*
-impl<S: ProtocolSpecification, E: EnvironmentRR<S>> Index<S::AgentId> for RoundRobinModel<S,E>{
-    type Output = Option<Box<dyn AgentRR<S> + Send>>;
-
-    fn index(&self, index: S::AgentId) -> &Self::Output {
-        &self.agents.get(&index)
-    }
-}*/
-

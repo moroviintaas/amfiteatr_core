@@ -1,9 +1,11 @@
 use crate::action::Action;
+use crate::DomainEnvironment;
+use crate::protocol::ProtocolSpecification;
 use crate::state::env::EnvironmentState;
 use crate::state::State;
 
-pub trait StatefulEnvironment{
-    type State: EnvironmentState;
+pub trait StatefulEnvironment : DomainEnvironment{
+    type State: EnvironmentState<AgentId = <Self::DomainParameter as ProtocolSpecification>::AgentId>;
     type Act: Action;
     type UpdatesIterator: Iterator<Item=(<Self::State as EnvironmentState>::AgentId, <Self::State as State>::UpdateType)>;
 

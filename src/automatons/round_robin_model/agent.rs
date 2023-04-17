@@ -5,7 +5,7 @@ use crate::error::SztormError::ProtocolError;
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
 use crate::state::agent::InformationSet;
 use log::{info,  debug, error};
-use crate::{Policy, PolicyAgent};
+use crate::{DistinctAgent, Policy, PolicyAgent};
 use crate::protocol::AgentMessage::{NotifyError, TakeAction};
 use crate::state::State;
 /*AgentState<ActionIteratorType=Spec::ActionIteratorType,
@@ -26,7 +26,7 @@ impl <Spec: ProtocolSpecification, P: Policy,
 
  */
 
-pub trait AgentRR<Spec: ProtocolSpecification>{
+pub trait AgentAuto<Spec: ProtocolSpecification>: DistinctAgent{
     fn run_rr(&mut self) -> Result<(), SztormError<Spec>>;
 }
 
@@ -43,10 +43,10 @@ impl <Spec: ProtocolSpecification, P: Policy,
 
 */
 
-impl<Agnt, Spec > AgentRR<Spec> for Agnt
+impl<Agnt, Spec > AgentAuto<Spec> for Agnt
 where Agnt: StatefulAgent+ ActingAgent<Act=Spec::ActionType> +
         CommunicatingAgent<Outward=AgentMessage<Spec>, Inward=EnvMessage<Spec>, CommunicationError=CommError>
-        + PolicyAgent,
+        + PolicyAgent + DistinctAgent<Id = Spec::AgentId>,
       Spec: ProtocolSpecification<
           AgentId=<<Agnt as StatefulAgent>::State as InformationSet>::Id,
           UpdateType=<<Agnt as StatefulAgent>::State as State>::UpdateType,

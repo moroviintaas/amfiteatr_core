@@ -3,7 +3,7 @@ use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent};
 use crate::agent::policy::Policy;
 use crate::comm::CommEndpoint;
 use crate::error::CommError;
-use crate::PolicyAgent;
+use crate::{DistinctAgent, PolicyAgent};
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
 use crate::state::agent::InformationSet;
 use crate::state::State;
@@ -14,14 +14,15 @@ pub struct AgentGen<Spec: ProtocolSpecification, P: Policy,
     comm: Comm,
     policy: P,
     _phantom: PhantomData<Spec>,
+    id: Spec::AgentId
 }
 
 impl <Spec: ProtocolSpecification, P: Policy,
     Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError>>
     AgentGen<Spec, P, Comm>{
 
-    pub fn new(state: <P as Policy>::StateType, comm: Comm, policy: P) -> Self{
-        Self{state, comm, policy,  _phantom:PhantomData::default()}
+    pub fn new(id: Spec::AgentId, state: <P as Policy>::StateType, comm: Comm, policy: P) -> Self{
+        Self{state, comm, policy,  _phantom:PhantomData::default(), id}
     }
 }
 
@@ -73,5 +74,15 @@ PolicyAgent for AgentGen<Spec, P, Comm>{
 
     fn policy(&self) -> &Self::Policy {
         &self.policy
+    }
+}
+
+impl<Spec: ProtocolSpecification, P: Policy,
+    Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError>>
+DistinctAgent for AgentGen<Spec, P, Comm>{
+    type Id = Spec::AgentId;
+
+    fn id(&self) -> &Self::Id {
+        &self.id
     }
 }
