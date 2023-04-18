@@ -5,7 +5,8 @@ use crate::state::env::EnvironmentState;
 use crate::state::State;
 
 pub trait StatefulEnvironment : DomainEnvironment{
-    type State: EnvironmentState<AgentId = <Self::DomainParameter as ProtocolSpecification>::AgentId>;
+    type State: EnvironmentState<AgentId = <Self::DomainParameter as ProtocolSpecification>::AgentId,
+        UpdateType = <<Self as DomainEnvironment>::DomainParameter as ProtocolSpecification>::UpdateType>;
     type Act: Action;
     type UpdatesIterator: Iterator<Item=(<Self::State as EnvironmentState>::AgentId, <Self::State as State>::UpdateType)>;
 

@@ -1,12 +1,15 @@
+use std::fmt::Error;
 use crate::{CommEndpoint, CommunicatingEnv, DomainEnvironment, StatefulEnvironment};
-use crate::error::SetupError;
-use crate::protocol::ProtocolSpecification;
+use crate::automatons::rr::EnvironmentRR;
+use crate::error::{CommError, SetupError};
+use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
 
 pub trait EnvironmentBuilder: Default{
 
 
     type ProtocolSpec: ProtocolSpecification;
-    type Environment: CommunicatingEnv + StatefulEnvironment;
+    type Environment: CommunicatingEnv<Outward = EnvMessage<Self::ProtocolSpec>, Inward = AgentMessage<Self::ProtocolSpec>, CommunicationError = CommError> + StatefulEnvironment;
+    //type Environment: EnvironmentRR<Spec = Self::ProtocolSpec>;
     type Comm: CommEndpoint;
 
     fn build(self) -> Self::Environment;

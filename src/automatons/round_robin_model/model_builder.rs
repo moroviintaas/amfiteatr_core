@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use std::marker::PhantomData;
 use std::ops::Index;
 use crate::automatons::rr::{AgentAuto, EnvironmentRR, RoundRobinModel};
-use crate::{ActingAgent, AgentGen, CommEndpoint, CommunicatingEnv, EnvironmentBuilder, EnvironmentState, InformationSet, Policy, Reward, StatefulAgent, StatefulEnvironment, SyncComm, SyncCommEnv};
+use crate::{ActingAgent, AgentGen, CommEndpoint, CommunicatingEnv, DomainEnvironment, EnvironmentBuilder, EnvironmentState, InformationSet, Policy, Reward, StatefulAgent, StatefulEnvironment, SyncComm, SyncCommEnv};
 use crate::error::{CommError, SetupError, SztormError};
 use crate::error::SetupError::DuplicateId;
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
@@ -28,8 +28,21 @@ pub struct RoundRobinModelBuilder<Spec: ProtocolSpecification, B: EnvironmentBui
 
 }
 
-impl<Spec: ProtocolSpecification<AgentId = <<B as EnvironmentBuilder>::Environment as CommunicatingEnv>::AgentId>, B: EnvironmentBuilder<ProtocolSpec=Spec,
-    Comm = Box<(dyn CommEndpoint<OutwardType = EnvMessage<Spec>, Error = CommError, InwardType = AgentMessage<Spec>> + 'static)>>> RoundRobinModelBuilder<Spec, B>
+impl<Spec: ProtocolSpecification<
+        AgentId = <<<B as EnvironmentBuilder>::Environment as StatefulEnvironment>::
+        State as EnvironmentState>::AgentId>,
+    B: EnvironmentBuilder<
+        ProtocolSpec=Spec,
+        Comm = Box<
+            (dyn CommEndpoint<
+                OutwardType = EnvMessage<Spec>,
+                Error = CommError, InwardType =
+                AgentMessage<Spec>> + 'static)>,
+        //Environment = Envi
+
+    >
+>
+RoundRobinModelBuilder<Spec, B>
 //where <<B as EnvironmentBuilder>::Environment as CommunicatingEnv>::AgentId> = <<>>
 {
     pub fn with_env_state(mut self, environment_state: <B::Environment as StatefulEnvironment>::State)
@@ -74,9 +87,9 @@ impl<Spec: ProtocolSpecification<AgentId = <<B as EnvironmentBuilder>::Environme
         Ok(self)
     }
 
-    pub fn build(self) -> RoundRobinModel<Spec, B::Environment>{
+    /*pub fn build(self) -> RoundRobinModel<Spec, B::Environment>{
         RoundRobinModel::new(self.env_builder.build(), self.local_agents)
-    }
+    }*/
 
 
 
