@@ -26,7 +26,7 @@ impl <Spec: ProtocolSpecification, P: Policy,
 
  */
 
-pub trait AgentAuto<Spec: ProtocolSpecification>: DistinctAgent{
+pub trait AgentAuto<Spec: ProtocolSpecification>: DistinctAgent<Spec>{
     fn run_rr(&mut self) -> Result<(), SztormError<Spec>>;
 }
 
@@ -44,17 +44,12 @@ impl <Spec: ProtocolSpecification, P: Policy,
 */
 
 impl<Agnt, Spec > AgentAuto<Spec> for Agnt
-where Agnt: StatefulAgent+ ActingAgent<Act=Spec::ActionType> +
-        CommunicatingAgent<Outward=AgentMessage<Spec>, Inward=EnvMessage<Spec>, CommunicationError=CommError>
-        + PolicyAgent + DistinctAgent<Id = Spec::AgentId>,
-      Spec: ProtocolSpecification<
-          AgentId=<<Agnt as StatefulAgent>::State as InformationSet>::Id,
-          UpdateType=<<Agnt as StatefulAgent>::State as State>::UpdateType,
-          GameErrorType=<<Agnt as StatefulAgent>::State as State>::Error,
-          ActionType = <<<Agnt as PolicyAgent>::Policy as Policy>::StateType as InformationSet>::ActionType>,
-
+where Agnt: StatefulAgent<Spec> + ActingAgent<Spec> +
+        CommunicatingAgent<Spec, CommunicationError=CommError>
+        + PolicyAgent<Spec> + DistinctAgent<Spec>,
+      Spec: ProtocolSpecification,
 //<<Agnt as StatefulAgent>::State as State>::Error: Into<TurError<Spec>>
-SztormError<Spec>: From<<<Agnt as StatefulAgent>::State as State>::Error>
+//SztormError<Spec>: From<<<Agnt as StatefulAgent<Spec>>::State as State>::Error>
 {
     fn run_rr(&mut self) -> Result<(), SztormError<Spec>> {
 

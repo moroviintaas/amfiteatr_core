@@ -1,18 +1,18 @@
 use crate::action::Action;
 use crate::{InformationSet, Policy, StatefulAgent};
+use crate::protocol::ProtocolSpecification;
 
-pub trait ActingAgent {
-    type Act: Action;
+pub trait ActingAgent<Spec: ProtocolSpecification> {
 
-    fn take_action(&self) -> Option<Self::Act>;
+    fn take_action(&self) -> Option<Spec::ActionType>;
 }
 
-pub trait PolicyAgent: StatefulAgent{
-    type Policy: Policy<StateType = <Self as StatefulAgent>::State>;
+pub trait PolicyAgent<Spec: ProtocolSpecification>: StatefulAgent<Spec>{
+    type Policy: Policy<Spec, StateType = <Self as StatefulAgent<Spec>>::State>;
 
     fn policy(&self) -> &Self::Policy;
     fn policy_select_action(&self)
-        -> Option<<<Self as StatefulAgent>::State as InformationSet>::ActionType>{
+        -> Option<Spec::ActionType>{
         self.policy().select_action(self.state())
     }
 }

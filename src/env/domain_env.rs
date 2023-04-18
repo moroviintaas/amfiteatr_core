@@ -1,5 +1,5 @@
 use crate::protocol::ProtocolSpecification;
 
-pub trait DomainEnvironment{
-    type DomainParameter: ProtocolSpecification;
+pub trait DomainEnvironment<Spec: ProtocolSpecification>{
+    //type DomainParameter: ProtocolSpecification;
 }

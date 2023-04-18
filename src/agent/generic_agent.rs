@@ -8,47 +8,47 @@ use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
 use crate::state::agent::InformationSet;
 use crate::state::State;
 
-pub struct AgentGen<Spec: ProtocolSpecification, P: Policy,
+pub struct AgentGen<Spec: ProtocolSpecification, P: Policy<Spec>,
     Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError>>{
-    state: <P as Policy>::StateType,
+    state: <P as Policy<Spec>>::StateType,
     comm: Comm,
     policy: P,
     _phantom: PhantomData<Spec>,
     id: Spec::AgentId
 }
 
-impl <Spec: ProtocolSpecification, P: Policy,
+impl <Spec: ProtocolSpecification, P: Policy<Spec>,
     Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError>>
     AgentGen<Spec, P, Comm>{
 
-    pub fn new(id: Spec::AgentId, state: <P as Policy>::StateType, comm: Comm, policy: P) -> Self{
+    pub fn new(id: Spec::AgentId, state: <P as Policy<Spec>>::StateType, comm: Comm, policy: P) -> Self{
         Self{state, comm, policy,  _phantom:PhantomData::default(), id}
     }
 }
 
-impl<Spec: ProtocolSpecification, P: Policy,
+impl<Spec: ProtocolSpecification, P: Policy<Spec>,
     Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError>>
-    CommunicatingAgent for AgentGen<Spec, P, Comm>
+    CommunicatingAgent<Spec> for AgentGen<Spec, P, Comm>
 {
-    type Outward = AgentMessage<Spec>;
-    type Inward = EnvMessage<Spec>;
+    //type Outward = AgentMessage<Spec>;
+    //type Inward = EnvMessage<Spec>;
     type CommunicationError = CommError;
 
-    fn send(&mut self, message: Self::Outward) -> Result<(), Self::CommunicationError> {
+    fn send(&mut self, message: AgentMessage<Spec>) -> Result<(), Self::CommunicationError> {
         self.comm.send(message)
     }
 
-    fn recv(&mut self) -> Result<Self::Inward, Self::CommunicationError> {
+    fn recv(&mut self) -> Result<EnvMessage<Spec>, Self::CommunicationError> {
         self.comm.recv()
     }
 }
 
-impl<Spec: ProtocolSpecification, P: Policy,
+impl<Spec: ProtocolSpecification, P: Policy<Spec>,
     Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError>>
-    StatefulAgent for AgentGen<Spec, P, Comm>{
-    type State = <P as Policy>::StateType;
+    StatefulAgent<Spec> for AgentGen<Spec, P, Comm>{
+    type State = <P as Policy<Spec>>::StateType;
 
-    fn update(&mut self, state_update: <Self::State as State>::UpdateType) -> Result<(), <Self::State as State>::Error> {
+    fn update(&mut self, state_update: Spec::UpdateType) -> Result<(), Spec::GameErrorType> {
         self.state.update(state_update)
     }
 
@@ -57,19 +57,18 @@ impl<Spec: ProtocolSpecification, P: Policy,
     }
 }
 
-impl<Spec: ProtocolSpecification, P: Policy,
+impl<Spec: ProtocolSpecification, P: Policy<Spec>,
     Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError>>
-ActingAgent for AgentGen<Spec, P, Comm>{
-    type Act = <<P as Policy>::StateType as InformationSet>::ActionType ;
+ActingAgent<Spec> for AgentGen<Spec, P, Comm>{
 
-    fn take_action(&self) -> Option<Self::Act> {
+    fn take_action(&self) -> Option<Spec::ActionType> {
         self.policy.select_action(&self.state)
     }
 }
 
-impl<Spec: ProtocolSpecification, P: Policy,
+impl<Spec: ProtocolSpecification, P: Policy<Spec>,
     Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError>>
-PolicyAgent for AgentGen<Spec, P, Comm>{
+PolicyAgent<Spec> for AgentGen<Spec, P, Comm>{
     type Policy = P;
 
     fn policy(&self) -> &Self::Policy {
@@ -77,12 +76,11 @@ PolicyAgent for AgentGen<Spec, P, Comm>{
     }
 }
 
-impl<Spec: ProtocolSpecification, P: Policy,
+impl<Spec: ProtocolSpecification, P: Policy<Spec>,
     Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError>>
-DistinctAgent for AgentGen<Spec, P, Comm>{
-    type Id = Spec::AgentId;
+DistinctAgent<Spec> for AgentGen<Spec, P, Comm>{
 
-    fn id(&self) -> &Self::Id {
+    fn id(&self) -> &Spec::AgentId {
         &self.id
     }
 }

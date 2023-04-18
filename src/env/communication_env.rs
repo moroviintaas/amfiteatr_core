@@ -1,23 +1,23 @@
 use std::error::Error;
 use crate::agent::AgentIdentifier;
 use crate::DomainEnvironment;
-use crate::protocol::ProtocolSpecification;
+use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
 
-pub trait CommunicatingEnv : DomainEnvironment{
-    type Outward;
-    type Inward;
+pub trait CommunicatingEnv<Spec: ProtocolSpecification> : DomainEnvironment<Spec>{
+    //type Outward;
+    //type Inward;
     type CommunicationError: Error;
 
-    fn send_to(&mut self, agent_id: &<Self::DomainParameter as ProtocolSpecification>::AgentId,  message: Self::Outward) -> Result<(), Self::CommunicationError>;
-    fn recv_from(&mut self, agent_id: &<Self::DomainParameter as ProtocolSpecification>::AgentId) -> Result<Self::Inward, Self::CommunicationError>;
+    fn send_to(&mut self, agent_id: &Spec::AgentId,  message: EnvMessage<Spec>) -> Result<(), Self::CommunicationError>;
+    fn recv_from(&mut self, agent_id: &Spec::AgentId) -> Result<AgentMessage<Spec>, Self::CommunicationError>;
 
-    fn try_recv_from(&mut self, agent_id: &<Self::DomainParameter as ProtocolSpecification>::AgentId) -> Result<Self::Inward, Self::CommunicationError>;
+    fn try_recv_from(&mut self, agent_id: &Spec::AgentId) -> Result<AgentMessage<Spec>, Self::CommunicationError>;
 
 
 }
 
-pub trait BroadcastingEnv: CommunicatingEnv{
+pub trait BroadcastingEnv<Spec: ProtocolSpecification>: CommunicatingEnv<Spec>{
 
-    fn send_to_all(&mut self,  message: Self::Outward) -> Result<(), Self::CommunicationError>;
+    fn send_to_all(&mut self,  message: EnvMessage<Spec>) -> Result<(), Self::CommunicationError>;
 
 }

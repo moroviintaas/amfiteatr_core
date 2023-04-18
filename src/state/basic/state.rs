@@ -1,11 +1,12 @@
 use std::error::Error;
+use crate::protocol::ProtocolSpecification;
 use crate::state::StateUpdate;
 
-pub trait State{
-    type UpdateType: StateUpdate;
-    type Error: Error + Clone;
+pub trait State<Spec: ProtocolSpecification>{
+    //type UpdateType: StateUpdate;
+    //type Error: Error + Clone;
 
-    fn update(&mut self, update: Self::UpdateType) -> Result<(), Self::Error>;
+    fn update(&mut self, update: Spec::UpdateType) -> Result<(), Spec::GameErrorType>;
     fn is_finished(&self) ->bool;
 }
 

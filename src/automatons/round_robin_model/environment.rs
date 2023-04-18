@@ -21,19 +21,15 @@ pub(crate) trait EnvironmentRRInternal<Spec: ProtocolSpecification>{
 }
 
 impl<'a, Env, Spec: ProtocolSpecification + 'a> EnvironmentRRInternal<Spec> for Env
-where Env: CommunicatingEnv<Outward=EnvMessage<Spec>, Inward=AgentMessage<Spec>, CommunicationError=CommError>
- + StatefulEnvironment + 'a
+where Env: CommunicatingEnv<Spec, CommunicationError=CommError>
+ + StatefulEnvironment<Spec> + 'a
  + Environment<'a, Spec::AgentId>
- + BroadcastingEnv,
+ + BroadcastingEnv<Spec>,
  //+ DomainEnvironment<DomainParameter = Spec::AgentId>,
 
 //<<Env as StatefulEnvironment>::State as State>::Error: Clone,
 //TurError<Spec>: From<<<Env as StatefulEnvironment>::State as State>::Error>,
-Spec: ProtocolSpecification<
-    AgentId = <<Env as StatefulEnvironment>::State as EnvironmentState>::AgentId,
-    UpdateType = <<Env as StatefulEnvironment>::State as State>::UpdateType,
-    ActionType = <Env as StatefulEnvironment>::Act,
-    GameErrorType = <<Env as StatefulEnvironment>::State as State>::Error>
+Spec: ProtocolSpecification
  //Spec::AgentId =  <<Env as StatefulEnvironment>::State as EnvironmentState>::PlayerId
 {
     fn notify_error(&mut self, error: SztormError<Spec>) -> Result<(), CommError> {
@@ -70,19 +66,14 @@ Spec: ProtocolSpecification<
 
 
 impl<'a, Env, Spec: ProtocolSpecification + 'a> EnvironmentRR<Spec> for Env
-where Env: CommunicatingEnv<
-    Outward=EnvMessage<Spec>, Inward=AgentMessage<Spec>, CommunicationError=CommError>
- + StatefulEnvironment + 'a
+where Env: CommunicatingEnv<Spec, CommunicationError=CommError>
+ + StatefulEnvironment<Spec> + 'a
  + Environment<'a, Spec::AgentId>
  //+ DomainEnvironment<DomainParameter = Spec::AgentId>
- + BroadcastingEnv,
+ + BroadcastingEnv<Spec>,
 //<<Env as StatefulEnvironment>::State as State>::Error: Clone,
 //TurError<Spec>: From<<<Env as StatefulEnvironment>::State as State>::Error>,
-Spec: ProtocolSpecification<
-    AgentId = <<Env as StatefulEnvironment>::State as EnvironmentState>::AgentId,
-    UpdateType = <<Env as StatefulEnvironment>::State as State>::UpdateType,
-    ActionType = <Env as StatefulEnvironment>::Act,
-    GameErrorType = <<Env as StatefulEnvironment>::State as State>::Error>
+Spec: ProtocolSpecification
  //Spec::AgentId =  <<Env as StatefulEnvironment>::State as EnvironmentState>::PlayerId
 {
     fn env_run_rr(&mut self) -> Result<(), SztormError<Spec>> {

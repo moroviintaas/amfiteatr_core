@@ -4,36 +4,37 @@ use rand::seq::IteratorRandom;
 use crate::protocol::ProtocolSpecification;
 use crate::State;
 
-pub trait Policy{
-    type StateType: InformationSet;
+pub trait Policy<Spec: ProtocolSpecification>{
+    type StateType: InformationSet<Spec>;
 
-    fn select_action(&self, state: &Self::StateType) -> Option<<Self::StateType as InformationSet>::ActionType>;
+    fn select_action(&self, state: &Self::StateType) -> Option<Spec::ActionType>;
 }
 
 #[derive(Debug, Copy, Clone, Default)]
-pub struct RandomPolicy<State: InformationSet>{
-    state: PhantomData<State>
+pub struct RandomPolicy<Spec: ProtocolSpecification, State: InformationSet<Spec>>{
+    state: PhantomData<State>,
+    _spec: PhantomData<Spec>
 }
-impl<State: InformationSet> RandomPolicy<State>{
+impl<Spec: ProtocolSpecification, State: InformationSet<Spec>> RandomPolicy<Spec, State>{
     pub fn new() -> Self{
-        Self{state: PhantomData::default()}
+        Self{state: PhantomData::default(), _spec: PhantomData::default()}
     }
 }
 
-impl<State: InformationSet> Policy for RandomPolicy<State>
-where <<State as InformationSet>::ActionIteratorType as IntoIterator>::IntoIter : ExactSizeIterator{
+impl<Spec: ProtocolSpecification, State: InformationSet<Spec>> Policy<Spec> for RandomPolicy<Spec, State>
+where <<State as InformationSet<Spec>>::ActionIteratorType as IntoIterator>::IntoIter : ExactSizeIterator{
     type StateType = State;
 
-    fn select_action(&self, state: &Self::StateType) -> Option<<Self::StateType as InformationSet>::ActionType> {
+    fn select_action(&self, state: &Self::StateType) -> Option<Spec::ActionType> {
         let mut rng = rand::thread_rng();
         state.available_actions().into_iter().choose(&mut rng)
     }
 }
 
-impl<P: Policy> Policy for Box<P>{
+impl<Spec: ProtocolSpecification, P: Policy<Spec>> Policy<Spec> for Box<P>{
     type StateType = P::StateType;
 
-    fn select_action(&self, state: &Self::StateType) -> Option<<Self::StateType as InformationSet>::ActionType> {
+    fn select_action(&self, state: &Self::StateType) -> Option<Spec::ActionType> {
         self.as_ref().select_action(state)
     }
 }

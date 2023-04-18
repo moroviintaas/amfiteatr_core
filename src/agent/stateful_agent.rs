@@ -1,9 +1,10 @@
+use crate::protocol::ProtocolSpecification;
 use crate::state::agent::InformationSet;
 use crate::state::State;
 
-pub trait StatefulAgent{
-    type State: InformationSet;
+pub trait StatefulAgent<Spec: ProtocolSpecification>{
+    type State: InformationSet<Spec>;
 
-    fn update(&mut self, state_update: <Self::State as State>::UpdateType) -> Result<(), <Self::State as State>::Error>;
+    fn update(&mut self, state_update: Spec::UpdateType) -> Result<(), Spec::GameErrorType>;
     fn state(&self) -> &Self::State;
 }

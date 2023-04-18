@@ -4,17 +4,16 @@ use crate::protocol::ProtocolSpecification;
 use crate::state::env::EnvironmentState;
 use crate::state::State;
 
-pub trait StatefulEnvironment : DomainEnvironment{
-    type State: EnvironmentState<AgentId = <Self::DomainParameter as ProtocolSpecification>::AgentId,
-        UpdateType = <<Self as DomainEnvironment>::DomainParameter as ProtocolSpecification>::UpdateType>;
-    type Act: Action;
-    type UpdatesIterator: Iterator<Item=(<Self::State as EnvironmentState>::AgentId, <Self::State as State>::UpdateType)>;
+pub trait StatefulEnvironment<Spec: ProtocolSpecification> : DomainEnvironment<Spec>{
+    type State: EnvironmentState<Spec>;
+    //type Act: Action;
+    type UpdatesIterator: Iterator<Item=(Spec::AgentId, Spec::UpdateType)>;
 
     fn state(&self) -> &Self::State;
 
-    fn process_action(&mut self, agent: &<Self::State as EnvironmentState>::AgentId, action: Self::Act) -> Result<Self::UpdatesIterator, <Self::State as State>::Error>;
+    fn process_action(&mut self, agent: &Spec::AgentId, action: Spec::ActionType) -> Result<Self::UpdatesIterator, Spec::GameErrorType>;
 
-    fn current_player(&self) -> Option<<Self::State as EnvironmentState>::AgentId>{
+    fn current_player(&self) -> Option<Spec::AgentId>{
         self.state().current_player()
     }
 }
