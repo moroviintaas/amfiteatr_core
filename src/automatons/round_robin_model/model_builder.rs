@@ -3,17 +3,18 @@ use std::collections::{HashMap, HashSet};
 use std::marker::PhantomData;
 use std::ops::Index;
 use crate::automatons::rr::{AgentAuto, EnvironmentRR, RoundRobinModel};
-use crate::{ActingAgent, AgentGen, CommEndpoint, CommunicatingEnv, DomainEnvironment, EnvironmentBuilder, EnvironmentState, InformationSet, Policy, Reward, StatefulAgent, StatefulEnvironment, SyncComm, SyncCommEnv};
+use crate::{ActingAgent, ActionProcessingFunction, AgentGen, CommEndpoint, CommunicatingEnv, DomainEnvironment, EnvironmentState, GenericEnvironment, GenericEnvironmentBuilder, InformationSet, Policy, Reward, StatefulAgent, StatefulEnvironment, SyncComm, SyncCommEnv};
 use crate::error::{CommError, SetupError, SztormError};
 use crate::error::SetupError::DuplicateId;
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
 
-pub struct RoundRobinModelBuilder<Spec: ProtocolSpecification, B: EnvironmentBuilder<ProtocolSpec=Spec>>{
-    env_builder: B,
+pub struct RoundRobinModelBuilder<Spec: ProtocolSpecification, EnvState: EnvironmentState<Spec>,
+ProcessAction: ActionProcessingFunction<Spec, EnvState>>{
+    env_builder: GenericEnvironmentBuilder<Spec, EnvState, ProcessAction>,
     //_spec: PhantomData<S>,
 
     //environment_state: E,
-    local_agents: HashMap<Spec::AgentId, Box<dyn AgentAuto<Spec, Id = Spec::AgentId> + Send>>,
+    local_agents: HashMap<Spec::AgentId, Box<dyn AgentAuto<Spec> + Send>>,
     /*comm_endpoints: HashMap<Spec::AgentId,
         Box<dyn CommEndpoint<
             OutwardType=EnvMessage<Spec>,
@@ -28,29 +29,25 @@ pub struct RoundRobinModelBuilder<Spec: ProtocolSpecification, B: EnvironmentBui
 
 }
 
-impl<Spec: ProtocolSpecification<
-        AgentId = <<<B as EnvironmentBuilder>::Environment as StatefulEnvironment>::
-        State as EnvironmentState>::AgentId>,
-    B: EnvironmentBuilder<
-        ProtocolSpec=Spec,
-        Comm = Box<
-            (dyn CommEndpoint<
-                OutwardType = EnvMessage<Spec>,
-                Error = CommError, InwardType =
-                AgentMessage<Spec>> + 'static)>,
-        //Environment = Envi
-
-    >
->
-RoundRobinModelBuilder<Spec, B>
+impl<Spec: ProtocolSpecification, EnvState: EnvironmentState<Spec>,
+ProcessAction: ActionProcessingFunction<Spec, EnvState>>
+RoundRobinModelBuilder<Spec, EnvState, ProcessAction>
 //where <<B as EnvironmentBuilder>::Environment as CommunicatingEnv>::AgentId> = <<>>
 {
-    pub fn with_env_state(mut self, environment_state: <B::Environment as StatefulEnvironment>::State)
+    pub fn new() -> Self{
+        Self{ env_builder: GenericEnvironmentBuilder::new(), local_agents:HashMap::new() }
+    }
+    
+    pub fn with_env_state(mut self, environment_state: EnvState)
         -> Result<Self, SetupError<Spec>>{
         self.env_builder = self.env_builder.with_state(environment_state)?;
         Ok(self)
     }
-    pub fn get_agent(&self, s: &Spec::AgentId) -> Option<&Box<dyn AgentAuto<Spec, Id = Spec::AgentId> + Send>>{
+    pub fn with_env_action_process_fn(mut self, process_fn: ProcessAction) -> Result<Self, SetupError<Spec>>{
+        self.env_builder = self.env_builder.with_processor(process_fn)?;
+        Ok(self)
+    }
+    pub fn get_agent(&self, s: &Spec::AgentId) -> Option<&Box<dyn AgentAuto<Spec> + Send>>{
         self.local_agents.get(s).and_then(|a| Some(a))
 
 
@@ -59,11 +56,11 @@ RoundRobinModelBuilder<Spec, B>
     //pub fn add_local_agent<A: AgentRR<Spec>>(&mut self, agent: A, )
     //pub fn with_local_agent<A: AgentRR<Spec>>(self, agent: A, env_comm: dyn CommEndpoint)
     pub fn with_local_agent(mut self,
-                            agent: Box<dyn AgentAuto<Spec, Id = Spec::AgentId> + Send>,
+                            agent: Box<dyn AgentAuto<Spec> + Send>,
                             env_comm: Box<dyn CommEndpoint<
                                         OutwardType=EnvMessage<Spec>,
                                         InwardType=AgentMessage<Spec>,
-                                        Error=CommError>>)
+                                        Error=CommError<Spec>>>)
                             -> Result<Self, SetupError<Spec>>{
         //if self.local_agents.contains_key(agent.as_ref().id())
         //self.comm_endpoints.insert(*agent.as_ref().id(), env_comm);
@@ -77,7 +74,7 @@ RoundRobinModelBuilder<Spec, B>
         env_comm: Box<dyn CommEndpoint<
             OutwardType=EnvMessage<Spec>,
             InwardType=AgentMessage<Spec>,
-            Error=CommError>>) -> Result<Self, SetupError<Spec>>{
+            Error=CommError<Spec>>>) -> Result<Self, SetupError<Spec>>{
 
         if self.local_agents.contains_key(&agent_id){
             self.local_agents.remove(&agent_id);
@@ -87,9 +84,9 @@ RoundRobinModelBuilder<Spec, B>
         Ok(self)
     }
 
-    /*pub fn build(self) -> RoundRobinModel<Spec, B::Environment>{
-        RoundRobinModel::new(self.env_builder.build(), self.local_agents)
-    }*/
+    pub fn build(self) -> Result<RoundRobinModel<Spec, EnvState, ProcessAction>, SetupError<Spec>>{
+        Ok(RoundRobinModel::new(self.env_builder.build()?, self.local_agents))
+    }
 
 
 

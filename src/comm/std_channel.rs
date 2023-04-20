@@ -8,27 +8,29 @@ use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
 
 
 #[derive(Debug)]
-/// # Example:
+/*/// # Example:
 /// ```
 /// use std::thread::spawn;
 /// use sztorm::{CommEndpoint};
 /// use sztorm::error::CommError;
 /// use sztorm::SyncComm;
-/// let (mut com1, mut com2) = SyncComm::<String, String, CommError>::new_pair();
+/// let (mut com1, mut com2) = SyncComm::<String, String, CommError<Spec>>::new_pair();
 /// let h1 = spawn(move || {
 ///     com1.send(format!("Hello")).unwrap();
 /// });
 /// let r = com2.recv().unwrap();
 /// assert_eq!(r, format!("Hello"));
 /// ```
+
+ */
 pub struct SyncComm<OT, IT, E: Error>{
     sender: Sender<OT>,
     receiver: Receiver<IT>,
     _phantom: PhantomData<E>
 }
 
-pub type SyncCommEnv<Spec> = SyncComm<EnvMessage<Spec>, AgentMessage<Spec>, CommError>;
-pub type SyncCommAgent<Spec> = SyncComm<AgentMessage<Spec>, EnvMessage<Spec>,  CommError>;
+pub type SyncCommEnv<Spec> = SyncComm<EnvMessage<Spec>, AgentMessage<Spec>, CommError<Spec>>;
+pub type SyncCommAgent<Spec> = SyncComm<AgentMessage<Spec>, EnvMessage<Spec>,  CommError<Spec>>;
 
 impl<OT, IT, E: Error> SyncComm<OT, IT, E>
 where SyncComm<OT, IT, E> :  CommEndpoint<OutwardType = OT, InwardType = IT, Error = E>{

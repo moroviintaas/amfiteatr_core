@@ -1,6 +1,6 @@
 use log::{error, info, warn};
 use crate::{AutomaticEnvironment, DomainEnvironment};
-use crate::env::{BroadcastingEnv, CommunicatingEnv, Environment, StatefulEnvironment};
+use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentWithAgents, StatefulEnvironment};
 use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::PlayerExited;
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
@@ -13,17 +13,18 @@ pub trait EnvironmentRR<Spec: ProtocolSpecification>{
 }
 
 pub(crate) trait EnvironmentRRInternal<Spec: ProtocolSpecification>{
-    fn notify_error(&mut self, error: SztormError<Spec>) -> Result<(), CommError>;
-    fn send_message(&mut self, agent: &Spec::AgentId, message: EnvMessage<Spec>) -> Result<(), CommError>;
+    fn notify_error(&mut self, error: SztormError<Spec>) -> Result<(), CommError<Spec>>;
+    fn send_message(&mut self, agent: &Spec::AgentId, message: EnvMessage<Spec>) -> Result<(), CommError<Spec>>;
     fn process_action_and_inform(&mut self, player: Spec::AgentId, action: Spec::ActionType) -> Result<(), SztormError<Spec>>;
 
     //fn broadcast_message(&mut self ,message: EnvMessage<Spec>) -> Result<(), CommError>;
 }
 
 impl<'a, Env, Spec: ProtocolSpecification + 'a> EnvironmentRRInternal<Spec> for Env
-where Env: CommunicatingEnv<Spec, CommunicationError=CommError>
+where Env: CommunicatingEnv<Spec, CommunicationError=CommError<Spec>>
  + StatefulEnvironment<Spec> + 'a
- + Environment<'a, Spec::AgentId>
+ //+ EnvironmentWithAgents<'a, Spec::AgentId>
+ + EnvironmentWithAgents<Spec>
  + BroadcastingEnv<Spec>,
  //+ DomainEnvironment<DomainParameter = Spec::AgentId>,
 
@@ -32,11 +33,11 @@ where Env: CommunicatingEnv<Spec, CommunicationError=CommError>
 Spec: ProtocolSpecification
  //Spec::AgentId =  <<Env as StatefulEnvironment>::State as EnvironmentState>::PlayerId
 {
-    fn notify_error(&mut self, error: SztormError<Spec>) -> Result<(), CommError> {
+    fn notify_error(&mut self, error: SztormError<Spec>) -> Result<(), CommError<Spec>> {
         self.send_to_all(ErrorNotify(error))
     }
 
-    fn send_message(&mut self, agent: &Spec::AgentId, message: EnvMessage<Spec>) -> Result<(), CommError>{
+    fn send_message(&mut self, agent: &Spec::AgentId, message: EnvMessage<Spec>) -> Result<(), CommError<Spec>>{
         self.send_to(agent, message)
             .map_err(|e| {
                 self.notify_error(e.clone().into())
@@ -66,9 +67,10 @@ Spec: ProtocolSpecification
 
 
 impl<'a, Env, Spec: ProtocolSpecification + 'a> EnvironmentRR<Spec> for Env
-where Env: CommunicatingEnv<Spec, CommunicationError=CommError>
+where Env: CommunicatingEnv<Spec, CommunicationError=CommError<Spec>>
  + StatefulEnvironment<Spec> + 'a
- + Environment<'a, Spec::AgentId>
+ //+ EnvironmentWithAgents<'a, Spec::AgentId>
+ + EnvironmentWithAgents<Spec>
  //+ DomainEnvironment<DomainParameter = Spec::AgentId>
  + BroadcastingEnv<Spec>,
 //<<Env as StatefulEnvironment>::State as State>::Error: Clone,
@@ -90,16 +92,17 @@ Spec: ProtocolSpecification
             Some(n) => n
         };
         info!("Sending YourMove signal to first agent: {:?}", &first_player);
-        self.send_to(&first_player, EnvMessage::YourMove)?;
+        self.send_to(&first_player, EnvMessage::YourMove).map_err(|e|e.specify_id(first_player))?;
         loop{
             for player in self.players(){
-                match self.try_recv_from(player){
+                match self.try_recv_from(&player){
                     Ok(agent_message) => match agent_message{
                         AgentMessage::TakeAction(action) => {
                             info!("Player {} performs action: {:#}", &player, &action);
-                            self.process_action_and_inform(*player, action)?;
+                            self.process_action_and_inform(player, action)?;
                             if let Some(next_player) = self.current_player(){
-                                self.send_message(&next_player, EnvMessage::YourMove)?;
+                                self.send_message(&next_player, EnvMessage::YourMove)
+                                    .map_err(|e| e.specify_id(next_player))?;
                             }
                             if self.state().is_finished(){
                                 info!("Game reached finished state");
@@ -134,13 +137,14 @@ Spec: ProtocolSpecification
                         }
                         AgentMessage::Quit => {
                             error!("Player {} exited game.", player);
-                            self.notify_error(SztormError::ProtocolError(PlayerExited(*player)))?;
-                            return Err(SztormError::ProtocolError(PlayerExited(*player)))
+                            self.notify_error(SztormError::ProtocolError(PlayerExited(player)))?;
+                            return Err(SztormError::ProtocolError(PlayerExited(player)))
                         }
                     },
                     Err(e) => match e{
 
-                        CommError::TryRecvEmptyError | CommError::TryRecvDisconnectedError => {
+                        CommError::TryRecvEmptyError(_) | CommError::TryRecvDisconnectedError(_) |
+                        CommError::TryRecvErrorEmptyUnspecified | CommError::TryRecvErrorDisconnectedUnspecified=> {
                             //debug!("Empty channel");
                         },
                         err => {

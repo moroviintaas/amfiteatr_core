@@ -1,16 +1,20 @@
 use std::fmt::{Display, Formatter};
+use crate::error::SztormError;
 use crate::protocol::ProtocolSpecification;
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[cfg_attr(feature = "speedy", derive(speedy::Writable, speedy::Readable))]
 pub enum SetupError<Spec: ProtocolSpecification>{
-    DuplicateId(Spec::AgentId)
-}
+    #[error("Agent's Id: {0} is duplicated")]
+    DuplicateId(Spec::AgentId),
+    #[error("Missing environment initial state")]
+    MissingState,
+    #[error("Missing action processing function")]
+    MissingActionProcessingFunction
 
-impl<Spec: ProtocolSpecification> Display for SetupError<Spec>{
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self{
-            SetupError::DuplicateId(id) => write!(f, "Duplicated Id: {id:}")
-        }
+}
+impl<Spec: ProtocolSpecification> From<SetupError<Spec>> for SztormError<Spec>{
+    fn from(value: SetupError<Spec>) -> Self {
+        SztormError::SetupError(value)
     }
 }

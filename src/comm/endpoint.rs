@@ -11,7 +11,7 @@ pub trait CommEndpoint{
     fn try_recv(&mut self) -> Result<Self::InwardType, Self::Error>;
 }
 
-impl<T> CommEndpoint for Box<T>
+impl<T: ?Sized> CommEndpoint for Box<T>
 where T: CommEndpoint{
     type OutwardType = T::OutwardType;
     type InwardType = T::InwardType;

@@ -9,7 +9,7 @@ use crate::state::agent::InformationSet;
 use crate::state::State;
 
 pub struct AgentGen<Spec: ProtocolSpecification, P: Policy<Spec>,
-    Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError>>{
+    Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError<Spec>>>{
     state: <P as Policy<Spec>>::StateType,
     comm: Comm,
     policy: P,
@@ -18,7 +18,7 @@ pub struct AgentGen<Spec: ProtocolSpecification, P: Policy<Spec>,
 }
 
 impl <Spec: ProtocolSpecification, P: Policy<Spec>,
-    Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError>>
+    Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError<Spec>>>
     AgentGen<Spec, P, Comm>{
 
     pub fn new(id: Spec::AgentId, state: <P as Policy<Spec>>::StateType, comm: Comm, policy: P) -> Self{
@@ -27,12 +27,12 @@ impl <Spec: ProtocolSpecification, P: Policy<Spec>,
 }
 
 impl<Spec: ProtocolSpecification, P: Policy<Spec>,
-    Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError>>
+    Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError<Spec>>>
     CommunicatingAgent<Spec> for AgentGen<Spec, P, Comm>
 {
     //type Outward = AgentMessage<Spec>;
     //type Inward = EnvMessage<Spec>;
-    type CommunicationError = CommError;
+    type CommunicationError = CommError<Spec>;
 
     fn send(&mut self, message: AgentMessage<Spec>) -> Result<(), Self::CommunicationError> {
         self.comm.send(message)
@@ -44,7 +44,7 @@ impl<Spec: ProtocolSpecification, P: Policy<Spec>,
 }
 
 impl<Spec: ProtocolSpecification, P: Policy<Spec>,
-    Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError>>
+    Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError<Spec>>>
     StatefulAgent<Spec> for AgentGen<Spec, P, Comm>{
     type State = <P as Policy<Spec>>::StateType;
 
@@ -58,7 +58,7 @@ impl<Spec: ProtocolSpecification, P: Policy<Spec>,
 }
 
 impl<Spec: ProtocolSpecification, P: Policy<Spec>,
-    Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError>>
+    Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError<Spec>>>
 ActingAgent<Spec> for AgentGen<Spec, P, Comm>{
 
     fn take_action(&self) -> Option<Spec::ActionType> {
@@ -67,7 +67,7 @@ ActingAgent<Spec> for AgentGen<Spec, P, Comm>{
 }
 
 impl<Spec: ProtocolSpecification, P: Policy<Spec>,
-    Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError>>
+    Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError<Spec>>>
 PolicyAgent<Spec> for AgentGen<Spec, P, Comm>{
     type Policy = P;
 
@@ -77,7 +77,7 @@ PolicyAgent<Spec> for AgentGen<Spec, P, Comm>{
 }
 
 impl<Spec: ProtocolSpecification, P: Policy<Spec>,
-    Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError>>
+    Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError<Spec>>>
 DistinctAgent<Spec> for AgentGen<Spec, P, Comm>{
 
     fn id(&self) -> &Spec::AgentId {

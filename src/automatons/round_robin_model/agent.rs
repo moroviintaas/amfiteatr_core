@@ -45,7 +45,7 @@ impl <Spec: ProtocolSpecification, P: Policy,
 
 impl<Agnt, Spec > AgentAuto<Spec> for Agnt
 where Agnt: StatefulAgent<Spec> + ActingAgent<Spec> +
-        CommunicatingAgent<Spec, CommunicationError=CommError>
+        CommunicatingAgent<Spec, CommunicationError=CommError<Spec>>
         + PolicyAgent<Spec> + DistinctAgent<Spec>,
       Spec: ProtocolSpecification,
 //<<Agnt as StatefulAgent>::State as State>::Error: Into<TurError<Spec>>

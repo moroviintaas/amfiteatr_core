@@ -7,7 +7,7 @@ use crate::protocol::{ProtocolSpecification};
 #[cfg_attr(feature = "speedy", derive(speedy::Writable, speedy::Readable))]
 pub enum SztormError<Spec: ProtocolSpecification>{
     GameError(Spec::GameErrorType),
-    CommError(CommError),
+    CommError(CommError<Spec>),
     ProtocolError(ProtocolError<Spec>),
     SetupError(SetupError<Spec>)
 }
