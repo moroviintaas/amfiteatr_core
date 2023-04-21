@@ -1,4 +1,6 @@
 use std::collections::{hash_map, HashMap};
+use std::fmt::Debug;
+use log::debug;
 use crate::{BroadcastingEnv, CommEndpoint, CommunicatingEnv, DomainEnvironment, EnvironmentState, EnvironmentWithAgents, GrowingEnvironment, State, StatefulEnvironment};
 use crate::error::{CommError, SetupError};
 use crate::error::SetupError::MissingState;
@@ -38,6 +40,10 @@ impl <Spec: ProtocolSpecification, State: EnvironmentState<Spec>,
                                     InwardType=AgentMessage<Spec>,
                                     Error=CommError<Spec>>>>
                ) -> Self{
+        let k:Vec<Spec::AgentId> = comm_endpoints.keys().map(|k|*k).collect();
+        debug!("Creating environment with:{k:?}");
+
+
         Self{comm_endpoints, game_state, fn_action_process}
     }
 }
