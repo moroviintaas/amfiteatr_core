@@ -15,7 +15,7 @@ ProcessAction: ActionProcessingFunction<Spec, EnvState>, Comm: EnvCommEndpoint<S
     //_spec: PhantomData<S>,
 
     //environment_state: E,
-    local_agents: HashMap<Spec::AgentId, Mutex<Box<dyn AgentAuto<Spec> + Send>>>,
+    local_agents: HashMap<Spec::AgentId, Box<dyn AgentAuto<Spec> + Send>>,
     /*comm_endpoints: HashMap<Spec::AgentId,
         Box<dyn CommEndpoint<
             OutwardType=EnvMessage<Spec>,
@@ -48,7 +48,7 @@ RoundRobinModelBuilder<Spec, EnvState, ProcessAction, Comm>
         self.env_builder = self.env_builder.with_processor(process_fn)?;
         Ok(self)
     }
-    pub fn get_agent(&self, s: &Spec::AgentId) -> Option<&Mutex<Box<dyn AgentAuto<Spec> + Send>>>{
+    pub fn get_agent(&self, s: &Spec::AgentId) -> Option<&Box<dyn AgentAuto<Spec> + Send>>{
         self.local_agents.get(s).and_then(|a| Some(a))
 
 
@@ -63,7 +63,7 @@ RoundRobinModelBuilder<Spec, EnvState, ProcessAction, Comm>
         //if self.local_agents.contains_key(agent.as_ref().id())
         //self.comm_endpoints.insert(*agent.as_ref().id(), env_comm);
         self.env_builder = self.env_builder.add_comm(agent.as_ref().id(), env_comm)?;
-        self.local_agents.insert(*agent.as_ref().id(), Mutex::new(agent));
+        self.local_agents.insert(*agent.as_ref().id(), agent);
 
         Ok(self)
     }
