@@ -1,7 +1,7 @@
 use std::collections::{hash_map, HashMap};
 use std::fmt::Debug;
 use log::debug;
-use crate::{BroadcastingEnv, CommEndpoint, CommunicatingEnv, DomainEnvironment, EnvironmentState, EnvironmentWithAgents, GrowingEnvironment, State, StatefulEnvironment};
+use crate::{BroadcastingEnv, CommEndpoint, CommunicatingEnv, DomainEnvironment, EnvironmentState, EnvironmentWithAgents, GrowingEnvironment, State, StatefulEnvironment, EnvCommEndpoint};
 use crate::error::{CommError, SetupError};
 use crate::error::SetupError::MissingState;
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
@@ -17,28 +17,22 @@ where F: Fn(&mut State, &Spec::AgentId, Spec::ActionType) -> Result<(Vec<(Spec::
 
 
 pub struct GenericEnvironment<Spec: ProtocolSpecification, State: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessingFunction<Spec, State> >{
+    ProcessAction: ActionProcessingFunction<Spec, State>, Comm: EnvCommEndpoint<Spec>>{
 
     comm_endpoints: HashMap<Spec::AgentId,
-        Box<dyn CommEndpoint<
-            OutwardType=EnvMessage<Spec>,
-            InwardType=AgentMessage<Spec>,
-            Error=CommError<Spec>>>>,
+        Comm>,
 
     game_state: State,
     fn_action_process: ProcessAction,
 }
 
 impl <Spec: ProtocolSpecification, State: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessingFunction<Spec, State> > GenericEnvironment<Spec, State, ProcessAction>{
+    ProcessAction: ActionProcessingFunction<Spec, State>, Comm: EnvCommEndpoint<Spec>> GenericEnvironment<Spec, State, ProcessAction, Comm>{
 
 
     pub fn new(game_state: State, fn_action_process: ProcessAction,
                comm_endpoints:  HashMap<Spec::AgentId,
-                                     Box<dyn CommEndpoint<
-                                    OutwardType=EnvMessage<Spec>,
-                                    InwardType=AgentMessage<Spec>,
-                                    Error=CommError<Spec>>>>
+                                     Comm>
                ) -> Self{
         let k:Vec<Spec::AgentId> = comm_endpoints.keys().map(|k|*k).collect();
         debug!("Creating environment with:{k:?}");
@@ -50,13 +44,13 @@ impl <Spec: ProtocolSpecification, State: EnvironmentState<Spec>,
 
 
 impl<Spec: ProtocolSpecification, State: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessingFunction<Spec, State> >
-DomainEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction>{
+    ProcessAction: ActionProcessingFunction<Spec, State>, Comm: EnvCommEndpoint<Spec> >
+DomainEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
 }
 
 impl<Spec: ProtocolSpecification, State: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessingFunction<Spec, State> >
-StatefulEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction>{
+    ProcessAction: ActionProcessingFunction<Spec, State>, Comm: EnvCommEndpoint<Spec> >
+StatefulEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
     type State = State;
     type UpdatesIterator = <Vec<(Spec::AgentId, Spec::UpdateType)> as IntoIterator>::IntoIter;
 
@@ -71,35 +65,35 @@ StatefulEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction>{
     }
 }
 
-impl<Spec: ProtocolSpecification, State: EnvironmentState<Spec>, ProcessAction: ActionProcessingFunction<Spec, State> >
-CommunicatingEnv<Spec> for GenericEnvironment<Spec, State, ProcessAction> {
+impl<Spec: ProtocolSpecification, State: EnvironmentState<Spec>, ProcessAction: ActionProcessingFunction<Spec, State>,Comm: EnvCommEndpoint<Spec> >
+CommunicatingEnv<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm> {
     type CommunicationError = CommError<Spec>;
 
     fn send_to(&mut self, agent_id: &Spec::AgentId, message: EnvMessage<Spec>) -> Result<(), Self::CommunicationError> {
         self.comm_endpoints.get_mut(agent_id).ok_or(CommError::NoSuchConnection)
-            .map(|v| v.as_mut().send(message))?
+            .map(|v| v.send(message))?
     }
 
     fn recv_from(&mut self, agent_id: &Spec::AgentId) -> Result<AgentMessage<Spec>, Self::CommunicationError> {
         self.comm_endpoints.get_mut(agent_id).ok_or(CommError::NoSuchConnection)
-            .map(|v| v.as_mut().recv())?
+            .map(|v| v.recv())?
     }
 
     fn try_recv_from(&mut self, agent_id: &Spec::AgentId) -> Result<AgentMessage<Spec>, Self::CommunicationError> {
         self.comm_endpoints.get_mut(agent_id).ok_or(CommError::NoSuchConnection)
-            .map(|v| v.as_mut().try_recv())?
+            .map(|v| v.try_recv())?
     }
 }
 
 impl <Spec: ProtocolSpecification,
     State: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessingFunction<Spec, State>>
-BroadcastingEnv<Spec> for GenericEnvironment<Spec, State, ProcessAction>{
+    ProcessAction: ActionProcessingFunction<Spec, State>, Comm: EnvCommEndpoint<Spec>>
+BroadcastingEnv<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
     fn send_to_all(&mut self, message: EnvMessage<Spec>) -> Result<(), Self::CommunicationError> {
         let mut result:Option<Self::CommunicationError> = None;
 
         for comm in self.comm_endpoints.values_mut(){
-            if let Err(sending_err) = comm.as_mut().send(message.clone()){
+            if let Err(sending_err) = comm.send(message.clone()){
                 result = Some(sending_err)
             }
         }
@@ -113,8 +107,8 @@ BroadcastingEnv<Spec> for GenericEnvironment<Spec, State, ProcessAction>{
 
 impl <'a, Spec: ProtocolSpecification + 'a,
     State: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessingFunction<Spec, State>>
- EnvironmentWithAgents<Spec> for GenericEnvironment<Spec, State, ProcessAction>{
+    ProcessAction: ActionProcessingFunction<Spec, State>, Comm: EnvCommEndpoint<Spec>>
+ EnvironmentWithAgents<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
     type PlayerIterator = Vec<Spec::AgentId>;
 
     fn players(&self) -> Self::PlayerIterator {
@@ -138,21 +132,18 @@ GrowingEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction>{
 
 //#[derive(Default)]
 pub struct GenericEnvironmentBuilder<Spec: ProtocolSpecification, State:EnvironmentState<Spec>,
-ProcessAction: ActionProcessingFunction<Spec, State> >{
+ProcessAction: ActionProcessingFunction<Spec, State>, Comm: EnvCommEndpoint<Spec> >{
     state_opt: Option<State>,
     comm_endpoints: HashMap<Spec::AgentId,
-        Box<dyn CommEndpoint<
-            OutwardType=EnvMessage<Spec>,
-            InwardType=AgentMessage<Spec>,
-            Error=CommError<Spec>>>>,
+        Comm>,
 
     fn_action_process: Option<ProcessAction>
 
 }
 
 impl <Spec: ProtocolSpecification, State:EnvironmentState<Spec>,
-ProcessAction: ActionProcessingFunction<Spec, State>  >
-GenericEnvironmentBuilder<Spec, State, ProcessAction>{
+ProcessAction: ActionProcessingFunction<Spec, State> , Comm: EnvCommEndpoint<Spec>>
+GenericEnvironmentBuilder<Spec, State, ProcessAction, Comm>{
 
     /*pub fn init_builder(state: State, fn_action_process: ProcessAction) -> Self{
         Self{state_opt: Some(state), fn_action_process: Some(fn_action_process), comm_endpoints: HashMap::new()}
@@ -170,10 +161,7 @@ GenericEnvironmentBuilder<Spec, State, ProcessAction>{
         self.fn_action_process = Some(processor);
         Ok(self)
     }
-    pub fn add_comm(mut self, agent_id: &Spec::AgentId, comm: Box<dyn CommEndpoint<
-            OutwardType=EnvMessage<Spec>,
-            InwardType=AgentMessage<Spec>,
-            Error=CommError<Spec>>>) -> Result<Self, SetupError<Spec>>{
+    pub fn add_comm(mut self, agent_id: &Spec::AgentId, comm: Comm) -> Result<Self, SetupError<Spec>>{
 
         //let mut hm = std::mem::take(&mut self.comm_endpoints);
         &mut self.comm_endpoints.insert(*agent_id, comm);
@@ -181,7 +169,7 @@ GenericEnvironmentBuilder<Spec, State, ProcessAction>{
         //self.comm_endpoints.insert(agent_id, comm)
     }
 
-    pub fn build(self) -> Result<GenericEnvironment<Spec, State, ProcessAction>, SetupError<Spec>>{
+    pub fn build(self) -> Result<GenericEnvironment<Spec, State, ProcessAction, Comm>, SetupError<Spec>>{
 
 
         Ok(GenericEnvironment::new(

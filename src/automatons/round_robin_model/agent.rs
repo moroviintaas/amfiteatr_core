@@ -52,7 +52,7 @@ where Agnt: StatefulAgent<Spec> + ActingAgent<Spec> +
 //SztormError<Spec>: From<<<Agnt as StatefulAgent<Spec>>::State as State>::Error>
 {
     fn run_rr(&mut self) -> Result<(), SztormError<Spec>> {
-
+        info!("Agent {} starts", self.state().id());
         loop{
             match self.recv(){
                 Ok(message) => match message{

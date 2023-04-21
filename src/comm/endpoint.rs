@@ -1,6 +1,8 @@
 use std::error::Error;
 use std::fmt::Debug;
 
+use crate::{protocol::{EnvMessage, ProtocolSpecification, AgentMessage}, error::CommError};
+
 pub trait CommEndpoint{
     type OutwardType: Debug;
     type InwardType: Debug;
@@ -30,3 +32,13 @@ where T: CommEndpoint{
         self.as_mut().try_recv()
     }
 }
+
+pub trait EnvCommEndpoint<Spec: ProtocolSpecification>: CommEndpoint<OutwardType = EnvMessage<Spec>, InwardType = AgentMessage<Spec>, Error = CommError<Spec>>{}
+
+impl<Spec: ProtocolSpecification, T> EnvCommEndpoint<Spec> for T 
+where T: CommEndpoint<OutwardType = EnvMessage<Spec>, InwardType = AgentMessage<Spec>, Error = CommError<Spec>>{}
+
+pub trait AgentCommEndpoint<Spec: ProtocolSpecification>: CommEndpoint<OutwardType = AgentMessage<Spec>, InwardType = EnvMessage<Spec>, Error = CommError<Spec>>{}
+
+impl<Spec: ProtocolSpecification, T> AgentCommEndpoint<Spec> for T 
+where T: CommEndpoint<OutwardType = AgentMessage<Spec>, InwardType = EnvMessage<Spec>, Error = CommError<Spec>>{}
