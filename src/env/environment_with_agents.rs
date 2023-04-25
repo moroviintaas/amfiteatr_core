@@ -11,4 +11,6 @@ pub trait EnvironmentWithAgents<Spec: ProtocolSpecification>{
     type PlayerIterator: IntoIterator<Item = Spec::AgentId>;
 
     fn players(&self) -> Self::PlayerIterator;
+
+
 }

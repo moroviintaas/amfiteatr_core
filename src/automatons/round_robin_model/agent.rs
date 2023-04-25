@@ -1,7 +1,7 @@
 use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent};
 use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
-use crate::error::SztormError::ProtocolError;
+use crate::error::SztormError::Protocol;
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
 use crate::state::agent::InformationSet;
 use log::{info,  debug, error};
@@ -81,7 +81,7 @@ where Agnt: StatefulAgent<Spec> + ActingAgent<Spec> +
                     }
                     EnvMessage::Kill => {
                         info!("Agent {:?} received kill signal.", self.state().id());
-                        return Err(ProtocolError(ReceivedKill(*self.state().id())))
+                        return Err(Protocol(ReceivedKill(*self.state().id())))
                     }
                     EnvMessage::UpdateState(su) => {
                         debug!("Agent {} received state update {:?}", self.state().id(), &su);
@@ -91,8 +91,8 @@ where Agnt: StatefulAgent<Spec> + ActingAgent<Spec> +
                             }
                             Err(err) => {
                                 error!("Agent error on updating state: {}", &err);
-                                self.send(AgentMessage::NotifyError(SztormError::GameError(err.clone())))?;
-                                return Err(SztormError::GameError(err));
+                                self.send(AgentMessage::NotifyError(SztormError::Game(err.clone())))?;
+                                return Err(SztormError::Game(err));
                             }
                         }
                     }

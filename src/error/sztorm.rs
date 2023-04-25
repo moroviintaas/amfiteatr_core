@@ -6,19 +6,19 @@ use crate::protocol::{ProtocolSpecification};
 #[derive(Debug, Clone,  Error)]
 #[cfg_attr(feature = "speedy", derive(speedy::Writable, speedy::Readable))]
 pub enum SztormError<Spec: ProtocolSpecification>{
-    GameError(Spec::GameErrorType),
-    CommError(CommError<Spec>),
-    ProtocolError(ProtocolError<Spec>),
-    SetupError(SetupError<Spec>)
+    Game(Spec::GameErrorType),
+    Comm(CommError<Spec>),
+    Protocol(ProtocolError<Spec>),
+    Setup(SetupError<Spec>)
 }
 
 impl <Spec: ProtocolSpecification> Display for SztormError<Spec>{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self{
-            SztormError::GameError(e) => write!(f, "GameError: {e}"),
-            SztormError::CommError(e) => write!(f, "CommError: {e}"),
-            SztormError::ProtocolError(e) => write!(f, "ProtocolError: {e}"),
-            SztormError::SetupError(e) => write!(f, "SetupError: {e}")
+            SztormError::Game(e) => write!(f, "GameError: {e}"),
+            SztormError::Comm(e) => write!(f, "CommError: {e}"),
+            SztormError::Protocol(e) => write!(f, "ProtocolError: {e}"),
+            SztormError::Setup(e) => write!(f, "SetupError: {e}")
 
         }
 

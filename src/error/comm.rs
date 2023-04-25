@@ -87,6 +87,6 @@ impl<Spec: ProtocolSpecification, T> From<TrySendError<T>> for CommError<Spec>{
 
 impl <Spec: ProtocolSpecification> From<CommError<Spec>> for SztormError<Spec>{
     fn from(value: CommError<Spec>) -> Self {
-        Self::CommError(value)
+        Self::Comm(value)
     }
 }

@@ -58,7 +58,7 @@ Spec: ProtocolSpecification
                 }
                 Ok(())
             }
-            Err(e) => {Err(SztormError::GameError(e))}
+            Err(e) => {Err(SztormError::Game(e))}
         }
     }
 
@@ -137,8 +137,8 @@ Spec: ProtocolSpecification
                         }
                         AgentMessage::Quit => {
                             error!("Player {} exited game.", player);
-                            self.notify_error(SztormError::ProtocolError(PlayerExited(player)))?;
-                            return Err(SztormError::ProtocolError(PlayerExited(player)))
+                            self.notify_error(SztormError::Protocol(PlayerExited(player)))?;
+                            return Err(SztormError::Protocol(PlayerExited(player)))
                         }
                     },
                     Err(e) => match e{
@@ -150,7 +150,7 @@ Spec: ProtocolSpecification
                         err => {
                             error!("Failed trying to receive from {}", player);
                             self.send_to_all(EnvMessage::ErrorNotify(err.clone().into()))?;
-                            return Err(SztormError::CommError(err));
+                            return Err(SztormError::Comm(err));
                         }
 
                         /*error!("Failed trying to receive from {}", player);

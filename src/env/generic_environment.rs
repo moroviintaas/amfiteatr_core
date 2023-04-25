@@ -8,8 +8,9 @@ use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
 
 pub trait ActionProcessingFunction<Spec: ProtocolSpecification, State: EnvironmentState<Spec>>
 : Fn(&mut State, &Spec::AgentId, Spec::ActionType) -> Result<(Vec<(Spec::AgentId, Spec::UpdateType)>), Spec::GameErrorType>{
-
 }
+
+
 impl <Spec: ProtocolSpecification, State: EnvironmentState<Spec>, F> ActionProcessingFunction<Spec, State> for F
 where F: Fn(&mut State, &Spec::AgentId, Spec::ActionType) -> Result<(Vec<(Spec::AgentId, Spec::UpdateType)>), Spec::GameErrorType>{
 
@@ -115,20 +116,7 @@ impl <'a, Spec: ProtocolSpecification + 'a,
         self.comm_endpoints.keys().into_iter().map(|k| *k).collect()
     }
 }
-/*
-impl <Spec: ProtocolSpecification, State: EnvironmentState<Spec>,
-    ProcessAction: Fn(&mut State, &Spec::AgentId, Spec::ActionType)
-        -> Result<(Vec<(Spec::AgentId, Spec::UpdateType)>), Spec::GameErrorType>>
-GrowingEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction>{
-    type Endpoint = Box<dyn CommEndpoint<
-            OutwardType=EnvMessage<Spec>,
-            InwardType=AgentMessage<Spec>,
-            Error=CommError>>;
 
-    fn add_connection(&mut self, agent_id: Spec::AgentId, endpoint: Self::Endpoint) -> Result<(), SetupError<Spec>> {
-        todo!()
-    }
-}*/
 
 //#[derive(Default)]
 pub struct GenericEnvironmentBuilder<Spec: ProtocolSpecification, State:EnvironmentState<Spec>,

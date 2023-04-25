@@ -7,14 +7,17 @@ use crate::protocol::ProtocolSpecification;
 pub enum SetupError<Spec: ProtocolSpecification>{
     #[error("Agent's Id: {0} is duplicated")]
     DuplicateId(Spec::AgentId),
+    #[error("Missing Agent's Id: {0}")]
+    MissingId(Spec::AgentId),
     #[error("Missing environment initial state")]
     MissingState,
     #[error("Missing action processing function")]
     MissingActionProcessingFunction
 
+
 }
 impl<Spec: ProtocolSpecification> From<SetupError<Spec>> for SztormError<Spec>{
     fn from(value: SetupError<Spec>) -> Self {
-        SztormError::SetupError(value)
+        SztormError::Setup(value)
     }
 }

@@ -21,6 +21,6 @@ pub enum ProtocolError<Spec: ProtocolSpecification>{
 
 impl<Spec: ProtocolSpecification> From<ProtocolError<Spec>> for SztormError<Spec>{
     fn from(value: ProtocolError<Spec>) -> Self {
-        Self::ProtocolError(value)
+        Self::Protocol(value)
     }
 }
