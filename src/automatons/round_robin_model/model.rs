@@ -3,20 +3,20 @@ use std::sync::Mutex;
 use std::thread;
 use log::{error, info};
 use crate::protocol::{EnvMessage, ProtocolSpecification};
-use crate::{ActionProcessingFunction, AutomaticEnvironment, CommunicatingEnv, EnvironmentState, GenericEnvironment, StatefulEnvironment, EnvCommEndpoint};
+use crate::{ActionProcessor, AutomaticEnvironment, CommunicatingEnv, EnvironmentState, GenericEnvironment, StatefulEnvironment, EnvCommEndpoint};
 use crate::automatons::rr::{AgentAuto, EnvironmentRR};
 use crate::error::SztormError;
 
 pub struct RoundRobinModel<Spec: ProtocolSpecification + 'static,
     EnvState: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessingFunction<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>>{
+    ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>>{
     environment: GenericEnvironment<Spec, EnvState, ProcessAction, Comm>,
     local_agents: HashMap<Spec::AgentId, Box<dyn AgentAuto<Spec> + Send>>,
 }
 
 impl<Spec: ProtocolSpecification + 'static,
     EnvState: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessingFunction<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>> RoundRobinModel<Spec, EnvState, ProcessAction, Comm>{
+    ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>> RoundRobinModel<Spec, EnvState, ProcessAction, Comm>{
     pub fn new(environment: GenericEnvironment<Spec, EnvState, ProcessAction, Comm>, local_agents: HashMap<Spec::AgentId,Box<dyn AgentAuto<Spec> + Send>>) -> Self{
         Self{environment, local_agents}
     }

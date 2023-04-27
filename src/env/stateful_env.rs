@@ -11,9 +11,11 @@ pub trait StatefulEnvironment<Spec: ProtocolSpecification> : DomainEnvironment<S
 
     fn state(&self) -> &Self::State;
 
-    fn process_action(&mut self, agent: &Spec::AgentId, action: Spec::ActionType) -> Result<Self::UpdatesIterator, Spec::GameErrorType>;
+
 
     fn current_player(&self) -> Option<Spec::AgentId>{
         self.state().current_player()
     }
+
+    fn process_action(&mut self, agent: &Spec::AgentId, action: Spec::ActionType) -> Result<Self::UpdatesIterator, Spec::GameErrorType>;
 }

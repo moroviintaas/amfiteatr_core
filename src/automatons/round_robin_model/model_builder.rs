@@ -4,13 +4,13 @@ use std::marker::PhantomData;
 use std::ops::Index;
 use std::sync::Mutex;
 use crate::automatons::rr::{AgentAuto, EnvironmentRR, RoundRobinModel};
-use crate::{ActingAgent, ActionProcessingFunction, AgentGen, CommEndpoint, CommunicatingEnv, DomainEnvironment, EnvironmentState, GenericEnvironment, GenericEnvironmentBuilder, InformationSet, Policy, Reward, StatefulAgent, StatefulEnvironment, SyncComm, SyncCommEnv, EnvCommEndpoint};
+use crate::{ActingAgent, ActionProcessor, AgentGen, CommEndpoint, CommunicatingEnv, DomainEnvironment, EnvironmentState, GenericEnvironment, GenericEnvironmentBuilder, InformationSet, Policy, Reward, StatefulAgent, StatefulEnvironment, SyncComm, SyncCommEnv, EnvCommEndpoint, EnvironmentBuilderTrait};
 use crate::error::{CommError, SetupError, SztormError};
 use crate::error::SetupError::DuplicateId;
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
 
 pub struct RoundRobinModelBuilder<Spec: ProtocolSpecification, EnvState: EnvironmentState<Spec>,
-ProcessAction: ActionProcessingFunction<Spec, EnvState>, Comm: EnvCommEndpoint<Spec> >{
+ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec> >{
     env_builder: GenericEnvironmentBuilder<Spec, EnvState, ProcessAction, Comm>,
     //_spec: PhantomData<S>,
 
@@ -31,7 +31,7 @@ ProcessAction: ActionProcessingFunction<Spec, EnvState>, Comm: EnvCommEndpoint<S
 }
 
 impl<Spec: ProtocolSpecification, EnvState: EnvironmentState<Spec>,
-ProcessAction: ActionProcessingFunction<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>>
+ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>>
 RoundRobinModelBuilder<Spec, EnvState, ProcessAction, Comm>
 //where <<B as EnvironmentBuilder>::Environment as CommunicatingEnv>::AgentId> = <<>>
 {

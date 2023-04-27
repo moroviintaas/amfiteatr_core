@@ -1,37 +1,39 @@
 use std::collections::{hash_map, HashMap};
 use std::fmt::Debug;
 use log::debug;
-use crate::{BroadcastingEnv, CommEndpoint, CommunicatingEnv, DomainEnvironment, EnvironmentState, EnvironmentWithAgents, GrowingEnvironment, State, StatefulEnvironment, EnvCommEndpoint};
+use crate::{BroadcastingEnv, CommEndpoint, CommunicatingEnv, DomainEnvironment, EnvironmentState, EnvironmentWithAgents, GrowingEnvironment, State, StatefulEnvironment, EnvCommEndpoint, EnvironmentBuilderTrait};
 use crate::error::{CommError, SetupError};
 use crate::error::SetupError::MissingState;
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
 
-pub trait ActionProcessingFunction<Spec: ProtocolSpecification, State: EnvironmentState<Spec>>
-: Fn(&mut State, &Spec::AgentId, Spec::ActionType) -> Result<(Vec<(Spec::AgentId, Spec::UpdateType)>), Spec::GameErrorType>{
+pub trait ActionProcessor<Spec: ProtocolSpecification, State: EnvironmentState<Spec>> {
+    fn process_action(&self, state: &mut State, agent_id: &Spec::AgentId, action: Spec::ActionType) -> Result<Vec<(Spec::AgentId, Spec::UpdateType)>, Spec::GameErrorType>;
 }
 
-
-impl <Spec: ProtocolSpecification, State: EnvironmentState<Spec>, F> ActionProcessingFunction<Spec, State> for F
+/*
+impl <Spec: ProtocolSpecification, State: EnvironmentState<Spec>, F> ActionProcessor<Spec, State> for F
 where F: Fn(&mut State, &Spec::AgentId, Spec::ActionType) -> Result<(Vec<(Spec::AgentId, Spec::UpdateType)>), Spec::GameErrorType>{
 
 }
 
+p
+*/
 
 pub struct GenericEnvironment<Spec: ProtocolSpecification, State: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessingFunction<Spec, State>, Comm: EnvCommEndpoint<Spec>>{
+    AP: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec>>{
 
     comm_endpoints: HashMap<Spec::AgentId,
         Comm>,
 
     game_state: State,
-    fn_action_process: ProcessAction,
+    action_processor: AP,
 }
 
 impl <Spec: ProtocolSpecification, State: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessingFunction<Spec, State>, Comm: EnvCommEndpoint<Spec>> GenericEnvironment<Spec, State, ProcessAction, Comm>{
+    ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec>> GenericEnvironment<Spec, State, ProcessAction, Comm>{
 
 
-    pub fn new(game_state: State, fn_action_process: ProcessAction,
+    pub fn new(game_state: State, action_processor: ProcessAction,
                comm_endpoints:  HashMap<Spec::AgentId,
                                      Comm>
                ) -> Self{
@@ -39,18 +41,18 @@ impl <Spec: ProtocolSpecification, State: EnvironmentState<Spec>,
         debug!("Creating environment with:{k:?}");
 
 
-        Self{comm_endpoints, game_state, fn_action_process}
+        Self{comm_endpoints, game_state, action_processor }
     }
 }
 
 
 impl<Spec: ProtocolSpecification, State: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessingFunction<Spec, State>, Comm: EnvCommEndpoint<Spec> >
+    ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec> >
 DomainEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
 }
 
 impl<Spec: ProtocolSpecification, State: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessingFunction<Spec, State>, Comm: EnvCommEndpoint<Spec> >
+    ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec> >
 StatefulEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
     type State = State;
     type UpdatesIterator = <Vec<(Spec::AgentId, Spec::UpdateType)> as IntoIterator>::IntoIter;
@@ -60,13 +62,15 @@ StatefulEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction, Com
     }
 
     fn process_action(&mut self, agent: &Spec::AgentId, action: Spec::ActionType) -> Result<Self::UpdatesIterator, Spec::GameErrorType> {
-        let updates = (self.fn_action_process)(&mut self.game_state, agent, action)?;
+        let updates = self.action_processor.process_action(&mut self.game_state, agent, action)?;
+        //let (self.state, updates) = self.action_processor(self.game_state)
+
         Ok(updates.into_iter())
 
     }
 }
 
-impl<Spec: ProtocolSpecification, State: EnvironmentState<Spec>, ProcessAction: ActionProcessingFunction<Spec, State>,Comm: EnvCommEndpoint<Spec> >
+impl<Spec: ProtocolSpecification, State: EnvironmentState<Spec>, ProcessAction: ActionProcessor<Spec, State>,Comm: EnvCommEndpoint<Spec> >
 CommunicatingEnv<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm> {
     type CommunicationError = CommError<Spec>;
 
@@ -88,7 +92,7 @@ CommunicatingEnv<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm> 
 
 impl <Spec: ProtocolSpecification,
     State: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessingFunction<Spec, State>, Comm: EnvCommEndpoint<Spec>>
+    ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec>>
 BroadcastingEnv<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
     fn send_to_all(&mut self, message: EnvMessage<Spec>) -> Result<(), Self::CommunicationError> {
         let mut result:Option<Self::CommunicationError> = None;
@@ -108,7 +112,7 @@ BroadcastingEnv<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
 
 impl <'a, Spec: ProtocolSpecification + 'a,
     State: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessingFunction<Spec, State>, Comm: EnvCommEndpoint<Spec>>
+    ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec>>
  EnvironmentWithAgents<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
     type PlayerIterator = Vec<Spec::AgentId>;
 
@@ -120,7 +124,7 @@ impl <'a, Spec: ProtocolSpecification + 'a,
 
 //#[derive(Default)]
 pub struct GenericEnvironmentBuilder<Spec: ProtocolSpecification, State:EnvironmentState<Spec>,
-ProcessAction: ActionProcessingFunction<Spec, State>, Comm: EnvCommEndpoint<Spec> >{
+ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec> >{
     state_opt: Option<State>,
     comm_endpoints: HashMap<Spec::AgentId,
         Comm>,
@@ -130,7 +134,7 @@ ProcessAction: ActionProcessingFunction<Spec, State>, Comm: EnvCommEndpoint<Spec
 }
 
 impl <Spec: ProtocolSpecification, State:EnvironmentState<Spec>,
-ProcessAction: ActionProcessingFunction<Spec, State> , Comm: EnvCommEndpoint<Spec>>
+ProcessAction: ActionProcessor<Spec, State> , Comm: EnvCommEndpoint<Spec>>
 GenericEnvironmentBuilder<Spec, State, ProcessAction, Comm>{
 
     /*pub fn init_builder(state: State, fn_action_process: ProcessAction) -> Self{
@@ -141,23 +145,33 @@ GenericEnvironmentBuilder<Spec, State, ProcessAction, Comm>{
         Self{comm_endpoints: HashMap::new(), fn_action_process: None, state_opt: None}
     }
 
-    pub fn with_state(mut self, state: State) -> Result<Self, SetupError<Spec>>{
-        self.state_opt = Some(state);
-        Ok(self)
-    }
+
     pub fn with_processor(mut self, processor: ProcessAction) -> Result<Self, SetupError<Spec>>{
         self.fn_action_process = Some(processor);
         Ok(self)
     }
-    pub fn add_comm(mut self, agent_id: &Spec::AgentId, comm: Comm) -> Result<Self, SetupError<Spec>>{
 
-        //let mut hm = std::mem::take(&mut self.comm_endpoints);
-        &mut self.comm_endpoints.insert(*agent_id, comm);
-        Ok(self)
-        //self.comm_endpoints.insert(agent_id, comm)
+
+
+}
+
+
+impl<Spec: ProtocolSpecification, State: EnvironmentState<Spec>, PA: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec>> Default for GenericEnvironmentBuilder<Spec, State, PA, Comm> {
+    fn default() -> Self {
+        Self{
+            state_opt: None,
+            comm_endpoints: HashMap::new(),
+            fn_action_process: None,
+        }
     }
+}
 
-    pub fn build(self) -> Result<GenericEnvironment<Spec, State, ProcessAction, Comm>, SetupError<Spec>>{
+impl <Spec: ProtocolSpecification, State:EnvironmentState<Spec>,
+PA: ActionProcessor<Spec, State> , Comm: EnvCommEndpoint<Spec>>
+EnvironmentBuilderTrait<Spec, GenericEnvironment<Spec, State, PA, Comm>> for GenericEnvironmentBuilder<Spec, State,PA, Comm >{
+    type Comm = Comm;
+
+    fn build(self) -> Result<GenericEnvironment<Spec, State, PA, Comm>, SetupError<Spec>>{
 
 
         Ok(GenericEnvironment::new(
@@ -165,5 +179,18 @@ GenericEnvironmentBuilder<Spec, State, ProcessAction, Comm>{
             self.fn_action_process.ok_or(SetupError::<Spec>::MissingActionProcessingFunction)?,
             self.comm_endpoints))
 
+    }
+
+    fn add_comm(mut self, agent_id: &Spec::AgentId, comm: Comm) -> Result<Self, SetupError<Spec>>{
+
+        //let mut hm = std::mem::take(&mut self.comm_endpoints);
+        &mut self.comm_endpoints.insert(*agent_id, comm);
+        Ok(self)
+        //self.comm_endpoints.insert(agent_id, comm)
+    }
+
+    fn with_state(mut self, state: State) -> Result<Self, SetupError<Spec>>{
+        self.state_opt = Some(state);
+        Ok(self)
     }
 }
