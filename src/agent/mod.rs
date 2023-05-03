@@ -6,6 +6,8 @@ mod generic_agent;
 mod policy_agent;
 mod policy;
 mod q;
+#[cfg(feature = "tensorflow")]
+pub mod tensorflow;
 
 pub use identifier::*;
 pub use action_pair::*;
@@ -16,3 +18,4 @@ pub use policy_agent::*;
 pub use crate::state::agent::*;
 pub use policy::*;
 pub use q::*;
+//#[cfg_attr(feature = "tensorflow")]
