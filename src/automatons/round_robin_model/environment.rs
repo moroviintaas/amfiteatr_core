@@ -5,7 +5,6 @@ use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::PlayerExited;
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
 use crate::protocol::EnvMessage::ErrorNotify;
-use crate::state::env::EnvironmentState;
 use crate::state::State;
 
 pub trait EnvironmentRR<Spec: ProtocolSpecification>{

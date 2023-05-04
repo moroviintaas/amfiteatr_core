@@ -1,12 +1,13 @@
 use std::collections::{HashMap};
 
 use log::debug;
-use crate::{BroadcastingEnv, CommEndpoint, CommunicatingEnv, DomainEnvironment, EnvironmentState, EnvironmentWithAgents, StatefulEnvironment, EnvCommEndpoint, EnvironmentBuilderTrait};
+use crate::{BroadcastingEnv, CommunicatingEnv, DomainEnvironment, EnvironmentState, EnvironmentWithAgents, StatefulEnvironment, EnvCommEndpoint, EnvironmentBuilderTrait};
 use crate::error::{CommError, SetupError};
 
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
-
+#[allow(clippy::type_complexity)]
 pub trait ActionProcessor<Spec: ProtocolSpecification, State: EnvironmentState<Spec>> {
+
     fn process_action(&self, state: &mut State, agent_id: &Spec::AgentId, action: Spec::ActionType) -> Result<Vec<(Spec::AgentId, Spec::UpdateType)>, Spec::GameErrorType>;
 }
 
@@ -37,7 +38,7 @@ impl <Spec: ProtocolSpecification, State: EnvironmentState<Spec>,
                comm_endpoints:  HashMap<Spec::AgentId,
                                      Comm>
                ) -> Self{
-        let k:Vec<Spec::AgentId> = comm_endpoints.keys().map(|k|*k).collect();
+        let k:Vec<Spec::AgentId> = comm_endpoints.keys().copied().collect();
         debug!("Creating environment with:{k:?}");
 
 
@@ -117,7 +118,7 @@ impl <'a, Spec: ProtocolSpecification + 'a,
     type PlayerIterator = Vec<Spec::AgentId>;
 
     fn players(&self) -> Self::PlayerIterator {
-        self.comm_endpoints.keys().into_iter().map(|k| *k).collect()
+        self.comm_endpoints.keys().copied().collect()
     }
 }
 

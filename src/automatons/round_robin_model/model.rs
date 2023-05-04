@@ -39,7 +39,7 @@ impl<Spec: ProtocolSpecification + 'static,
 
          */
 
-        for (id, mut agent) in self.local_agents.drain().into_iter(){
+        for (id, mut agent) in self.local_agents.drain(){
             //self.
             let (agent_return_sender, agent_return_receiver) = std::sync::mpsc::channel();
             agent_collectors.insert(id, agent_return_receiver);
@@ -63,7 +63,7 @@ impl<Spec: ProtocolSpecification + 'static,
             e
         }).unwrap();
 
-        for (id, col) in agent_collectors.drain().into_iter(){
+        for (id, col) in agent_collectors.drain(){
             let agent = col.recv().unwrap();
             self.local_agents.insert(id, agent);
         }

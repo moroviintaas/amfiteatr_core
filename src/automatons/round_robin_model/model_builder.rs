@@ -4,7 +4,7 @@ use std::collections::{HashMap};
 
 
 use crate::automatons::rr::{AgentAuto, RoundRobinModel};
-use crate::{ActionProcessor, EnvironmentState, GenericEnvironmentBuilder, InformationSet, EnvCommEndpoint, EnvironmentBuilderTrait};
+use crate::{ActionProcessor, EnvironmentState, GenericEnvironmentBuilder, EnvCommEndpoint, EnvironmentBuilderTrait};
 use crate::error::{SetupError};
 
 use crate::protocol::{ProtocolSpecification};
@@ -30,6 +30,7 @@ ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec> >{
 
 }
 
+#[allow(clippy::borrowed_box)]
 impl<Spec: ProtocolSpecification, EnvState: EnvironmentState<Spec>,
 ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>>
 RoundRobinModelBuilder<Spec, EnvState, ProcessAction, Comm>
@@ -49,7 +50,7 @@ RoundRobinModelBuilder<Spec, EnvState, ProcessAction, Comm>
         Ok(self)
     }
     pub fn get_agent(&self, s: &Spec::AgentId) -> Option<&Box<dyn AgentAuto<Spec> + Send>>{
-        self.local_agents.get(s).and_then(|a| Some(a))
+        self.local_agents.get(s)
 
 
     }
@@ -131,6 +132,13 @@ RoundRobinModelBuilder<Spec, EnvState, ProcessAction, Comm>
 
 
 
+}
+
+impl<Spec: ProtocolSpecification, EnvState: EnvironmentState<Spec>,
+ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>> Default for RoundRobinModelBuilder<Spec, EnvState, ProcessAction, Comm> {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 /*
 impl<S: ProtocolSpecification,
