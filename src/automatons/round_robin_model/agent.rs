@@ -5,7 +5,7 @@ use crate::error::SztormError::Protocol;
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
 use crate::state::agent::InformationSet;
 use log::{info,  debug, error};
-use crate::{DistinctAgent, Policy, PolicyAgent};
+use crate::{DistinctAgent, PolicyAgent};
 use crate::protocol::AgentMessage::{NotifyError, TakeAction};
 use crate::state::State;
 /*AgentState<ActionIteratorType=Spec::ActionIteratorType,

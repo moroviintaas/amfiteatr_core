@@ -1,6 +1,6 @@
 use std::sync::mpsc::{RecvError, SendError, TryRecvError, TrySendError};
 use thiserror::Error;
-use crate::error::CommError::{};
+
 use crate::error::SztormError;
 use crate::protocol::ProtocolSpecification;
 

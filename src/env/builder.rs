@@ -1,9 +1,9 @@
-use std::collections::HashMap;
-use std::fmt::Error;
-use crate::{CommEndpoint, CommunicatingEnv, DomainEnvironment, EnvironmentState, GenericEnvironment, StatefulEnvironment};
-use crate::automatons::rr::EnvironmentRR;
-use crate::error::{CommError, SetupError};
-use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
+
+
+use crate::{CommEndpoint, StatefulEnvironment};
+
+use crate::error::{SetupError};
+use crate::protocol::{ProtocolSpecification};
 
 pub trait EnvironmentBuilderTrait<Spec: ProtocolSpecification, Env: StatefulEnvironment<Spec>>: Default{
 

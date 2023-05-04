@@ -1,9 +1,9 @@
-use std::collections::{hash_map, HashMap};
-use std::fmt::Debug;
+use std::collections::{HashMap};
+
 use log::debug;
-use crate::{BroadcastingEnv, CommEndpoint, CommunicatingEnv, DomainEnvironment, EnvironmentState, EnvironmentWithAgents, GrowingEnvironment, State, StatefulEnvironment, EnvCommEndpoint, EnvironmentBuilderTrait};
+use crate::{BroadcastingEnv, CommEndpoint, CommunicatingEnv, DomainEnvironment, EnvironmentState, EnvironmentWithAgents, StatefulEnvironment, EnvCommEndpoint, EnvironmentBuilderTrait};
 use crate::error::{CommError, SetupError};
-use crate::error::SetupError::MissingState;
+
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
 
 pub trait ActionProcessor<Spec: ProtocolSpecification, State: EnvironmentState<Spec>> {
@@ -184,7 +184,7 @@ EnvironmentBuilderTrait<Spec, GenericEnvironment<Spec, State, PA, Comm>> for Gen
     fn add_comm(mut self, agent_id: &Spec::AgentId, comm: Comm) -> Result<Self, SetupError<Spec>>{
 
         //let mut hm = std::mem::take(&mut self.comm_endpoints);
-        &mut self.comm_endpoints.insert(*agent_id, comm);
+        let _ = &mut self.comm_endpoints.insert(*agent_id, comm);
         Ok(self)
         //self.comm_endpoints.insert(agent_id, comm)
     }

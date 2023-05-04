@@ -1,4 +1,4 @@
-use crate::agent::AgentIdentifier;
+
 use crate::protocol::ProtocolSpecification;
 /*
 pub trait EnvironmentWithAgents<'a, Id: AgentIdentifier + 'a>{

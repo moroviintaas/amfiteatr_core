@@ -1,4 +1,4 @@
-use std::fmt::{Display, Formatter};
+
 use crate::error::SztormError;
 use crate::protocol::ProtocolSpecification;
 

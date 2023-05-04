@@ -1,4 +1,4 @@
-use std::fmt::{Display, Formatter, write};
+use std::fmt::{Display, Formatter};
 use thiserror::Error;
 use crate::error::{CommError, ProtocolError, SetupError};
 use crate::protocol::{ProtocolSpecification};

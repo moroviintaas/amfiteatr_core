@@ -1,5 +1,5 @@
 use log::{error, info, warn};
-use crate::{AutomaticEnvironment, DomainEnvironment};
+use crate::{AutomaticEnvironment};
 use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentWithAgents, StatefulEnvironment};
 use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::PlayerExited;

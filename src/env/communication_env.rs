@@ -1,5 +1,5 @@
 use std::error::Error;
-use crate::agent::AgentIdentifier;
+
 use crate::DomainEnvironment;
 use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
 

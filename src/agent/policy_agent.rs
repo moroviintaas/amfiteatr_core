@@ -1,5 +1,5 @@
-use crate::action::Action;
-use crate::{InformationSet, Policy, StatefulAgent};
+
+use crate::{Policy, StatefulAgent};
 use crate::protocol::ProtocolSpecification;
 
 pub trait ActingAgent<Spec: ProtocolSpecification> {

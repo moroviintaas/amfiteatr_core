@@ -1,5 +1,5 @@
 use crate::protocol::ProtocolSpecification;
-use crate::{InformationSet, State};
+use crate::{InformationSet};
 
 pub trait QFunction<Spec: ProtocolSpecification>{
 

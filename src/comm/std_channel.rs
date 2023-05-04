@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 use std::sync::mpsc::{channel, Receiver, RecvError, Sender, SendError, TryRecvError};
 use crate::comm::endpoint::CommEndpoint;
 use crate::error::CommError;
-use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
+use crate::protocol::{AgentMessage, EnvMessage};
 
 
 #[derive(Debug)]

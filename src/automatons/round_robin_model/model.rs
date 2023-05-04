@@ -1,9 +1,9 @@
 use std::collections::HashMap;
-use std::sync::Mutex;
+
 use std::thread;
 use log::{error, info};
-use crate::protocol::{EnvMessage, ProtocolSpecification};
-use crate::{ActionProcessor, AutomaticEnvironment, CommunicatingEnv, EnvironmentState, GenericEnvironment, StatefulEnvironment, EnvCommEndpoint};
+use crate::protocol::{ProtocolSpecification};
+use crate::{ActionProcessor, EnvironmentState, GenericEnvironment, EnvCommEndpoint};
 use crate::automatons::rr::{AgentAuto, EnvironmentRR};
 use crate::error::SztormError;
 

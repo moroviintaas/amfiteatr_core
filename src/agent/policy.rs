@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 use crate::state::agent::InformationSet;
 use rand::seq::IteratorRandom;
 use crate::protocol::ProtocolSpecification;
-use crate::State;
+
 
 pub trait Policy<Spec: ProtocolSpecification>{
     type StateType: InformationSet<Spec>;

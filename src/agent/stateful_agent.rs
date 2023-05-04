@@ -1,6 +1,6 @@
 use crate::protocol::ProtocolSpecification;
 use crate::state::agent::InformationSet;
-use crate::state::State;
+
 
 pub trait StatefulAgent<Spec: ProtocolSpecification>{
     type State: InformationSet<Spec>;

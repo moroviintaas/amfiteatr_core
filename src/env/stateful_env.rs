@@ -1,8 +1,8 @@
-use crate::action::Action;
+
 use crate::DomainEnvironment;
 use crate::protocol::ProtocolSpecification;
 use crate::state::env::EnvironmentState;
-use crate::state::State;
+
 
 pub trait StatefulEnvironment<Spec: ProtocolSpecification> : DomainEnvironment<Spec>{
     type State: EnvironmentState<Spec>;

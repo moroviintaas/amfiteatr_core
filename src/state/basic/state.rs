@@ -1,4 +1,4 @@
-use std::error::Error;
+
 use crate::protocol::ProtocolSpecification;
 use crate::state::StateUpdate;
 

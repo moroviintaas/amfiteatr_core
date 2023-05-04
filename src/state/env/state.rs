@@ -1,4 +1,4 @@
-use crate::agent::AgentIdentifier;
+
 use crate::protocol::ProtocolSpecification;
 use crate::state::State;
 
