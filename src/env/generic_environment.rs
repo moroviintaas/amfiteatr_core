@@ -44,6 +44,10 @@ impl <Spec: ProtocolSpecification, State: EnvironmentState<Spec>,
 
         Self{comm_endpoints, game_state, action_processor }
     }
+
+    pub fn replace_state(&mut self, state: State){
+        self.game_state = state
+    }
 }
 
 

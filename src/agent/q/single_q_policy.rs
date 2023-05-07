@@ -8,7 +8,23 @@ pub struct SingleQPolicyGen<
     q_function: QFunc,
     _spec: PhantomData<Spec>
 
+}
 
+impl<
+    Spec: ProtocolSpecification,
+    QFunc: QFunction<Spec>> SingleQPolicyGen<Spec, QFunc>{
+
+    pub fn new(q_function: QFunc) -> Self{
+        Self{q_function, _spec: PhantomData::default()}
+    }
+
+    pub fn q_function(&self) -> &QFunc{
+        &self.q_function
+    }
+
+    pub fn q_function_mut(&mut self) -> &mut QFunc{
+        &mut self.q_function
+    }
 }
 
 impl<

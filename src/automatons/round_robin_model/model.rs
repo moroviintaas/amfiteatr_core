@@ -21,6 +21,8 @@ impl<Spec: ProtocolSpecification + 'static,
         Self{environment, local_agents}
     }
 
+
+
     pub fn play(&mut self) -> Result<(), SztormError<Spec>>{
         let mut agent_collectors = HashMap::<Spec::AgentId, std::sync::mpsc::Receiver<Box<dyn AgentAuto<Spec> + Send>>>::new();
         //let mut join_handles = Vec::with_capacity(self.local_agents.len());

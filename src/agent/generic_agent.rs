@@ -23,6 +23,10 @@ impl <Spec: ProtocolSpecification, P: Policy<Spec>,
     pub fn new(id: Spec::AgentId, state: <P as Policy<Spec>>::StateType, comm: Comm, policy: P) -> Self{
         Self{state, comm, policy,  _phantom:PhantomData::default(), id}
     }
+
+    pub fn replace_state(&mut self, state: <P as Policy<Spec>>::StateType){
+        self.state = state
+    }
 }
 
 impl<Spec: ProtocolSpecification, P: Policy<Spec>,
