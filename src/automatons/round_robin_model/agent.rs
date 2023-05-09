@@ -61,7 +61,8 @@ where Agnt: StatefulAgent<Spec> + ActingAgent<Spec> +
                         //debug!("Agent's {:?} possible actions: {:?}", self.state().id(), Vec::from_iter(self.state().available_actions().into_iter()));
                         debug!("Agent's {:?} possible actions: {}]", self.state().id(), self.state().available_actions().into_iter()
                             .fold(String::from("["), |a, b| a + &format!("{b:#}") + ", ").trim_end());
-                        match self.policy_select_action(){
+                        //match self.policy_select_action(){
+                        match self.take_action(){
                             None => {
                                 error!("Agent {} has no possible action", self.state().id());
                                 self.send(NotifyError(NoPossibleAction(*self.state().id()).into()))?;
@@ -75,6 +76,7 @@ where Agnt: StatefulAgent<Spec> + ActingAgent<Spec> +
                     }
                     EnvMessage::GameFinished => {
                         info!("Agent {} received information that game is finished.", self.state().id());
+                        self.finalize();
                         return Ok(())
 
                     }

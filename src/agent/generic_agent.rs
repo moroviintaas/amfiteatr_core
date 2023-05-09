@@ -64,8 +64,13 @@ impl<Spec: ProtocolSpecification, P: Policy<Spec>,
     Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError<Spec>>>
 ActingAgent<Spec> for AgentGen<Spec, P, Comm>{
 
-    fn take_action(&self) -> Option<Spec::ActionType> {
-        self.policy.select_action(&self.state)
+    fn take_action(&mut self) -> Option<Spec::ActionType> {
+        self.policy.select_action_mut(&self.state)
+        //self.policy_select_action()
+    }
+
+    fn finalize(&mut self) {
+
     }
 }
 
@@ -76,6 +81,10 @@ PolicyAgent<Spec> for AgentGen<Spec, P, Comm>{
 
     fn policy(&self) -> &Self::Policy {
         &self.policy
+    }
+
+    fn policy_mut(&mut self) -> &mut Self::Policy {
+        &mut self.policy
     }
 }
 

@@ -8,6 +8,9 @@ pub trait Policy<Spec: ProtocolSpecification>{
     type StateType: InformationSet<Spec>;
 
     fn select_action(&self, state: &Self::StateType) -> Option<Spec::ActionType>;
+    fn select_action_mut(&mut self, state: &Self::StateType) -> Option<Spec::ActionType>{
+        self.select_action(state)
+    }
 }
 
 #[derive(Debug, Copy, Clone, Default)]

@@ -2,7 +2,7 @@
 use crate::protocol::ProtocolSpecification;
 use crate::state::StateUpdate;
 
-pub trait State<Spec: ProtocolSpecification>{
+pub trait State<Spec: ProtocolSpecification>: Clone{
     //type UpdateType: StateUpdate;
     //type Error: Error + Clone;
 
