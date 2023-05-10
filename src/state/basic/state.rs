@@ -32,3 +32,13 @@ impl<U: StateUpdate> UpdateHistory<U>{
         self.updates.push(update)
     }
 }
+
+impl <T: State<Spec>, Spec: ProtocolSpecification> State<Spec> for Box<T>{
+    fn update(&mut self, update: Spec::UpdateType) -> Result<(), Spec::GameErrorType> {
+        self.as_mut().update(update)
+    }
+
+    fn is_finished(&self) -> bool {
+        self.as_ref().is_finished()
+    }
+}

@@ -24,3 +24,24 @@ pub trait InformationSet<Spec: ProtocolSpecification>: State<Spec>{
     }
 
 }
+
+impl<T: InformationSet<Spec>, Spec: ProtocolSpecification> InformationSet<Spec> for Box<T> {
+    type ActionIteratorType = T::ActionIteratorType;
+    type RewardType = T::RewardType;
+
+    fn available_actions(&self) -> Self::ActionIteratorType {
+        self.as_ref().available_actions()
+    }
+
+    fn id(&self) -> &Spec::AgentId {
+        self.as_ref().id()
+    }
+
+    fn is_action_valid(&self, action: &Spec::ActionType) -> bool {
+        self.as_ref().is_action_valid(action)
+    }
+
+    fn current_score(&self) -> Self::RewardType {
+        self.as_ref().current_score()
+    }
+}

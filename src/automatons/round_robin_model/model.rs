@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::ops::Index;
 
 use std::thread;
 use log::{error, info};
@@ -21,6 +22,12 @@ impl<Spec: ProtocolSpecification + 'static,
         Self{environment, local_agents}
     }
 
+    fn agent(&self, agent: &Spec::AgentId) -> Option<&Box<dyn AgentAuto<Spec> + Send>>{
+        self.local_agents.get(agent)
+    }
+    fn agent_mut(&mut self, agent: &Spec::AgentId) -> Option<&mut Box<dyn AgentAuto<Spec> + Send>>{
+        self.local_agents.get_mut(agent)
+    }
 
 
     pub fn play(&mut self) -> Result<(), SztormError<Spec>>{
@@ -71,6 +78,16 @@ impl<Spec: ProtocolSpecification + 'static,
         }
 
         Ok(())
-        //todo!()
     }
 }
+/*
+impl<Spec: ProtocolSpecification + 'static,
+    EnvState: EnvironmentState<Spec>,
+    ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>> Index<Spec::AgentId> for  
+RoundRobinModel<Spec, EnvState, ProcessAction, Comm>{
+    type Output = Box<dyn AgentAuto<Spec> + Send;
+
+    fn index(&self, index: Spec::AgentId) -> &Self::Output {
+        self.local_agents.get(index)
+    }
+}*/
