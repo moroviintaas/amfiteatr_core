@@ -1,6 +1,4 @@
 use std::collections::HashMap;
-use std::ops::Index;
-
 use std::thread;
 use log::{error, info};
 use crate::protocol::{ProtocolSpecification};
@@ -22,12 +20,15 @@ impl<Spec: ProtocolSpecification + 'static,
         Self{environment, local_agents}
     }
 
+    /*
     fn agent(&self, agent: &Spec::AgentId) -> Option<&Box<dyn AgentAuto<Spec> + Send>>{
         self.local_agents.get(agent)
     }
+
     fn agent_mut(&mut self, agent: &Spec::AgentId) -> Option<&mut Box<dyn AgentAuto<Spec> + Send>>{
         self.local_agents.get_mut(agent)
     }
+     */
 
 
     pub fn play(&mut self) -> Result<(), SztormError<Spec>>{
