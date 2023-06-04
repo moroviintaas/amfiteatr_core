@@ -21,4 +21,4 @@ tensorflow = {version="0.20.0", optional = true}
 speedy = ["dep:speedy"]
 serde = ["dep:serde"]
 simulation = ["dep:serde", "dep:ron", "serde"]
-dl = ["dep:tensorflow"]
+#neuro = ["dep:tensorflow"]
