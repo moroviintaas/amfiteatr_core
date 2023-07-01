@@ -1,8 +1,8 @@
 
-use crate::protocol::ProtocolSpecification;
+use crate::protocol::DomainParameters;
 use crate::state::StateUpdate;
 
-pub trait State<Spec: ProtocolSpecification>: Clone{
+pub trait State<Spec: DomainParameters>: Clone{
     //type UpdateType: StateUpdate;
     //type Error: Error + Clone;
 
@@ -33,7 +33,7 @@ impl<U: StateUpdate> UpdateHistory<U>{
     }
 }
 
-impl <T: State<Spec>, Spec: ProtocolSpecification> State<Spec> for Box<T>{
+impl <T: State<Spec>, Spec: DomainParameters> State<Spec> for Box<T>{
     fn update(&mut self, update: Spec::UpdateType) -> Result<(), Spec::GameErrorType> {
         self.as_mut().update(update)
     }

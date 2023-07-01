@@ -1,9 +1,9 @@
 
 use crate::{CommEndpoint, StatefulEnvironment};
 
-use crate::protocol::ProtocolSpecification;
+use crate::protocol::DomainParameters;
 
-pub trait ConstructedEnvironment<Spec: ProtocolSpecification,  EnvComm: CommEndpoint>: Sized + StatefulEnvironment<Spec>{
+pub trait ConstructedEnvironment<Spec: DomainParameters,  EnvComm: CommEndpoint>: Sized + StatefulEnvironment<Spec>{
 
     //fn construct(state: Self::State, env_comms: HashMap<Spec::AgentId, EnvComm>) -> Result<Self, SetupError<Spec>>;
 

@@ -1,7 +1,7 @@
-mod spec;
+mod domain_parameters;
 mod env;
 mod agent;
 
 pub use env::*;
 pub use agent::*;
-pub use spec::*;
+pub use domain_parameters::*;

@@ -1,7 +1,7 @@
-use crate::protocol::ProtocolSpecification;
+use crate::protocol::DomainParameters;
 use crate::{InformationSet};
 
-pub trait QFunction<Spec: ProtocolSpecification>{
+pub trait QFunction<Spec: DomainParameters>{
 
     type StateType: InformationSet<Spec>;
     type QValue: PartialOrd;

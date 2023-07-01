@@ -1,10 +1,10 @@
 
 use crate::DomainEnvironment;
-use crate::protocol::ProtocolSpecification;
+use crate::protocol::DomainParameters;
 use crate::state::env::EnvironmentState;
 
 
-pub trait StatefulEnvironment<Spec: ProtocolSpecification> : DomainEnvironment<Spec>{
+pub trait StatefulEnvironment<Spec: DomainParameters> : DomainEnvironment<Spec>{
     type State: EnvironmentState<Spec>;
     //type Act: Action;
     type UpdatesIterator: Iterator<Item=(Spec::AgentId, Spec::UpdateType)>;

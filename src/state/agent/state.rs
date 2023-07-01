@@ -1,11 +1,11 @@
 
 
 
-use crate::protocol::ProtocolSpecification;
+use crate::protocol::DomainParameters;
 use crate::Reward;
 use crate::state::State;
 
-pub trait InformationSet<Spec: ProtocolSpecification>: State<Spec>{
+pub trait InformationSet<Spec: DomainParameters>: State<Spec>{
     //type ActionType: Action + Debug + Display;
     type ActionIteratorType: IntoIterator<Item = Spec::ActionType>;
     //type Id: AgentIdentifier;
@@ -25,7 +25,7 @@ pub trait InformationSet<Spec: ProtocolSpecification>: State<Spec>{
 
 }
 
-impl<T: InformationSet<Spec>, Spec: ProtocolSpecification> InformationSet<Spec> for Box<T> {
+impl<T: InformationSet<Spec>, Spec: DomainParameters> InformationSet<Spec> for Box<T> {
     type ActionIteratorType = T::ActionIteratorType;
     type RewardType = T::RewardType;
 

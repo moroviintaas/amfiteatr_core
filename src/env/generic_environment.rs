@@ -4,9 +4,9 @@ use log::debug;
 use crate::{BroadcastingEnv, CommunicatingEnv, DomainEnvironment, EnvironmentState, EnvironmentWithAgents, StatefulEnvironment, EnvCommEndpoint, EnvironmentBuilderTrait};
 use crate::error::{CommError, SetupError};
 
-use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
+use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
 #[allow(clippy::type_complexity)]
-pub trait ActionProcessor<Spec: ProtocolSpecification, State: EnvironmentState<Spec>> {
+pub trait ActionProcessor<Spec: DomainParameters, State: EnvironmentState<Spec>> {
 
     fn process_action(&self, state: &mut State, agent_id: &Spec::AgentId, action: Spec::ActionType) -> Result<Vec<(Spec::AgentId, Spec::UpdateType)>, Spec::GameErrorType>;
 }
@@ -20,7 +20,7 @@ where F: Fn(&mut State, &Spec::AgentId, Spec::ActionType) -> Result<(Vec<(Spec::
 p
 */
 
-pub struct GenericEnvironment<Spec: ProtocolSpecification, State: EnvironmentState<Spec>,
+pub struct GenericEnvironment<Spec: DomainParameters, State: EnvironmentState<Spec>,
     AP: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec>>{
 
     comm_endpoints: HashMap<Spec::AgentId,
@@ -30,7 +30,7 @@ pub struct GenericEnvironment<Spec: ProtocolSpecification, State: EnvironmentSta
     action_processor: AP,
 }
 
-impl <Spec: ProtocolSpecification, State: EnvironmentState<Spec>,
+impl <Spec: DomainParameters, State: EnvironmentState<Spec>,
     ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec>> GenericEnvironment<Spec, State, ProcessAction, Comm>{
 
 
@@ -51,12 +51,12 @@ impl <Spec: ProtocolSpecification, State: EnvironmentState<Spec>,
 }
 
 
-impl<Spec: ProtocolSpecification, State: EnvironmentState<Spec>,
+impl<Spec: DomainParameters, State: EnvironmentState<Spec>,
     ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec> >
 DomainEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
 }
 
-impl<Spec: ProtocolSpecification, State: EnvironmentState<Spec>,
+impl<Spec: DomainParameters, State: EnvironmentState<Spec>,
     ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec> >
 StatefulEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
     type State = State;
@@ -75,7 +75,7 @@ StatefulEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction, Com
     }
 }
 
-impl<Spec: ProtocolSpecification, State: EnvironmentState<Spec>, ProcessAction: ActionProcessor<Spec, State>,Comm: EnvCommEndpoint<Spec> >
+impl<Spec: DomainParameters, State: EnvironmentState<Spec>, ProcessAction: ActionProcessor<Spec, State>,Comm: EnvCommEndpoint<Spec> >
 CommunicatingEnv<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm> {
     type CommunicationError = CommError<Spec>;
 
@@ -95,7 +95,7 @@ CommunicatingEnv<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm> 
     }
 }
 
-impl <Spec: ProtocolSpecification,
+impl <Spec: DomainParameters,
     State: EnvironmentState<Spec>,
     ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec>>
 BroadcastingEnv<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
@@ -115,7 +115,7 @@ BroadcastingEnv<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
     }
 }
 
-impl <'a, Spec: ProtocolSpecification + 'a,
+impl <'a, Spec: DomainParameters + 'a,
     State: EnvironmentState<Spec>,
     ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec>>
  EnvironmentWithAgents<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
@@ -128,7 +128,7 @@ impl <'a, Spec: ProtocolSpecification + 'a,
 
 
 //#[derive(Default)]
-pub struct GenericEnvironmentBuilder<Spec: ProtocolSpecification, State:EnvironmentState<Spec>,
+pub struct GenericEnvironmentBuilder<Spec: DomainParameters, State:EnvironmentState<Spec>,
 ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec> >{
     state_opt: Option<State>,
     comm_endpoints: HashMap<Spec::AgentId,
@@ -138,7 +138,7 @@ ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec> >{
 
 }
 
-impl <Spec: ProtocolSpecification, State:EnvironmentState<Spec>,
+impl <Spec: DomainParameters, State:EnvironmentState<Spec>,
 ProcessAction: ActionProcessor<Spec, State> , Comm: EnvCommEndpoint<Spec>>
 GenericEnvironmentBuilder<Spec, State, ProcessAction, Comm>{
 
@@ -161,7 +161,7 @@ GenericEnvironmentBuilder<Spec, State, ProcessAction, Comm>{
 }
 
 
-impl<Spec: ProtocolSpecification, State: EnvironmentState<Spec>, PA: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec>> Default for GenericEnvironmentBuilder<Spec, State, PA, Comm> {
+impl<Spec: DomainParameters, State: EnvironmentState<Spec>, PA: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec>> Default for GenericEnvironmentBuilder<Spec, State, PA, Comm> {
     fn default() -> Self {
         Self{
             state_opt: None,
@@ -171,7 +171,7 @@ impl<Spec: ProtocolSpecification, State: EnvironmentState<Spec>, PA: ActionProce
     }
 }
 
-impl <Spec: ProtocolSpecification, State:EnvironmentState<Spec>,
+impl <Spec: DomainParameters, State:EnvironmentState<Spec>,
 PA: ActionProcessor<Spec, State> , Comm: EnvCommEndpoint<Spec>>
 EnvironmentBuilderTrait<Spec, GenericEnvironment<Spec, State, PA, Comm>> for GenericEnvironmentBuilder<Spec, State,PA, Comm >{
     type Comm = Comm;

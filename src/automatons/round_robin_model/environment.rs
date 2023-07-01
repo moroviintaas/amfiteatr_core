@@ -3,15 +3,15 @@ use crate::{AutomaticEnvironment};
 use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentWithAgents, StatefulEnvironment};
 use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::PlayerExited;
-use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
+use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
 use crate::protocol::EnvMessage::ErrorNotify;
 use crate::state::State;
 
-pub trait EnvironmentRR<Spec: ProtocolSpecification>{
+pub trait EnvironmentRR<Spec: DomainParameters>{
     fn env_run_rr(&mut self) -> Result<(), SztormError<Spec>>;
 }
 
-pub(crate) trait EnvironmentRRInternal<Spec: ProtocolSpecification>{
+pub(crate) trait EnvironmentRRInternal<Spec: DomainParameters>{
     fn notify_error(&mut self, error: SztormError<Spec>) -> Result<(), CommError<Spec>>;
     fn send_message(&mut self, agent: &Spec::AgentId, message: EnvMessage<Spec>) -> Result<(), CommError<Spec>>;
     fn process_action_and_inform(&mut self, player: Spec::AgentId, action: Spec::ActionType) -> Result<(), SztormError<Spec>>;
@@ -19,7 +19,7 @@ pub(crate) trait EnvironmentRRInternal<Spec: ProtocolSpecification>{
     //fn broadcast_message(&mut self ,message: EnvMessage<Spec>) -> Result<(), CommError>;
 }
 
-impl<'a, Env, Spec: ProtocolSpecification + 'a> EnvironmentRRInternal<Spec> for Env
+impl<'a, Env, Spec: DomainParameters + 'a> EnvironmentRRInternal<Spec> for Env
 where Env: CommunicatingEnv<Spec, CommunicationError=CommError<Spec>>
  + StatefulEnvironment<Spec> + 'a
  //+ EnvironmentWithAgents<'a, Spec::AgentId>
@@ -29,7 +29,7 @@ where Env: CommunicatingEnv<Spec, CommunicationError=CommError<Spec>>
 
 //<<Env as StatefulEnvironment>::State as State>::Error: Clone,
 //TurError<Spec>: From<<<Env as StatefulEnvironment>::State as State>::Error>,
-Spec: ProtocolSpecification
+Spec: DomainParameters
  //Spec::AgentId =  <<Env as StatefulEnvironment>::State as EnvironmentState>::PlayerId
 {
     fn notify_error(&mut self, error: SztormError<Spec>) -> Result<(), CommError<Spec>> {
@@ -65,7 +65,7 @@ Spec: ProtocolSpecification
 }
 
 
-impl<'a, Env, Spec: ProtocolSpecification + 'a> EnvironmentRR<Spec> for Env
+impl<'a, Env, Spec: DomainParameters + 'a> EnvironmentRR<Spec> for Env
 where Env: CommunicatingEnv<Spec, CommunicationError=CommError<Spec>>
  + StatefulEnvironment<Spec> + 'a
  //+ EnvironmentWithAgents<'a, Spec::AgentId>
@@ -74,7 +74,7 @@ where Env: CommunicatingEnv<Spec, CommunicationError=CommError<Spec>>
  + BroadcastingEnv<Spec>,
 //<<Env as StatefulEnvironment>::State as State>::Error: Clone,
 //TurError<Spec>: From<<<Env as StatefulEnvironment>::State as State>::Error>,
-Spec: ProtocolSpecification
+Spec: DomainParameters
  //Spec::AgentId =  <<Env as StatefulEnvironment>::State as EnvironmentState>::PlayerId
 {
     fn env_run_rr(&mut self) -> Result<(), SztormError<Spec>> {
@@ -164,7 +164,7 @@ Spec: ProtocolSpecification
     }
 }
 
-impl <Spec: ProtocolSpecification, Env: EnvironmentRR<Spec>> AutomaticEnvironment<Spec> for Env{
+impl <Spec: DomainParameters, Env: EnvironmentRR<Spec>> AutomaticEnvironment<Spec> for Env{
     fn run(&mut self) -> Result<(), SztormError<Spec>> {
         self.env_run_rr()
     }

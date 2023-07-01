@@ -1,8 +1,8 @@
 use std::error::Error;
 use crate::error::SztormError;
-use crate::protocol::ProtocolSpecification;
+use crate::protocol::DomainParameters;
 
-pub trait InternalGameError<Spec: ProtocolSpecification>: Error + Into<SztormError<Spec>> + Clone{
+pub trait InternalGameError<Spec: DomainParameters>: Error + Into<SztormError<Spec>> + Clone{
 
 }
 /*

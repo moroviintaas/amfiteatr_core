@@ -2,11 +2,11 @@ use std::sync::mpsc::{RecvError, SendError, TryRecvError, TrySendError};
 use thiserror::Error;
 
 use crate::error::SztormError;
-use crate::protocol::ProtocolSpecification;
+use crate::protocol::DomainParameters;
 
 #[derive(Debug, Clone, PartialEq, Eq, Error)]
 #[cfg_attr(feature = "speedy", derive(speedy::Writable, speedy::Readable))]
-pub enum CommError<Spec: ProtocolSpecification>{
+pub enum CommError<Spec: DomainParameters>{
     #[error("Send Error to {0}")]
     SendError(Spec::AgentId),
     #[error("Send Error")]
@@ -40,7 +40,7 @@ pub enum CommError<Spec: ProtocolSpecification>{
 
 }
 
-impl<Spec: ProtocolSpecification> CommError<Spec>{
+impl<Spec: DomainParameters> CommError<Spec>{
 
     pub fn specify_id(self, id: Spec::AgentId) -> Self{
         match self{
@@ -61,17 +61,17 @@ impl Display for CommError {
     }
 }*/
 
-impl<Spec: ProtocolSpecification> From<RecvError> for CommError<Spec>{
+impl<Spec: DomainParameters> From<RecvError> for CommError<Spec>{
     fn from(_: RecvError) -> Self {
         Self::RecvErrorUnspecified
     }
 }
-impl<Spec: ProtocolSpecification, T> From<SendError<T>> for CommError<Spec>{
+impl<Spec: DomainParameters, T> From<SendError<T>> for CommError<Spec>{
     fn from(_: SendError<T>) -> Self {
         Self::SendErrorUnspecified
     }
 }
-impl<Spec: ProtocolSpecification> From<TryRecvError> for CommError<Spec>{
+impl<Spec: DomainParameters> From<TryRecvError> for CommError<Spec>{
     fn from(e: TryRecvError) -> Self {
         match e{
             TryRecvError::Empty => Self::TryRecvErrorEmptyUnspecified,
@@ -79,13 +79,13 @@ impl<Spec: ProtocolSpecification> From<TryRecvError> for CommError<Spec>{
         }
     }
 }
-impl<Spec: ProtocolSpecification, T> From<TrySendError<T>> for CommError<Spec>{
+impl<Spec: DomainParameters, T> From<TrySendError<T>> for CommError<Spec>{
     fn from(_: TrySendError<T>) -> Self {
         Self::TrySendErrorUnspecified
     }
 }
 
-impl <Spec: ProtocolSpecification> From<CommError<Spec>> for SztormError<Spec>{
+impl <Spec: DomainParameters> From<CommError<Spec>> for SztormError<Spec>{
     fn from(value: CommError<Spec>) -> Self {
         Self::Comm(value)
     }

@@ -4,10 +4,10 @@ use crate::agent::policy::Policy;
 use crate::comm::CommEndpoint;
 use crate::error::CommError;
 use crate::{DistinctAgent, PolicyAgent};
-use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
+use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
 use crate::state::State;
 
-pub struct AgentGen<Spec: ProtocolSpecification, P: Policy<Spec>,
+pub struct AgentGen<Spec: DomainParameters, P: Policy<Spec>,
     Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError<Spec>>>{
     state: <P as Policy<Spec>>::StateType,
     comm: Comm,
@@ -16,7 +16,7 @@ pub struct AgentGen<Spec: ProtocolSpecification, P: Policy<Spec>,
     id: Spec::AgentId
 }
 
-impl <Spec: ProtocolSpecification, P: Policy<Spec>,
+impl <Spec: DomainParameters, P: Policy<Spec>,
     Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError<Spec>>>
     AgentGen<Spec, P, Comm>{
 
@@ -29,7 +29,7 @@ impl <Spec: ProtocolSpecification, P: Policy<Spec>,
     }
 }
 
-impl<Spec: ProtocolSpecification, P: Policy<Spec>,
+impl<Spec: DomainParameters, P: Policy<Spec>,
     Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError<Spec>>>
     CommunicatingAgent<Spec> for AgentGen<Spec, P, Comm>
 {
@@ -46,7 +46,7 @@ impl<Spec: ProtocolSpecification, P: Policy<Spec>,
     }
 }
 
-impl<Spec: ProtocolSpecification, P: Policy<Spec>,
+impl<Spec: DomainParameters, P: Policy<Spec>,
     Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError<Spec>>>
     StatefulAgent<Spec> for AgentGen<Spec, P, Comm>{
     type State = <P as Policy<Spec>>::StateType;
@@ -60,7 +60,7 @@ impl<Spec: ProtocolSpecification, P: Policy<Spec>,
     }
 }
 
-impl<Spec: ProtocolSpecification, P: Policy<Spec>,
+impl<Spec: DomainParameters, P: Policy<Spec>,
     Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError<Spec>>>
 ActingAgent<Spec> for AgentGen<Spec, P, Comm>{
 
@@ -74,7 +74,7 @@ ActingAgent<Spec> for AgentGen<Spec, P, Comm>{
     }
 }
 
-impl<Spec: ProtocolSpecification, P: Policy<Spec>,
+impl<Spec: DomainParameters, P: Policy<Spec>,
     Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError<Spec>>>
 PolicyAgent<Spec> for AgentGen<Spec, P, Comm>{
     type Policy = P;
@@ -88,7 +88,7 @@ PolicyAgent<Spec> for AgentGen<Spec, P, Comm>{
     }
 }
 
-impl<Spec: ProtocolSpecification, P: Policy<Spec>,
+impl<Spec: DomainParameters, P: Policy<Spec>,
     Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError<Spec>>>
 DistinctAgent<Spec> for AgentGen<Spec, P, Comm>{
 

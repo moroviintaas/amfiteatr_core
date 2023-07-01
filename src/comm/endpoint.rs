@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fmt::Debug;
 
-use crate::{protocol::{EnvMessage, ProtocolSpecification, AgentMessage}, error::CommError};
+use crate::{protocol::{EnvMessage, DomainParameters, AgentMessage}, error::CommError};
 
 pub trait CommEndpoint{
     type OutwardType: Debug;
@@ -33,12 +33,12 @@ where T: CommEndpoint{
     }
 }
 
-pub trait EnvCommEndpoint<Spec: ProtocolSpecification>: CommEndpoint<OutwardType = EnvMessage<Spec>, InwardType = AgentMessage<Spec>, Error = CommError<Spec>>{}
+pub trait EnvCommEndpoint<Spec: DomainParameters>: CommEndpoint<OutwardType = EnvMessage<Spec>, InwardType = AgentMessage<Spec>, Error = CommError<Spec>>{}
 
-impl<Spec: ProtocolSpecification, T> EnvCommEndpoint<Spec> for T 
+impl<Spec: DomainParameters, T> EnvCommEndpoint<Spec> for T
 where T: CommEndpoint<OutwardType = EnvMessage<Spec>, InwardType = AgentMessage<Spec>, Error = CommError<Spec>>{}
 
-pub trait AgentCommEndpoint<Spec: ProtocolSpecification>: CommEndpoint<OutwardType = AgentMessage<Spec>, InwardType = EnvMessage<Spec>, Error = CommError<Spec>>{}
+pub trait AgentCommEndpoint<Spec: DomainParameters>: CommEndpoint<OutwardType = AgentMessage<Spec>, InwardType = EnvMessage<Spec>, Error = CommError<Spec>>{}
 
-impl<Spec: ProtocolSpecification, T> AgentCommEndpoint<Spec> for T 
+impl<Spec: DomainParameters, T> AgentCommEndpoint<Spec> for T
 where T: CommEndpoint<OutwardType = AgentMessage<Spec>, InwardType = EnvMessage<Spec>, Error = CommError<Spec>>{}

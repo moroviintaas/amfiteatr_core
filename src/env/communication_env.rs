@@ -1,9 +1,9 @@
 use std::error::Error;
 
 use crate::DomainEnvironment;
-use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
+use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
 
-pub trait CommunicatingEnv<Spec: ProtocolSpecification> : DomainEnvironment<Spec>{
+pub trait CommunicatingEnv<Spec: DomainParameters> : DomainEnvironment<Spec>{
     //type Outward;
     //type Inward;
     type CommunicationError: Error;
@@ -16,7 +16,7 @@ pub trait CommunicatingEnv<Spec: ProtocolSpecification> : DomainEnvironment<Spec
 
 }
 
-pub trait BroadcastingEnv<Spec: ProtocolSpecification>: CommunicatingEnv<Spec>{
+pub trait BroadcastingEnv<Spec: DomainParameters>: CommunicatingEnv<Spec>{
 
     fn send_to_all(&mut self,  message: EnvMessage<Spec>) -> Result<(), Self::CommunicationError>;
 

@@ -1,8 +1,8 @@
 
-use crate::protocol::ProtocolSpecification;
+use crate::protocol::DomainParameters;
 use crate::state::State;
 
-pub trait EnvironmentState<Spec: ProtocolSpecification>: State<Spec>{
+pub trait EnvironmentState<Spec: DomainParameters>: State<Spec>{
     //type UpdatesCollection: IntoIterator<Item = (Spec::AgentId, Spec::UpdateType)>;
     //type AgentId: AgentIdentifier;
 

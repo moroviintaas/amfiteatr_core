@@ -1,9 +1,9 @@
 use std::marker::PhantomData;
-use crate::protocol::ProtocolSpecification;
+use crate::protocol::DomainParameters;
 use crate::{InformationSet, Policy, QFunction};
 
 pub struct SingleQPolicyGen<
-    Spec: ProtocolSpecification,
+    Spec: DomainParameters,
     QFunc: QFunction<Spec>>{
     q_function: QFunc,
     _spec: PhantomData<Spec>
@@ -11,7 +11,7 @@ pub struct SingleQPolicyGen<
 }
 
 impl<
-    Spec: ProtocolSpecification,
+    Spec: DomainParameters,
     QFunc: QFunction<Spec>> SingleQPolicyGen<Spec, QFunc>{
 
     pub fn new(q_function: QFunc) -> Self{
@@ -28,7 +28,7 @@ impl<
 }
 
 impl<
-    Spec: ProtocolSpecification,
+    Spec: DomainParameters,
     QFunc: QFunction<Spec>> Policy<Spec> for SingleQPolicyGen<Spec,  QFunc> {
     type StateType = QFunc::StateType;
 

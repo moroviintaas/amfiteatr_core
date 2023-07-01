@@ -1,14 +1,14 @@
 
 use crate::{Policy, StatefulAgent};
-use crate::protocol::ProtocolSpecification;
+use crate::protocol::DomainParameters;
 
-pub trait ActingAgent<Spec: ProtocolSpecification> {
+pub trait ActingAgent<Spec: DomainParameters> {
 
     fn take_action(&mut self) -> Option<Spec::ActionType>;
     fn finalize(&mut self);
 }
 
-pub trait PolicyAgent<Spec: ProtocolSpecification>: StatefulAgent<Spec>{
+pub trait PolicyAgent<Spec: DomainParameters>: StatefulAgent<Spec>{
     type Policy: Policy<Spec, StateType = <Self as StatefulAgent<Spec>>::State>;
 
     fn policy(&self) -> &Self::Policy;

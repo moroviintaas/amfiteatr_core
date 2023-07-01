@@ -2,7 +2,7 @@ use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent};
 use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
 use crate::error::SztormError::Protocol;
-use crate::protocol::{AgentMessage, EnvMessage, ProtocolSpecification};
+use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
 use crate::state::agent::InformationSet;
 use log::{info,  debug, error};
 use crate::{DistinctAgent, PolicyAgent};
@@ -25,7 +25,7 @@ impl <Spec: ProtocolSpecification, P: Policy,
 
  */
 
-pub trait AgentAuto<Spec: ProtocolSpecification>: DistinctAgent<Spec>{
+pub trait AgentAuto<Spec: DomainParameters>: DistinctAgent<Spec>{
     fn run_rr(&mut self) -> Result<(), SztormError<Spec>>;
 }
 
@@ -46,7 +46,7 @@ impl<Agnt, Spec > AgentAuto<Spec> for Agnt
 where Agnt: StatefulAgent<Spec> + ActingAgent<Spec> +
         CommunicatingAgent<Spec, CommunicationError=CommError<Spec>>
         + PolicyAgent<Spec> + DistinctAgent<Spec>,
-      Spec: ProtocolSpecification,
+      Spec: DomainParameters,
 //<<Agnt as StatefulAgent>::State as State>::Error: Into<TurError<Spec>>
 //SztormError<Spec>: From<<<Agnt as StatefulAgent<Spec>>::State as State>::Error>
 {

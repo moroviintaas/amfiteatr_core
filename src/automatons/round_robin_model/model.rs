@@ -1,19 +1,19 @@
 use std::collections::HashMap;
 use std::thread;
 use log::{error, info};
-use crate::protocol::{ProtocolSpecification};
+use crate::protocol::{DomainParameters};
 use crate::{ActionProcessor, EnvironmentState, GenericEnvironment, EnvCommEndpoint};
 use crate::automatons::rr::{AgentAuto, EnvironmentRR};
 use crate::error::SztormError;
 
-pub struct RoundRobinModel<Spec: ProtocolSpecification + 'static,
+pub struct RoundRobinModel<Spec: DomainParameters + 'static,
     EnvState: EnvironmentState<Spec>,
     ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>>{
     environment: GenericEnvironment<Spec, EnvState, ProcessAction, Comm>,
     local_agents: HashMap<Spec::AgentId, Box<dyn AgentAuto<Spec> + Send>>,
 }
 
-impl<Spec: ProtocolSpecification + 'static,
+impl<Spec: DomainParameters + 'static,
     EnvState: EnvironmentState<Spec>,
     ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>> RoundRobinModel<Spec, EnvState, ProcessAction, Comm>{
     pub fn new(environment: GenericEnvironment<Spec, EnvState, ProcessAction, Comm>, local_agents: HashMap<Spec::AgentId,Box<dyn AgentAuto<Spec> + Send>>) -> Self{

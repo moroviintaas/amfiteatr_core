@@ -1,10 +1,10 @@
 use std::marker::PhantomData;
 use crate::state::agent::InformationSet;
 use rand::seq::IteratorRandom;
-use crate::protocol::ProtocolSpecification;
+use crate::protocol::DomainParameters;
 
 
-pub trait Policy<Spec: ProtocolSpecification>{
+pub trait Policy<Spec: DomainParameters>{
     type StateType: InformationSet<Spec>;
 
     fn select_action(&self, state: &Self::StateType) -> Option<Spec::ActionType>;
@@ -14,17 +14,17 @@ pub trait Policy<Spec: ProtocolSpecification>{
 }
 
 #[derive(Debug, Copy, Clone, Default)]
-pub struct RandomPolicy<Spec: ProtocolSpecification, State: InformationSet<Spec>>{
+pub struct RandomPolicy<Spec: DomainParameters, State: InformationSet<Spec>>{
     state: PhantomData<State>,
     _spec: PhantomData<Spec>
 }
-impl<Spec: ProtocolSpecification, State: InformationSet<Spec>> RandomPolicy<Spec, State>{
+impl<Spec: DomainParameters, State: InformationSet<Spec>> RandomPolicy<Spec, State>{
     pub fn new() -> Self{
         Self{state: PhantomData::default(), _spec: PhantomData::default()}
     }
 }
 
-impl<Spec: ProtocolSpecification, State: InformationSet<Spec>> Policy<Spec> for RandomPolicy<Spec, State>
+impl<Spec: DomainParameters, State: InformationSet<Spec>> Policy<Spec> for RandomPolicy<Spec, State>
 where <<State as InformationSet<Spec>>::ActionIteratorType as IntoIterator>::IntoIter : ExactSizeIterator{
     type StateType = State;
 
@@ -34,7 +34,7 @@ where <<State as InformationSet<Spec>>::ActionIteratorType as IntoIterator>::Int
     }
 }
 
-impl<Spec: ProtocolSpecification, P: Policy<Spec>> Policy<Spec> for Box<P>{
+impl<Spec: DomainParameters, P: Policy<Spec>> Policy<Spec> for Box<P>{
     type StateType = P::StateType;
 
     fn select_action(&self, state: &Self::StateType) -> Option<Spec::ActionType> {

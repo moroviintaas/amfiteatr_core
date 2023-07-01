@@ -1,10 +1,10 @@
 use thiserror::Error;
 use crate::error::SztormError;
-use crate::protocol::ProtocolSpecification;
+use crate::protocol::DomainParameters;
 
 #[derive(Debug, Clone, PartialEq, Eq, Error)]
 #[cfg_attr(feature = "speedy", derive(speedy::Writable, speedy::Readable))]
-pub enum ProtocolError<Spec: ProtocolSpecification>{
+pub enum ProtocolError<Spec: DomainParameters>{
     #[error("lost contact with {:}", .0)]
     BrokenComm(Spec::AgentId),
     #[error("agent {:} attempted to move on turn of {:}", .0, .1)]
@@ -19,7 +19,7 @@ pub enum ProtocolError<Spec: ProtocolSpecification>{
     PlayerExited(Spec::AgentId)
 }
 
-impl<Spec: ProtocolSpecification> From<ProtocolError<Spec>> for SztormError<Spec>{
+impl<Spec: DomainParameters> From<ProtocolError<Spec>> for SztormError<Spec>{
     fn from(value: ProtocolError<Spec>) -> Self {
         Self::Protocol(value)
     }

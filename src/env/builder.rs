@@ -3,9 +3,9 @@
 use crate::{CommEndpoint, StatefulEnvironment};
 
 use crate::error::{SetupError};
-use crate::protocol::{ProtocolSpecification};
+use crate::protocol::{DomainParameters};
 
-pub trait EnvironmentBuilderTrait<Spec: ProtocolSpecification, Env: StatefulEnvironment<Spec>>: Default{
+pub trait EnvironmentBuilderTrait<Spec: DomainParameters, Env: StatefulEnvironment<Spec>>: Default{
 
     //type Environment: EnvironmentRR<Spec = Self::ProtocolSpec>;
     type Comm: CommEndpoint;
