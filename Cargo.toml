@@ -19,5 +19,5 @@ ron = {version = "0.8.0", optional = true}
 
 speedy = ["dep:speedy"]
 serde = ["dep:serde"]
-simulation = ["dep:serde", "dep:ron", "serde"]
+learning = []
 #neuro = ["dep:tensorflow"]

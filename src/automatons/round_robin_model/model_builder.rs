@@ -3,8 +3,8 @@ use std::collections::{HashMap};
 
 
 
-use crate::automatons::rr::{AgentAuto, RoundRobinModel};
-use crate::{ActionProcessor, EnvironmentState, GenericEnvironmentBuilder, EnvCommEndpoint, EnvironmentBuilderTrait};
+use crate::automatons::rr::{RoundRobinModel};
+use crate::{ActionProcessor, EnvironmentState, GenericEnvironmentBuilder, EnvCommEndpoint, EnvironmentBuilderTrait, AgentAuto};
 use crate::error::{SetupError};
 
 use crate::protocol::{DomainParameters};

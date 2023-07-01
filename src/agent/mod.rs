@@ -1,18 +1,17 @@
 mod identifier;
 mod action_pair;
-mod communication_agent;
-mod stateful_agent;
 mod generic_agent;
 mod policy_agent;
 mod policy;
 mod q;
+mod traits;
+
 pub use identifier::*;
 pub use action_pair::*;
-pub use communication_agent::*;
-pub use stateful_agent::*;
 pub use generic_agent::*;
 pub use policy_agent::*;
 pub use crate::state::agent::*;
 pub use policy::*;
 pub use q::*;
+pub use traits::*;
 //#[cfg_attr(feature = "tensorflow")]

@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::thread;
 use log::{error, info};
 use crate::protocol::{DomainParameters};
-use crate::{ActionProcessor, EnvironmentState, GenericEnvironment, EnvCommEndpoint};
-use crate::automatons::rr::{AgentAuto, EnvironmentRR};
+use crate::{ActionProcessor, EnvironmentState, GenericEnvironment, EnvCommEndpoint, AgentAuto};
+use crate::automatons::rr::{EnvironmentRR};
 use crate::error::SztormError;
 
 pub struct RoundRobinModel<Spec: DomainParameters + 'static,

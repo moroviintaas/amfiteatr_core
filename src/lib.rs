@@ -7,8 +7,7 @@ pub mod error;
 pub mod automatons;
 mod env;
 mod reward;
-#[cfg(feature = "simulation")]
-pub mod simulation;
+
 
 pub use state::*;
 pub use agent::*;
