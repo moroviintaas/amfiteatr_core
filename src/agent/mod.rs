@@ -5,6 +5,8 @@ mod policy_agent;
 mod policy;
 mod q;
 mod traits;
+#[cfg(feature = "learning")]
+mod learning;
 
 pub use identifier::*;
 pub use action_pair::*;
@@ -14,4 +16,5 @@ pub use crate::state::agent::*;
 pub use policy::*;
 pub use q::*;
 pub use traits::*;
-//#[cfg_attr(feature = "tensorflow")]
+#[cfg(feature = "learning")]
+pub use learning::*;
