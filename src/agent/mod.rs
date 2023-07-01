@@ -6,9 +6,6 @@ mod generic_agent;
 mod policy_agent;
 mod policy;
 mod q;
-#[cfg(feature = "tensorflow")]
-pub mod tensorflow;
-
 pub use identifier::*;
 pub use action_pair::*;
 pub use communication_agent::*;
