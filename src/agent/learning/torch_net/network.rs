@@ -1,46 +1,75 @@
-use std::marker::PhantomData;
-use tch::{Device, TchError, Tensor};
-use tch::nn::{Optimizer, OptimizerConfig, Path, Sequential, VarStore};
-use crate::learning::SequentialBuilder;
+use tch::{TchError, Tensor};
+use tch::nn::{Optimizer, OptimizerConfig, Path, VarStore};
+use crate::learning::{NetOutput};
 
-pub struct NeuralNet{
-    net: Box<dyn Fn(&Tensor) -> Tensor + Send>,
+pub struct NeuralNet<Output: NetOutput>{
+    net: Box<dyn Fn(&Tensor) -> Output + Send>,
     var_store: VarStore,
-    device: Device,
-
-
 }
 
+pub type NeuralNet1 = NeuralNet<Tensor>;
+pub type NeuralNet2 = NeuralNet<(Tensor, Tensor)>;
+
+/// To construct network you need `VarStore` and function (closure) taking `nn::Path` as argument
+/// and constructs function (closure) which applies network model to `Tensor` producing `NetOutput`,
+/// in following example `NetOutput` of `(Tensor, Tensor)` is used for purpose of actor-critic method.
 /// # Example:
 /// ```
-/// use sztorm::learning::{NeuralNet, SequentialBuilder};
-/// use tch::{Device, nn};
+/// use sztorm::learning::{NeuralNet2};
+/// use tch::{Device, nn, Tensor};
 /// use tch::nn::{Adam, VarStore};
 /// let device = Device::cuda_if_available();
 /// let var_store = VarStore::new(device);
-/// let builder = SequentialBuilder::new(|path|{
-///     nn::seq()
-///         .add(nn::linear(path/"input", 10, 128, Default::default()))
-///         .add(nn::linear(path/"hidden_1", 128, 2, Default::default()))
+/// let number_of_actions = 33_i64;
+/// let neural_net = NeuralNet2::new(var_store, |path|{
+///     let seq = nn::seq()
+///         .add(nn::linear(path / "input", 16, 128, Default::default()))
+///         .add(nn::linear(path / "hidden", 128, 128, Default::default()));
+///     let actor = nn::linear(path / "al", 128, number_of_actions, Default::default());
+///     let critic = nn::linear(path / "cl", 128, 1, Default::default());
+///     let device = path.device();
+///     {move |xs: &Tensor|{
+///         let xs = xs.to_device(device).apply(&seq);
+///         (xs.apply(&critic), xs.apply(&actor))
+///     }}
+///
 /// });
 ///
-/// let neural_net = NeuralNet::new(&builder, var_store);
-/// let optimiser = neural_net.build_optimiser(Adam::default(), 0.01);
+/// let optimizer = neural_net.build_optimizer(Adam::default(), 0.01);
 /// ```
-impl NeuralNet{
+impl<Output: NetOutput> NeuralNet<Output>{
 
-    pub fn new<F: Fn(&Path) -> Sequential>(sequential_builder: &SequentialBuilder<F>, var_store: VarStore) -> Self{
-        let sequential = sequential_builder.build(&var_store.root());
+    pub fn new<N: 'static + Send + Fn(&Tensor) -> Output,F: Fn(&Path) -> N>(var_store: VarStore, model_closure: F)  -> Self{
+
         let device = var_store.root().device();
+        let model = (model_closure)(&var_store.root());
         Self{
             var_store,
-            device,
-            net: Box::new(move |x| {x.to_device(device).apply(&sequential)})
+            net: Box::new(move |x| {(model)(&x.to_device(device))})
         }
     }
-    pub fn build_optimiser<OptC: OptimizerConfig>
+    pub fn build_optimizer<OptC: OptimizerConfig>
         (&self, optimiser_config: OptC, learning_rate: f64) -> Result<Optimizer, TchError>{
 
         optimiser_config.build(&self.var_store, learning_rate)
     }
+    /// Returns reference to internal network offering `Tensor -> Output` application.
+    /// # Example:
+    /// ```
+    /// use tch::{Device, Kind, nn, Tensor};
+    /// use tch::nn::VarStore;
+    /// use sztorm::learning::NeuralNet;
+    /// let device = Device::cuda_if_available();
+    /// let var_store = VarStore::new(device);
+    /// let neural_net = NeuralNet::new(var_store, |path|{
+    ///     let seq = nn::seq()
+    ///         .add(nn::linear(path / "input", 32, 4, Default::default()));
+    ///     move |tensor|{tensor.apply(&seq)}
+    ///
+    /// });
+    /// let input_tensor = Tensor::zeros(32, (Kind::Float, device));
+    /// let output_tensor = (neural_net.net())(&input_tensor);
+    /// assert_eq!(output_tensor.size(), vec![4]);
+    /// ```
+    pub fn net(&self) -> &Box<dyn Fn(&Tensor) -> Output + Send>{&self.net}
 }
