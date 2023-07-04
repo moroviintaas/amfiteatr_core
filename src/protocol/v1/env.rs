@@ -10,5 +10,7 @@ pub enum EnvMessage<Spec: DomainParameters>{
     Kill,
     UpdateState(Spec::UpdateType),
     ActionNotify(AgentActionPair<Spec::AgentId, Spec::ActionType>),
-    ErrorNotify(SztormError<Spec>)
+    RewardFragment(Spec::UniversalReward),
+    ErrorNotify(SztormError<Spec>),
+
 }

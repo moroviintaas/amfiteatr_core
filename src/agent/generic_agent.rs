@@ -3,7 +3,7 @@ use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent};
 use crate::agent::policy::Policy;
 use crate::comm::CommEndpoint;
 use crate::error::CommError;
-use crate::{DistinctAgent, PolicyAgent};
+use crate::{DistinctAgent, PolicyAgent, Reward, RewardedAgent};
 use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
 use crate::state::State;
 
@@ -13,7 +13,10 @@ pub struct AgentGen<Spec: DomainParameters, P: Policy<Spec>,
     comm: Comm,
     policy: P,
     _phantom: PhantomData<Spec>,
-    id: Spec::AgentId
+
+    id: Spec::AgentId,
+    constructed_universal_reward: <Spec as DomainParameters>::UniversalReward,
+    actual_universal_score: <Spec as DomainParameters>::UniversalReward,
 }
 
 impl <Spec: DomainParameters, P: Policy<Spec>,
@@ -21,7 +24,13 @@ impl <Spec: DomainParameters, P: Policy<Spec>,
     AgentGen<Spec, P, Comm>{
 
     pub fn new(id: Spec::AgentId, state: <P as Policy<Spec>>::StateType, comm: Comm, policy: P) -> Self{
-        Self{state, comm, policy,  _phantom:PhantomData::default(), id}
+        Self{state,
+            comm,
+            policy,
+            _phantom:PhantomData::default(),
+            id,
+            constructed_universal_reward: Reward::neutral(),
+            actual_universal_score: Reward::neutral() }
     }
 
     pub fn replace_state(&mut self, state: <P as Policy<Spec>>::StateType){
@@ -94,5 +103,24 @@ DistinctAgent<Spec> for AgentGen<Spec, P, Comm>{
 
     fn id(&self) -> &Spec::AgentId {
         &self.id
+    }
+}
+
+impl<Spec: DomainParameters,
+    P: Policy<Spec>,
+    Comm: CommEndpoint<
+        OutwardType=AgentMessage<Spec>,
+        InwardType=EnvMessage<Spec>,
+        Error=CommError<Spec>>> RewardedAgent<Spec> for AgentGen<Spec, P, Comm>{
+    fn current_universal_reward(&self) -> &Spec::UniversalReward {
+        &self.constructed_universal_reward
+    }
+
+    fn set_current_universal_reward(&mut self, reward: Spec::UniversalReward) {
+        self.constructed_universal_reward = reward
+    }
+
+    fn current_universal_score(&self) -> &Spec::UniversalReward {
+        &self.actual_universal_score
     }
 }

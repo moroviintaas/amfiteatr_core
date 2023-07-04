@@ -5,7 +5,7 @@ use crate::error::SztormError::Protocol;
 use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
 use crate::state::agent::InformationSet;
 use log::{info,  debug, error};
-use crate::{DistinctAgent, PolicyAgent};
+use crate::{DistinctAgent, PolicyAgent, RewardedAgent};
 use crate::protocol::AgentMessage::{NotifyError, TakeAction};
 /*AgentState<ActionIteratorType=Spec::ActionIteratorType,
         ActionType=Spec::ActionType, Error=Spec::GameErrorType, UpdateType=Spec::UpdateType>,*/
@@ -43,20 +43,23 @@ impl <Spec: ProtocolSpecification, P: Policy,
 */
 
 impl<Agnt, Spec > AgentAuto<Spec> for Agnt
-where Agnt: StatefulAgent<Spec> + ActingAgent<Spec> +
-        CommunicatingAgent<Spec, CommunicationError=CommError<Spec>>
-        + PolicyAgent<Spec> + DistinctAgent<Spec>,
+where Agnt: StatefulAgent<Spec> + ActingAgent<Spec>
+    + CommunicatingAgent<Spec, CommunicationError=CommError<Spec>>
+    + PolicyAgent<Spec> + DistinctAgent<Spec>
+    + RewardedAgent<Spec>,
       Spec: DomainParameters,
 //<<Agnt as StatefulAgent>::State as State>::Error: Into<TurError<Spec>>
 //SztormError<Spec>: From<<<Agnt as StatefulAgent<Spec>>::State as State>::Error>
 {
     fn run_rr(&mut self) -> Result<(), SztormError<Spec>> {
         info!("Agent {} starts", self.state().id());
+        let mut current_score = Spec::UniversalReward::default();
         loop{
             match self.recv(){
                 Ok(message) => match message{
                     EnvMessage::YourMove => {
                         debug!("Agent {} received 'YourMove' signal.", self.state().id());
+                        current_score = Default::default();
 
                         //debug!("Agent's {:?} possible actions: {:?}", self.state().id(), Vec::from_iter(self.state().available_actions().into_iter()));
                         debug!("Agent's {:?} possible actions: {}]", self.state().id(), self.state().available_actions().into_iter()
@@ -102,6 +105,10 @@ where Agnt: StatefulAgent<Spec> + ActingAgent<Spec> +
                     }
                     EnvMessage::ErrorNotify(e) => {
                         error!("Agent {} received error notification {}", self.state().id(), &e)
+                    }
+                    EnvMessage::RewardFragment(r) =>{
+                        current_score = current_score + r;
+                        self.set_current_universal_reward(current_score.clone());
                     }
                 }
                 Err(e) => return Err(e.into())

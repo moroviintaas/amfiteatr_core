@@ -4,13 +4,14 @@ use crate::{InformationSet};
 pub struct GameTraceLine<DP: DomainParameters, S: InformationSet<DP>> {
     initial_state: S,
     taken_action: DP::ActionType,
-    immediate_reward: S::RewardType
+    immediate_subjective_reward: S::RewardType,
+    immediate_universal_reward: DP::UniversalReward
 
 }
 
 impl<DP: DomainParameters, S: InformationSet<DP>> GameTraceLine<DP, S>{
-    pub fn new(initial_state: S, taken_action: DP::ActionType, immediate_reward: S::RewardType) -> Self{
-        Self{initial_state, taken_action, immediate_reward}
+    pub fn new(initial_state: S, taken_action: DP::ActionType, immediate_subjective_reward: S::RewardType, immediate_universal_reward: DP::UniversalReward) -> Self{
+        Self{initial_state, taken_action, immediate_subjective_reward, immediate_universal_reward }
     }
 
     pub fn step_state(&self) -> &S{
@@ -19,11 +20,14 @@ impl<DP: DomainParameters, S: InformationSet<DP>> GameTraceLine<DP, S>{
     pub fn taken_action(&self) -> &DP::ActionType{
         &self.taken_action
     }
-    pub fn step_reward(&self) -> &S::RewardType{
-        &self.immediate_reward
+    pub fn step_subjective_reward(&self) -> &S::RewardType{
+        &self.immediate_subjective_reward
+    }
+    pub fn step_universal_reward(&self) -> &DP::UniversalReward{
+        &self.immediate_universal_reward
     }
     pub fn borrowed_tuple(&self) -> (&S, &DP::ActionType, &S::RewardType) {
-        (self.step_state(), self.taken_action(), self.step_reward())
+        (self.step_state(), self.taken_action(), self.step_subjective_reward())
     }
 }
 
