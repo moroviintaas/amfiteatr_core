@@ -116,9 +116,10 @@ impl<Spec: DomainParameters,
         &self.constructed_universal_reward
     }
 
-    fn set_current_universal_reward(&mut self, reward: Spec::UniversalReward) {
-        self.constructed_universal_reward = reward
+    fn current_universal_reward_add(&mut self, reward_fragment: &Spec::UniversalReward) {
+        self.constructed_universal_reward += reward_fragment;
     }
+
 
     fn current_universal_score(&self) -> &Spec::UniversalReward {
         &self.actual_universal_score

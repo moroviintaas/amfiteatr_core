@@ -1,7 +1,9 @@
 use std::fmt::Debug;
-use std::ops::{Add, Sub};
+use std::ops::{Add, AddAssign, Sub};
 
-pub trait Reward: Send + Clone + Debug + PartialEq + Eq + PartialOrd + Default + Add<Output=Self> + Sub<Output=Self>
+pub trait Reward: Send + Clone + Debug + PartialEq + Eq + PartialOrd + Default +
+    for<'a> Add<&'a Self, Output=Self> + Add<Output=Self> + for<'a> AddAssign<&'a Self>
+    + Sub<Output=Self>
 {
 
     fn neutral() -> Self;
@@ -9,7 +11,9 @@ pub trait Reward: Send + Clone + Debug + PartialEq + Eq + PartialOrd + Default +
 
 }
 
-impl<T: Send + Clone + Debug + PartialEq + Eq + PartialOrd + Default + Add<Output=Self> + Sub<Output=Self> + Default> Reward for T {
+impl<T: Send + Clone + Debug + PartialEq + Eq + PartialOrd + Default +
+    for<'a> Add<&'a Self, Output=Self> + Add<Output=Self>  + for<'a> AddAssign<&'a Self>
+    + Sub<Output=Self> + Default> Reward for T {
     fn neutral() -> Self {
         T::default()
     }

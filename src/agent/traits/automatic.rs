@@ -107,8 +107,9 @@ where Agnt: StatefulAgent<Spec> + ActingAgent<Spec>
                         error!("Agent {} received error notification {}", self.state().id(), &e)
                     }
                     EnvMessage::RewardFragment(r) =>{
-                        current_score = current_score + r;
-                        self.set_current_universal_reward(current_score.clone());
+                        //current_score = current_score + r;
+                        //self.set_current_universal_reward(current_score.clone());
+                        self.current_universal_reward_add(&r);
                     }
                 }
                 Err(e) => return Err(e.into())
