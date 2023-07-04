@@ -14,10 +14,10 @@ pub trait InformationSet<Spec: DomainParameters>: State<Spec>{
     fn available_actions(&self) -> Self::ActionIteratorType;
     fn id(&self) -> &Spec::AgentId;
     fn is_action_valid(&self, action: &Spec::ActionType) -> bool;
-    fn current_score(&self) -> Self::RewardType;
-    fn final_score(&self) -> Option<Self::RewardType>{
+    fn current_subjective_score(&self) -> Self::RewardType;
+    fn final_subjective_score(&self) -> Option<Self::RewardType>{
         if self.is_finished(){
-            Some(self.current_score())
+            Some(self.current_subjective_score())
         } else {
             None
         }
@@ -41,7 +41,7 @@ impl<T: InformationSet<Spec>, Spec: DomainParameters> InformationSet<Spec> for B
         self.as_ref().is_action_valid(action)
     }
 
-    fn current_score(&self) -> Self::RewardType {
-        self.as_ref().current_score()
+    fn current_subjective_score(&self) -> Self::RewardType {
+        self.as_ref().current_subjective_score()
     }
 }
