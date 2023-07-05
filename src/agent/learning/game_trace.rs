@@ -60,4 +60,8 @@ impl<DP: DomainParameters, S: InformationSet<DP>> GameTrace<DP, S>
         &self.trace
     }
 
+    pub fn pop_step(&mut self) -> Option<GameTraceLine<DP, S>>{
+        self.trace.pop()
+    }
+
 }
