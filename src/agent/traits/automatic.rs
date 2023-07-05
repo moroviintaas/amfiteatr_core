@@ -53,13 +53,13 @@ where Agnt: StatefulAgent<Spec> + ActingAgent<Spec>
 {
     fn run_rr(&mut self) -> Result<(), SztormError<Spec>> {
         info!("Agent {} starts", self.state().id());
-        let mut current_score = Spec::UniversalReward::default();
+        //let mut current_score = Spec::UniversalReward::default();
         loop{
             match self.recv(){
                 Ok(message) => match message{
                     EnvMessage::YourMove => {
                         debug!("Agent {} received 'YourMove' signal.", self.state().id());
-                        current_score = Default::default();
+                        //current_score = Default::default();
 
                         //debug!("Agent's {:?} possible actions: {:?}", self.state().id(), Vec::from_iter(self.state().available_actions().into_iter()));
                         debug!("Agent's {:?} possible actions: {}]", self.state().id(), self.state().available_actions().into_iter()

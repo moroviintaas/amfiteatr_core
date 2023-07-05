@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use tch::Kind::Float;
 use tch::nn::Optimizer;
 use crate::{InformationSet, Policy};
-use crate::learning::{SelfExperiencingPolicy, GameTrace, NeuralNet2, TensorBuilder, TensorInterpreter};
+use crate::learning::{SelfExperiencingPolicy, NeuralNet2, TensorBuilder, TensorInterpreter};
 use crate::protocol::DomainParameters;
 
 
@@ -15,6 +15,7 @@ pub struct ActorCriticPolicy<
     ActInterpreter: TensorInterpreter<Option<DP::ActionType>>
 > {
     network: NeuralNet2,
+    #[allow(dead_code)]
     optimizer: Optimizer,
     _dp: PhantomData<DP>,
     _is: PhantomData<InfoSet>,
