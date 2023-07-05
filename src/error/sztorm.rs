@@ -1,4 +1,3 @@
-use std::fmt::{Display, Formatter};
 use thiserror::Error;
 use crate::error::{CommError, ProtocolError, SetupError};
 use crate::protocol::{DomainParameters};
@@ -6,29 +5,14 @@ use crate::protocol::{DomainParameters};
 #[derive(Debug, Clone,  Error)]
 #[cfg_attr(feature = "speedy", derive(speedy::Writable, speedy::Readable))]
 pub enum SztormError<Spec: DomainParameters>{
+    #[error("Game error: {0}")]
     Game(Spec::GameErrorType),
+    #[error("Agent {1} caused game error: {0}")]
+    GameWithConvict(Spec::GameErrorType, Spec::AgentId),
+    #[error("Communication error: {0}")]
     Comm(CommError<Spec>),
+    #[error("Protocol error: {0}")]
     Protocol(ProtocolError<Spec>),
+    #[error("Setup error: {0}")]
     Setup(SetupError<Spec>)
 }
-
-impl <Spec: DomainParameters> Display for SztormError<Spec>{
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self{
-            SztormError::Game(e) => write!(f, "GameError: {e}"),
-            SztormError::Comm(e) => write!(f, "CommError: {e}"),
-            SztormError::Protocol(e) => write!(f, "ProtocolError: {e}"),
-            SztormError::Setup(e) => write!(f, "SetupError: {e}")
-
-        }
-
-    }
-}
-
-
-/*
-impl<Spec: ProtocolSpecification> From<Spec::GameErrorType> for TurError<Spec>{
-    fn from(value: Spec::GameErrorType) -> Self {
-        Self::GameError(value)
-    }
-}*/

@@ -8,7 +8,20 @@ use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
 #[allow(clippy::type_complexity)]
 pub trait ActionProcessor<Spec: DomainParameters, State: EnvironmentState<Spec>> {
 
-    fn process_action(&self, state: &mut State, agent_id: &Spec::AgentId, action: Spec::ActionType) -> Result<Vec<(Spec::AgentId, Spec::UpdateType)>, Spec::GameErrorType>;
+    fn process_action(
+        &self,
+        state: &mut State,
+        agent_id: &Spec::AgentId,
+        action: Spec::ActionType)
+        -> Result<Vec<(Spec::AgentId, Spec::UpdateType)>, Spec::GameErrorType>;
+
+    fn process_action_penalise_illegal(
+        &self,
+        state: &mut State,
+        agent_id: &Spec::AgentId,
+        action: Spec::ActionType,
+        penalty_reward: Spec::UniversalReward)
+        -> Result<Vec<(Spec::AgentId, Spec::UpdateType)>, Spec::GameErrorType>;
 }
 
 /*
@@ -23,8 +36,8 @@ p
 pub struct GenericEnvironment<Spec: DomainParameters, State: EnvironmentState<Spec>,
     AP: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec>>{
 
-    comm_endpoints: HashMap<Spec::AgentId,
-        Comm>,
+    comm_endpoints: HashMap<Spec::AgentId, Comm>,
+    //penalties: HashMap<Spec::AgentId, Spec::UniversalReward>,
 
     game_state: State,
     action_processor: AP,
@@ -35,14 +48,17 @@ impl <Spec: DomainParameters, State: EnvironmentState<Spec>,
 
 
     pub fn new(game_state: State, action_processor: ProcessAction,
-               comm_endpoints:  HashMap<Spec::AgentId,
-                                     Comm>
+               comm_endpoints:  HashMap<Spec::AgentId,  Comm>
                ) -> Self{
+        /*let penalties: HashMap<Spec::AgentId, Spec::UniversalReward> = comm_endpoints.iter()
+            .map(|(id, _)|{
+                (id.clone(), Spec::UniversalReward::neutral())
+            }).collect();*/
         let k:Vec<Spec::AgentId> = comm_endpoints.keys().copied().collect();
         debug!("Creating environment with:{k:?}");
 
 
-        Self{comm_endpoints, game_state, action_processor }
+        Self{comm_endpoints, game_state, action_processor}
     }
 
     pub fn replace_state(&mut self, state: State){
@@ -72,6 +88,15 @@ StatefulEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction, Com
 
         Ok(updates.into_iter())
 
+    }
+
+    fn process_action_penalise_illegal(&mut self, agent: &Spec::AgentId, action: Spec::ActionType, penalty_reward: Spec::UniversalReward) -> Result<Self::UpdatesIterator, Spec::GameErrorType> {
+        let updates = self.action_processor.process_action_penalise_illegal(&mut self.game_state, agent, action, penalty_reward)?;
+        Ok(updates.into_iter())
+    }
+
+    fn actual_score_of_player(&self, agent: &Spec::AgentId) -> Spec::UniversalReward {
+        self.state().state_score_of_player(agent)
     }
 }
 
@@ -124,6 +149,8 @@ impl <'a, Spec: DomainParameters + 'a,
     fn players(&self) -> Self::PlayerIterator {
         self.comm_endpoints.keys().copied().collect()
     }
+
+
 }
 
 

@@ -68,7 +68,7 @@ impl<Spec: DomainParameters + 'static,
         }
 
         info!("Collector HashMap len: {}", agent_collectors.len());
-        self.environment.env_run_rr().map_err(|e|{
+        self.environment.run_rr().map_err(|e|{
             error!("Environment run error: {e:}");
             e
         }).unwrap();

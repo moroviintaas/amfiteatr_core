@@ -112,8 +112,8 @@ impl<Spec: DomainParameters,
         OutwardType=AgentMessage<Spec>,
         InwardType=EnvMessage<Spec>,
         Error=CommError<Spec>>> RewardedAgent<Spec> for AgentGen<Spec, P, Comm>{
-    fn current_universal_reward(&self) -> &Spec::UniversalReward {
-        &self.constructed_universal_reward
+    fn current_universal_reward(&self) -> Spec::UniversalReward {
+        self.constructed_universal_reward.clone()
     }
 
     fn current_universal_reward_add(&mut self, reward_fragment: &Spec::UniversalReward) {
@@ -121,7 +121,7 @@ impl<Spec: DomainParameters,
     }
 
 
-    fn current_universal_score(&self) -> &Spec::UniversalReward {
-        &self.actual_universal_score
+    fn current_universal_score(&self) -> Spec::UniversalReward {
+        self.actual_universal_score.clone() + &self.constructed_universal_reward
     }
 }

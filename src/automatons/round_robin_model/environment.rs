@@ -1,42 +1,45 @@
+use std::collections::HashMap;
 use log::{error, info, warn};
-use crate::{AutomaticEnvironment};
+use crate::{Reward};
 use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentWithAgents, StatefulEnvironment};
 use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::PlayerExited;
+use crate::error::SztormError::GameWithConvict;
 use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
 use crate::protocol::EnvMessage::ErrorNotify;
 use crate::state::State;
 
-pub trait EnvironmentRR<Spec: DomainParameters>{
-    fn env_run_rr(&mut self) -> Result<(), SztormError<Spec>>;
+pub trait EnvironmentRR<DP: DomainParameters>{
+    fn run_rr(&mut self) -> Result<(), SztormError<DP>>;
+    fn run_rr_penalise_illegal(&mut self, cheat_penalty: DP::UniversalReward) -> Result<(), SztormError<DP>>;
 }
 
-pub(crate) trait EnvironmentRRInternal<Spec: DomainParameters>{
-    fn notify_error(&mut self, error: SztormError<Spec>) -> Result<(), CommError<Spec>>;
-    fn send_message(&mut self, agent: &Spec::AgentId, message: EnvMessage<Spec>) -> Result<(), CommError<Spec>>;
-    fn process_action_and_inform(&mut self, player: Spec::AgentId, action: Spec::ActionType) -> Result<(), SztormError<Spec>>;
+pub(crate) trait EnvironmentRRInternal<DP: DomainParameters>{
+    fn notify_error(&mut self, error: SztormError<DP>) -> Result<(), CommError<DP>>;
+    fn send_message(&mut self, agent: &DP::AgentId, message: EnvMessage<DP>) -> Result<(), CommError<DP>>;
+    fn process_action_and_inform(&mut self, player: DP::AgentId, action: DP::ActionType) -> Result<(), SztormError<DP>>;
 
     //fn broadcast_message(&mut self ,message: EnvMessage<Spec>) -> Result<(), CommError>;
 }
 
-impl<'a, Env, Spec: DomainParameters + 'a> EnvironmentRRInternal<Spec> for Env
-where Env: CommunicatingEnv<Spec, CommunicationError=CommError<Spec>>
- + StatefulEnvironment<Spec> + 'a
+impl<'a, Env, DP: DomainParameters + 'a> EnvironmentRRInternal<DP> for Env
+where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
+ + StatefulEnvironment<DP> + 'a
  //+ EnvironmentWithAgents<'a, Spec::AgentId>
- + EnvironmentWithAgents<Spec>
- + BroadcastingEnv<Spec>,
+ + EnvironmentWithAgents<DP>
+ + BroadcastingEnv<DP>,
  //+ DomainEnvironment<DomainParameter = Spec::AgentId>,
 
 //<<Env as StatefulEnvironment>::State as State>::Error: Clone,
 //TurError<Spec>: From<<<Env as StatefulEnvironment>::State as State>::Error>,
-Spec: DomainParameters
+DP: DomainParameters
  //Spec::AgentId =  <<Env as StatefulEnvironment>::State as EnvironmentState>::PlayerId
 {
-    fn notify_error(&mut self, error: SztormError<Spec>) -> Result<(), CommError<Spec>> {
+    fn notify_error(&mut self, error: SztormError<DP>) -> Result<(), CommError<DP>> {
         self.send_to_all(ErrorNotify(error))
     }
 
-    fn send_message(&mut self, agent: &Spec::AgentId, message: EnvMessage<Spec>) -> Result<(), CommError<Spec>>{
+    fn send_message(&mut self, agent: &DP::AgentId, message: EnvMessage<DP>) -> Result<(), CommError<DP>>{
         self.send_to(agent, message)
             .map_err(|e| {
                 self.notify_error(e.clone().into())
@@ -45,7 +48,7 @@ Spec: DomainParameters
             })
     }
 
-    fn process_action_and_inform(&mut self, player: Spec::AgentId, action: Spec::ActionType) -> Result<(), SztormError<Spec>> {
+    fn process_action_and_inform(&mut self, player: DP::AgentId, action: DP::ActionType) -> Result<(), SztormError<DP>> {
         match self.process_action(&player, action){
             Ok(iter) => {
                 //let mut n=0;
@@ -77,12 +80,12 @@ where Env: CommunicatingEnv<Spec, CommunicationError=CommError<Spec>>
 Spec: DomainParameters
  //Spec::AgentId =  <<Env as StatefulEnvironment>::State as EnvironmentState>::PlayerId
 {
-    fn env_run_rr(&mut self) -> Result<(), SztormError<Spec>> {
+    fn run_rr(&mut self) -> Result<(), SztormError<Spec>> {
 
-        /*fn internal_error_notify(e: TurError<Spec>) -> Result<(), CommError>{
-            self.send_to_all()
-        }*/
-
+        let mut actual_universal_scores: HashMap<Spec::AgentId, Spec::UniversalReward> = self.players().into_iter()
+            .map(|id|{
+                (id, Spec::UniversalReward::neutral())
+            }).collect();
         let first_player = match self.current_player(){
             None => {
                 warn!("No first player, stopping environment.");
@@ -99,6 +102,12 @@ Spec: DomainParameters
                         AgentMessage::TakeAction(action) => {
                             info!("Player {} performs action: {:#}", &player, &action);
                             self.process_action_and_inform(player, action)?;
+                            for (player, score) in actual_universal_scores.iter_mut(){
+
+                                let reward = self.actual_score_of_player(player) - score.clone();
+                                *score = self.actual_score_of_player(player);
+                                self.send_to(player, EnvMessage::RewardFragment(reward))?;
+                            }
                             if let Some(next_player) = self.current_player(){
                                 self.send_message(&next_player, EnvMessage::YourMove)
                                     .map_err(|e| e.specify_id(next_player))?;
@@ -109,24 +118,7 @@ Spec: DomainParameters
                                 return Ok(());
 
                             }
-                            //match self.process_action(player, action.clone()){
-                            //    Ok(iter) => {
-                            //        for (ag, update) in iter{
-                            //           /*self.send_to(&ag, EnvMessage::ActionNotify(AgentActionPair::new(player.clone(), action)))
-                            //                .map_err(|e| {
-                            //                    //self.send_to_all(ErrorNotify(TurError::CommError(e.clone())))
-                            //                    self.notify_error(e.clone().into())
-                            //                        .expect(&format!("Failed broadcasting error message {}", &e));
-                            //                    //Err::<(), TurError<Spec>>(TurError::CommError(e))
-                            //                    e
-                            //                })?;
-                            //             */
-                            //            self.send_message(&ag, EnvMessage::ActionNotify(AgentActionPair::new(player.clone(), action.clone())))?;
-                            //            self.send_message(&ag, EnvMessage::UpdateState(update))?;
-                            //        }
-                            //    }
-                            //    Err(e) => {return Err(TurError::GameError(e))}
-                            //}
+
 
                         }
                         AgentMessage::NotifyError(e) => {
@@ -152,9 +144,7 @@ Spec: DomainParameters
                             return Err(SztormError::Comm(err));
                         }
 
-                        /*error!("Failed trying to receive from {}", player);
-                        self.send_to_all(EnvMessage::ErrorNotify(recv_error.clone().into()))?;
-                        return Err(TurError::CommError(recv_error));*/
+
                     }
                 }
             }
@@ -162,11 +152,99 @@ Spec: DomainParameters
 
 
     }
-}
 
-impl <Spec: DomainParameters, Env: EnvironmentRR<Spec>> AutomaticEnvironment<Spec> for Env{
-    fn run(&mut self) -> Result<(), SztormError<Spec>> {
-        self.env_run_rr()
+    fn run_rr_penalise_illegal(&mut self, cheat_penalty: Spec::UniversalReward) -> Result<(), SztormError<Spec>> {
+
+        let mut actual_universal_scores: HashMap<Spec::AgentId, Spec::UniversalReward> = self.players().into_iter()
+            .map(|id|{
+                (id, Spec::UniversalReward::neutral())
+            }).collect();
+        let first_player = match self.current_player(){
+            None => {
+                warn!("No first player, stopping environment.");
+                return Ok(())
+            }
+            Some(n) => n
+        };
+        info!("Sending YourMove signal to first agent: {:?}", &first_player);
+        self.send_to(&first_player, EnvMessage::YourMove).map_err(|e|e.specify_id(first_player))?;
+        loop{
+            for player in self.players(){
+                match self.try_recv_from(&player){
+                    Ok(agent_message) => match agent_message{
+                        AgentMessage::TakeAction(action) => {
+                            info!("Player {} performs action: {:#}", &player, &action);
+                            match self.process_action(&player, action){
+                                Ok(updates) => {
+                                    for (ag, update) in updates{
+                                        self.send_message(&ag, EnvMessage::UpdateState(update))?;
+                                    }
+                                    for (player, score) in actual_universal_scores.iter_mut(){
+
+                                        let reward = self.actual_score_of_player(player) - score.clone();
+                                        *score = self.actual_score_of_player(player);
+                                        self.send_to(player, EnvMessage::RewardFragment(reward))?;
+                                    }
+                                }
+                                Err(e) => {
+                                    self.send_to(&player, EnvMessage::RewardFragment(cheat_penalty.clone()))?;
+                                    for (player, score) in actual_universal_scores.iter_mut(){
+
+                                        let reward = self.actual_score_of_player(player) - score.clone();
+                                        *score = self.actual_score_of_player(player);
+                                        self.send_to(player, EnvMessage::RewardFragment(reward))?;
+                                    }
+                                    self.send_to_all(EnvMessage::GameFinished)?;
+                                    return Err(GameWithConvict(e, player));
+                                }
+                            }
+                            if let Some(next_player) = self.current_player(){
+                                self.send_message(&next_player, EnvMessage::YourMove)
+                                    .map_err(|e| e.specify_id(next_player))?;
+                            }
+                            if self.state().is_finished(){
+                                info!("Game reached finished state");
+                                self.send_to_all(EnvMessage::GameFinished)?;
+                                return Ok(());
+
+                            }
+
+
+                        }
+                        AgentMessage::NotifyError(e) => {
+                            error!("Player {} informed about error: {}", player, &e);
+                            self.notify_error(e.clone())?;
+                            return Err(e);
+                        }
+                        AgentMessage::Quit => {
+                            error!("Player {} exited game.", player);
+                            self.notify_error(SztormError::Protocol(PlayerExited(player)))?;
+                            return Err(SztormError::Protocol(PlayerExited(player)))
+                        }
+                    },
+                    Err(e) => match e{
+
+                        CommError::TryRecvEmptyError(_) | CommError::TryRecvDisconnectedError(_) |
+                        CommError::TryRecvErrorEmptyUnspecified | CommError::TryRecvErrorDisconnectedUnspecified=> {
+                            //debug!("Empty channel");
+                        },
+                        err => {
+                            error!("Failed trying to receive from {}", player);
+                            self.send_to_all(EnvMessage::ErrorNotify(err.clone().into()))?;
+                            return Err(SztormError::Comm(err));
+                        }
+
+
+                    }
+                }
+            }
+        }
     }
 }
+/*
+impl <Spec: DomainParameters, Env: EnvironmentRR<Spec>> AutomaticEnvironment<Spec> for Env{
+    fn run(&mut self) -> Result<(), SztormError<Spec>> {
+        self.run_rr()
+    }
+}*/
 
