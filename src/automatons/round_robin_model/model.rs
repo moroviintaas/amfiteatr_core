@@ -3,7 +3,7 @@ use std::thread;
 use log::{error, info};
 use crate::protocol::{DomainParameters};
 use crate::{EnvironmentState, GenericEnvironment, EnvCommEndpoint, AgentAuto, EnvironmentStateUniScore, ActionProcessor};
-use crate::automatons::rr::{EnvironmentRR};
+use crate::automatons::rr::{RoundRobinUniversalEnvironment};
 use crate::error::SztormError;
 
 pub struct RoundRobinModel<Spec: DomainParameters + 'static,
@@ -68,7 +68,7 @@ impl<Spec: DomainParameters + 'static,
         }
 
         info!("Collector HashMap len: {}", agent_collectors.len());
-        self.environment.run_rr().map_err(|e|{
+        self.environment.run_round_robin_uni_rewards().map_err(|e|{
             error!("Environment run error: {e:}");
             e
         }).unwrap();

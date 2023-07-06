@@ -21,14 +21,7 @@ pub trait ActionProcessor<Spec: DomainParameters, State: EnvironmentState<Spec>>
 
 
 
-/*
-impl <Spec: ProtocolSpecification, State: EnvironmentState<Spec>, F> ActionProcessor<Spec, State> for F
-where F: Fn(&mut State, &Spec::AgentId, Spec::ActionType) -> Result<(Vec<(Spec::AgentId, Spec::UpdateType)>), Spec::GameErrorType>{
 
-}
-
-p
-*/
 
 pub struct GenericEnvironment<Spec: DomainParameters, State: EnvironmentState<Spec>,
     AP: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec>>{
@@ -116,7 +109,7 @@ ScoreEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
     }
 
     fn actual_penalty_score_of_player(&self, agent: &Spec::AgentId) -> Spec::UniversalReward {
-        self.penalties[agent].clone()
+        self.penalties.get(agent).unwrap_or(&Spec::UniversalReward::neutral()).to_owned()
     }
 }
 

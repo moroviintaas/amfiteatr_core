@@ -9,10 +9,18 @@ use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
 use crate::protocol::EnvMessage::ErrorNotify;
 use crate::state::State;
 
-pub trait EnvironmentRR<DP: DomainParameters>{
-    fn run_rr(&mut self) -> Result<(), SztormError<DP>>;
-    fn run_rr_penalise_illegal(&mut self, cheat_penalty: DP::UniversalReward) -> Result<(), SztormError<DP>>;
+
+
+pub trait RoundRobinEnvironment<DP: DomainParameters>{
+    fn run_round_robin(&mut self) -> Result<(), SztormError<DP>>;
 }
+pub trait RoundRobinUniversalEnvironment<DP: DomainParameters> : RoundRobinEnvironment<DP>{
+    fn run_round_robin_uni_rewards(&mut self) -> Result<(), SztormError<DP>>;
+}
+pub trait RoundRobinPenalisingUniversalEnvironment<DP: DomainParameters>: RoundRobinUniversalEnvironment<DP>{
+    fn run_round_robin_uni_rewards_penalise(&mut self, penalty: DP::UniversalReward) -> Result<(), SztormError<DP>>;
+}
+
 
 pub(crate) trait EnvironmentRRInternal<DP: DomainParameters>{
     fn notify_error(&mut self, error: SztormError<DP>) -> Result<(), CommError<DP>>;
@@ -25,15 +33,10 @@ pub(crate) trait EnvironmentRRInternal<DP: DomainParameters>{
 impl<'a, Env, DP: DomainParameters + 'a> EnvironmentRRInternal<DP> for Env
 where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
  + StatefulEnvironment<DP> + 'a
- //+ EnvironmentWithAgents<'a, Spec::AgentId>
  + EnvironmentWithAgents<DP>
  + BroadcastingEnv<DP>,
- //+ DomainEnvironment<DomainParameter = Spec::AgentId>,
 
-//<<Env as StatefulEnvironment>::State as State>::Error: Clone,
-//TurError<Spec>: From<<<Env as StatefulEnvironment>::State as State>::Error>,
 DP: DomainParameters
- //Spec::AgentId =  <<Env as StatefulEnvironment>::State as EnvironmentState>::PlayerId
 {
     fn notify_error(&mut self, error: SztormError<DP>) -> Result<(), CommError<DP>> {
         self.send_to_all(ErrorNotify(error))
@@ -68,23 +71,81 @@ DP: DomainParameters
 }
 
 
-impl<'a, Env, Spec: DomainParameters + 'a> EnvironmentRR<Spec> for Env
-where Env: CommunicatingEnv<Spec, CommunicationError=CommError<Spec>>
- + ScoreEnvironment<Spec> + 'a
- //+ EnvironmentWithAgents<'a, Spec::AgentId>
- + EnvironmentWithAgents<Spec>
- //+ DomainEnvironment<DomainParameter = Spec::AgentId>
- + BroadcastingEnv<Spec>,
-//<<Env as StatefulEnvironment>::State as State>::Error: Clone,
-//TurError<Spec>: From<<<Env as StatefulEnvironment>::State as State>::Error>,
-Spec: DomainParameters
- //Spec::AgentId =  <<Env as StatefulEnvironment>::State as EnvironmentState>::PlayerId
-{
-    fn run_rr(&mut self) -> Result<(), SztormError<Spec>> {
+impl<'a, Env, DP: DomainParameters + 'a> RoundRobinEnvironment<DP> for Env
+where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
+ + StatefulEnvironment<DP> + 'a
+ + EnvironmentWithAgents<DP>
+ + BroadcastingEnv<DP>, DP: DomainParameters {
+    fn run_round_robin(&mut self) -> Result<(), SztormError<DP>> {
+        let first_player = match self.current_player(){
+            None => {
+                warn!("No first player, stopping environment.");
+                return Ok(())
+            }
+            Some(n) => n
+        };
+        info!("Sending YourMove signal to first agent: {:?}", &first_player);
+        self.send_to(&first_player, EnvMessage::YourMove).map_err(|e|e.specify_id(first_player))?;
+        loop{
+            for player in self.players(){
+                match self.try_recv_from(&player){
+                    Ok(agent_message) => match agent_message{
+                        AgentMessage::TakeAction(action) => {
+                            info!("Player {} performs action: {:#}", &player, &action);
+                            self.process_action_and_inform(player, action)?;
+                            if let Some(next_player) = self.current_player(){
+                                self.send_message(&next_player, EnvMessage::YourMove)
+                                    .map_err(|e| e.specify_id(next_player))?;
+                            }
+                            if self.state().is_finished(){
+                                info!("Game reached finished state");
+                                self.send_to_all(EnvMessage::GameFinished)?;
+                                return Ok(());
 
-        let mut actual_universal_scores: HashMap<Spec::AgentId, Spec::UniversalReward> = self.players().into_iter()
+                            }
+
+
+                        }
+                        AgentMessage::NotifyError(e) => {
+                            error!("Player {} informed about error: {}", player, &e);
+                            self.notify_error(e.clone())?;
+                            return Err(e);
+                        }
+                        AgentMessage::Quit => {
+                            error!("Player {} exited game.", player);
+                            self.notify_error(SztormError::Protocol(PlayerExited(player)))?;
+                            return Err(SztormError::Protocol(PlayerExited(player)))
+                        }
+                    },
+                    Err(e) => match e{
+
+                        CommError::TryRecvEmptyError(_) | CommError::TryRecvDisconnectedError(_) |
+                        CommError::TryRecvErrorEmptyUnspecified | CommError::TryRecvErrorDisconnectedUnspecified=> {
+                            //debug!("Empty channel");
+                        },
+                        err => {
+                            error!("Failed trying to receive from {}", player);
+                            self.send_to_all(EnvMessage::ErrorNotify(err.clone().into()))?;
+                            return Err(SztormError::Comm(err));
+                        }
+
+
+                    }
+                }
+            }
+        }
+    }
+}
+
+impl<'a, Env, DP: DomainParameters + 'a> RoundRobinUniversalEnvironment<DP> for Env
+where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
+ + ScoreEnvironment<DP> + 'a
+ + EnvironmentWithAgents<DP>
+ + BroadcastingEnv<DP>, DP: DomainParameters {
+    fn run_round_robin_uni_rewards(&mut self) -> Result<(), SztormError<DP>> {
+        let mut actual_universal_scores: HashMap<DP::AgentId, DP::UniversalReward> = self.players().into_iter()
             .map(|id|{
-                (id, Spec::UniversalReward::neutral())
+                (id, DP::UniversalReward::neutral())
             }).collect();
         let first_player = match self.current_player(){
             None => {
@@ -149,15 +210,18 @@ Spec: DomainParameters
                 }
             }
         }
-
-
     }
+}
 
-    fn run_rr_penalise_illegal(&mut self, cheat_penalty: Spec::UniversalReward) -> Result<(), SztormError<Spec>> {
-
-        let mut actual_universal_scores: HashMap<Spec::AgentId, Spec::UniversalReward> = self.players().into_iter()
+impl<'a, Env, DP: DomainParameters + 'a> RoundRobinPenalisingUniversalEnvironment<DP> for Env
+where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
+ + ScoreEnvironment<DP> + 'a
+ + EnvironmentWithAgents<DP>
+ + BroadcastingEnv<DP>, DP: DomainParameters{
+    fn run_round_robin_uni_rewards_penalise(&mut self, penalty: DP::UniversalReward) -> Result<(), SztormError<DP>> {
+        let mut actual_universal_scores: HashMap<DP::AgentId, DP::UniversalReward> = self.players().into_iter()
             .map(|id|{
-                (id, Spec::UniversalReward::neutral())
+                (id, DP::UniversalReward::neutral())
             }).collect();
         let first_player = match self.current_player(){
             None => {
@@ -187,7 +251,7 @@ Spec: DomainParameters
                                     }
                                 }
                                 Err(e) => {
-                                    self.send_to(&player, EnvMessage::RewardFragment(cheat_penalty.clone()))?;
+                                    self.send_to(&player, EnvMessage::RewardFragment(penalty.clone()))?;
                                     for (player, score) in actual_universal_scores.iter_mut(){
 
                                         let reward = self.actual_score_of_player(player) - score.clone();
@@ -241,10 +305,4 @@ Spec: DomainParameters
         }
     }
 }
-/*
-impl <Spec: DomainParameters, Env: EnvironmentRR<Spec>> AutomaticEnvironment<Spec> for Env{
-    fn run(&mut self) -> Result<(), SztormError<Spec>> {
-        self.run_rr()
-    }
-}*/
 
