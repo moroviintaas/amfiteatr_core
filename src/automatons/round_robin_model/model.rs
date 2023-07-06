@@ -2,20 +2,20 @@ use std::collections::HashMap;
 use std::thread;
 use log::{error, info};
 use crate::protocol::{DomainParameters};
-use crate::{ActionProcessor, EnvironmentState, GenericEnvironment, EnvCommEndpoint, AgentAuto};
+use crate::{ActionProcessor, EnvironmentState, GenericEnvironment, EnvCommEndpoint, AgentAuto, EnvironmentStateUniScore, ActionProcessorPenalising};
 use crate::automatons::rr::{EnvironmentRR};
 use crate::error::SztormError;
 
 pub struct RoundRobinModel<Spec: DomainParameters + 'static,
-    EnvState: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>>{
+    EnvState: EnvironmentStateUniScore<Spec>,
+    ProcessAction: ActionProcessorPenalising<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>>{
     environment: GenericEnvironment<Spec, EnvState, ProcessAction, Comm>,
     local_agents: HashMap<Spec::AgentId, Box<dyn AgentAuto<Spec> + Send>>,
 }
 
 impl<Spec: DomainParameters + 'static,
-    EnvState: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>> RoundRobinModel<Spec, EnvState, ProcessAction, Comm>{
+    EnvState: EnvironmentStateUniScore<Spec>,
+    ProcessAction: ActionProcessorPenalising<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>> RoundRobinModel<Spec, EnvState, ProcessAction, Comm>{
     pub fn new(environment: GenericEnvironment<Spec, EnvState, ProcessAction, Comm>, local_agents: HashMap<Spec::AgentId,Box<dyn AgentAuto<Spec> + Send>>) -> Self{
         Self{environment, local_agents}
     }

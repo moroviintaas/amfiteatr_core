@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use log::{error, info, warn};
-use crate::{Reward};
+use crate::{Reward, ScoreEnvironment};
 use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentWithAgents, StatefulEnvironment};
 use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::PlayerExited;
@@ -70,7 +70,7 @@ DP: DomainParameters
 
 impl<'a, Env, Spec: DomainParameters + 'a> EnvironmentRR<Spec> for Env
 where Env: CommunicatingEnv<Spec, CommunicationError=CommError<Spec>>
- + StatefulEnvironment<Spec> + 'a
+ + ScoreEnvironment<Spec> + 'a
  //+ EnvironmentWithAgents<'a, Spec::AgentId>
  + EnvironmentWithAgents<Spec>
  //+ DomainEnvironment<DomainParameter = Spec::AgentId>

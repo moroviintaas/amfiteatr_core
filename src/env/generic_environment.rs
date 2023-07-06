@@ -1,7 +1,7 @@
 use std::collections::{HashMap};
 
 use log::debug;
-use crate::{BroadcastingEnv, CommunicatingEnv, DomainEnvironment, EnvironmentState, EnvironmentWithAgents, StatefulEnvironment, EnvCommEndpoint, EnvironmentBuilderTrait};
+use crate::{BroadcastingEnv, CommunicatingEnv, DomainEnvironment, EnvironmentState, EnvironmentWithAgents, StatefulEnvironment, EnvCommEndpoint, EnvironmentBuilderTrait, EnvironmentStateUniScore, ScoreEnvironment};
 use crate::error::{CommError, SetupError};
 
 use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
@@ -15,6 +15,12 @@ pub trait ActionProcessor<Spec: DomainParameters, State: EnvironmentState<Spec>>
         action: Spec::ActionType)
         -> Result<Vec<(Spec::AgentId, Spec::UpdateType)>, Spec::GameErrorType>;
 
+
+}
+
+pub trait ActionProcessorPenalising<
+    Spec: DomainParameters,
+    State: EnvironmentStateUniScore<Spec>>: ActionProcessor<Spec, State> {
     fn process_action_penalise_illegal(
         &self,
         state: &mut State,
@@ -90,15 +96,29 @@ StatefulEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction, Com
 
     }
 
+
+
+
+}
+
+impl<Spec: DomainParameters, State: EnvironmentStateUniScore<Spec>,
+    ProcessAction: ActionProcessorPenalising<Spec, State>, Comm: EnvCommEndpoint<Spec> >
+ScoreEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
     fn process_action_penalise_illegal(&mut self, agent: &Spec::AgentId, action: Spec::ActionType, penalty_reward: Spec::UniversalReward) -> Result<Self::UpdatesIterator, Spec::GameErrorType> {
         let updates = self.action_processor.process_action_penalise_illegal(&mut self.game_state, agent, action, penalty_reward)?;
         Ok(updates.into_iter())
     }
 
-    fn actual_score_of_player(&self, agent: &Spec::AgentId) -> Spec::UniversalReward {
-        self.state().state_score_of_player(agent)
+    fn actual_state_score_of_player(&self, agent: &Spec::AgentId) -> Spec::UniversalReward {
+        todo!()
+    }
+
+    fn actual_penalty_score_of_player(&self, agent: &Spec::AgentId) -> Spec::UniversalReward {
+        todo!()
     }
 }
+
+
 
 impl<Spec: DomainParameters, State: EnvironmentState<Spec>, ProcessAction: ActionProcessor<Spec, State>,Comm: EnvCommEndpoint<Spec> >
 CommunicatingEnv<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm> {

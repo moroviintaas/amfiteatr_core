@@ -3,6 +3,7 @@ mod stateful_agent;
 mod automatic;
 mod rewarded_agent;
 mod tracing_agent;
+pub mod policy_agent;
 
 pub use communication_agent::*;
 pub use stateful_agent::*;

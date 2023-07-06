@@ -4,12 +4,12 @@ use std::collections::{HashMap};
 
 
 use crate::automatons::rr::{RoundRobinModel};
-use crate::{ActionProcessor, EnvironmentState, GenericEnvironmentBuilder, EnvCommEndpoint, EnvironmentBuilderTrait, AgentAuto};
+use crate::{ActionProcessor, EnvironmentState, GenericEnvironmentBuilder, EnvCommEndpoint, EnvironmentBuilderTrait, AgentAuto, EnvironmentStateUniScore, ActionProcessorPenalising};
 use crate::error::{SetupError};
 
 use crate::protocol::{DomainParameters};
 
-pub struct RoundRobinModelBuilder<Spec: DomainParameters, EnvState: EnvironmentState<Spec>,
+pub struct RoundRobinModelBuilder<Spec: DomainParameters, EnvState: EnvironmentStateUniScore<Spec>,
 ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec> >{
     env_builder: GenericEnvironmentBuilder<Spec, EnvState, ProcessAction, Comm>,
     //_spec: PhantomData<S>,
@@ -31,8 +31,8 @@ ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec> >{
 }
 
 #[allow(clippy::borrowed_box)]
-impl<Spec: DomainParameters, EnvState: EnvironmentState<Spec>,
-ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>>
+impl<Spec: DomainParameters, EnvState: EnvironmentStateUniScore<Spec>,
+ProcessAction: ActionProcessorPenalising<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>>
 RoundRobinModelBuilder<Spec, EnvState, ProcessAction, Comm>
 //where <<B as EnvironmentBuilder>::Environment as CommunicatingEnv>::AgentId> = <<>>
 {
@@ -134,8 +134,8 @@ RoundRobinModelBuilder<Spec, EnvState, ProcessAction, Comm>
 
 }
 
-impl<Spec: DomainParameters, EnvState: EnvironmentState<Spec>,
-ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>> Default for RoundRobinModelBuilder<Spec, EnvState, ProcessAction, Comm> {
+impl<Spec: DomainParameters, EnvState: EnvironmentStateUniScore<Spec>,
+ProcessAction: ActionProcessorPenalising<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>> Default for RoundRobinModelBuilder<Spec, EnvState, ProcessAction, Comm> {
     fn default() -> Self {
         Self::new()
     }
