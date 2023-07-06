@@ -25,33 +25,92 @@ impl <Spec: ProtocolSpecification, P: Policy,
 
  */
 
-pub trait AgentAuto<Spec: DomainParameters>: DistinctAgent<Spec>{
-    fn run_rr(&mut self) -> Result<(), SztormError<Spec>>;
+pub trait AutomaticAgent<Spec: DomainParameters>: DistinctAgent<Spec>{
+    fn run(&mut self) -> Result<(), SztormError<Spec>>;
 }
 
-/*
-impl <Spec: ProtocolSpecification, P: Policy,
-    Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError>>
-    AgentRR<Spec> for AgentGen<Spec, P, Comm>{
-    fn run_rr(&mut self) -> Result<(), TurError<Spec>> {
+pub trait AutomaticAgentRewarded<Spec: DomainParameters>: AutomaticAgent<Spec>{
+    fn run_rewarded(&mut self) -> Result<(), SztormError<Spec>>;
+}
+
+
+impl<Agnt, Spec > AutomaticAgent<Spec> for Agnt
+where Agnt: StatefulAgent<Spec> + ActingAgent<Spec>
+    + CommunicatingAgent<Spec, CommunicationError=CommError<Spec>>
+    + PolicyAgent<Spec> + DistinctAgent<Spec>,
+      Spec: DomainParameters,
+{
+    fn run(&mut self) -> Result<(), SztormError<Spec>> {
+        info!("Agent {} starts", self.state().id());
+        //let mut current_score = Spec::UniversalReward::default();
         loop{
-            match
+            match self.recv(){
+                Ok(message) => match message{
+                    EnvMessage::YourMove => {
+                        debug!("Agent {} received 'YourMove' signal.", self.state().id());
+                        //current_score = Default::default();
+
+                        //debug!("Agent's {:?} possible actions: {:?}", self.state().id(), Vec::from_iter(self.state().available_actions().into_iter()));
+                        debug!("Agent's {:?} possible actions: {}]", self.state().id(), self.state().available_actions().into_iter()
+                            .fold(String::from("["), |a, b| a + &format!("{b:#}") + ", ").trim_end());
+                        //match self.policy_select_action(){
+                        match self.take_action(){
+                            None => {
+                                error!("Agent {} has no possible action", self.state().id());
+                                self.send(NotifyError(NoPossibleAction(*self.state().id()).into()))?;
+                            }
+
+                            Some(a) => {
+                                info!("Agent {} selects action {:#}", self.state().id(), &a);
+                                self.send(TakeAction(a))?;
+                            }
+                        }
+                    }
+                    EnvMessage::GameFinished => {
+                        info!("Agent {} received information that game is finished.", self.state().id());
+                        self.finalize();
+                        return Ok(())
+
+                    }
+                    EnvMessage::Kill => {
+                        info!("Agent {:?} received kill signal.", self.state().id());
+                        return Err(Protocol(ReceivedKill(*self.state().id())))
+                    }
+                    EnvMessage::UpdateState(su) => {
+                        debug!("Agent {} received state update {:?}", self.state().id(), &su);
+                        match self.update(su){
+                            Ok(_) => {
+                                debug!("Agent {:?}: successful state update", self.state().id());
+                            }
+                            Err(err) => {
+                                error!("Agent error on updating state: {}", &err);
+                                self.send(AgentMessage::NotifyError(SztormError::Game(err.clone())))?;
+                                return Err(SztormError::Game(err));
+                            }
+                        }
+                    }
+                    EnvMessage::ActionNotify(a) => {
+                        debug!("Agent {} received information that agent {} took action {:#}", self.state().id(), a.agent(), a.action());
+                    }
+                    EnvMessage::ErrorNotify(e) => {
+                        error!("Agent {} received error notification {}", self.state().id(), &e)
+                    }
+                    EnvMessage::RewardFragment(_r) =>{
+                    }
+                }
+                Err(e) => return Err(e.into())
+            }
         }
     }
 }
 
-*/
-
-impl<Agnt, Spec > AgentAuto<Spec> for Agnt
+impl<Agnt, Spec > AutomaticAgentRewarded<Spec> for Agnt
 where Agnt: StatefulAgent<Spec> + ActingAgent<Spec>
     + CommunicatingAgent<Spec, CommunicationError=CommError<Spec>>
     + PolicyAgent<Spec> + DistinctAgent<Spec>
     + RewardedAgent<Spec>,
-      Spec: DomainParameters,
-//<<Agnt as StatefulAgent>::State as State>::Error: Into<TurError<Spec>>
-//SztormError<Spec>: From<<<Agnt as StatefulAgent<Spec>>::State as State>::Error>
-{
-    fn run_rr(&mut self) -> Result<(), SztormError<Spec>> {
+      Spec: DomainParameters,{
+    fn run_rewarded(&mut self) -> Result<(), SztormError<Spec>> {
         info!("Agent {} starts", self.state().id());
         //let mut current_score = Spec::UniversalReward::default();
         loop{

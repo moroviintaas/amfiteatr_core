@@ -47,15 +47,14 @@ impl<DP: DomainParameters,
 
     fn select_action(&self, state: &Self::StateType) -> Option<DP::ActionType> {
         let state_tensor = self.state_converter.build_tensor(state)
-            .expect(&format!("Failed converting state to Tensor: {:?}", state));
+            .unwrap_or_else(|_| panic!("Failed converting state to Tensor: {:?}", state));
         let (_critic, actor) = tch::no_grad(|| (self.network.net())(&state_tensor));
 
         //somewhen it may be changed with temperature
         let probs = actor.softmax(-1, Float);
         let atensor = probs.multinomial(1, true);
-        let action_opt = self.action_interpreter.interpret_tensor(&atensor)
-            .expect("Failed converting tensor to action");
-        action_opt
+        self.action_interpreter.interpret_tensor(&atensor)
+            .expect("Failed converting tensor to action")
 
     }
 }

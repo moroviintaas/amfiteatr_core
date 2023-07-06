@@ -16,7 +16,7 @@ pub trait SelfExperiencingPolicy<DP:  DomainParameters>{
 
 pub trait UpdatablePolicy<DP:  DomainParameters>: Policy<DP>{
     type PolicyUpdateError: Error;
-    fn policy_update(&mut self, traces: &Vec<GameTrace<DP, <Self as Policy<DP>>::StateType>>)
+    fn policy_update(&mut self, traces: &[GameTrace<DP, <Self as Policy<DP>>::StateType>])
         -> Result<(), Self::PolicyUpdateError>;
 
 }

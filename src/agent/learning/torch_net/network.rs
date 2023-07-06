@@ -71,5 +71,5 @@ impl<Output: NetOutput> NeuralNet<Output>{
     /// let output_tensor = (neural_net.net())(&input_tensor);
     /// assert_eq!(output_tensor.size(), vec![4]);
     /// ```
-    pub fn net(&self) -> &Box<dyn Fn(&Tensor) -> Output + Send>{&self.net}
+    pub fn net(&self) -> &(dyn Fn(&Tensor) -> Output + Send){&self.net}
 }

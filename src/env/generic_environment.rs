@@ -1,5 +1,4 @@
 use std::collections::{HashMap};
-use std::hash::Hash;
 
 use log::debug;
 use crate::{BroadcastingEnv, CommunicatingEnv, DomainEnvironment, EnvironmentState, EnvironmentWithAgents, StatefulEnvironment, EnvCommEndpoint, EnvironmentBuilderTrait, EnvironmentStateUniScore, ScoreEnvironment, Reward};
@@ -48,8 +47,8 @@ impl <Spec: DomainParameters, State: EnvironmentState<Spec>,
         let k:Vec<Spec::AgentId> = comm_endpoints.keys().copied().collect();
         debug!("Creating environment with:{k:?}");
 
-        let penalties: HashMap<Spec::AgentId, Spec::UniversalReward> = comm_endpoints.iter()
-            .map(|(agent, _)| (agent.clone(), Spec::UniversalReward::neutral()))
+        let penalties: HashMap<Spec::AgentId, Spec::UniversalReward> = comm_endpoints.keys()
+            .map(|agent| (*agent, Spec::UniversalReward::neutral()))
             .collect();
 
         Self{comm_endpoints, game_state, action_processor, penalties}

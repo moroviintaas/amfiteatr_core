@@ -4,7 +4,7 @@ use std::collections::{HashMap};
 
 
 use crate::automatons::rr::{RoundRobinModel};
-use crate::{ActionProcessor, EnvironmentState, GenericEnvironmentBuilder, EnvCommEndpoint, EnvironmentBuilderTrait, AgentAuto, EnvironmentStateUniScore};
+use crate::{ActionProcessor, GenericEnvironmentBuilder, EnvCommEndpoint, EnvironmentBuilderTrait, AutomaticAgent, EnvironmentStateUniScore};
 use crate::error::{SetupError};
 
 use crate::protocol::{DomainParameters};
@@ -15,7 +15,7 @@ ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec> >{
     //_spec: PhantomData<S>,
 
     //environment_state: E,
-    local_agents: HashMap<Spec::AgentId, Box<dyn AgentAuto<Spec> + Send>>,
+    local_agents: HashMap<Spec::AgentId, Box<dyn AutomaticAgent<Spec> + Send>>,
     /*comm_endpoints: HashMap<Spec::AgentId,
         Box<dyn CommEndpoint<
             OutwardType=EnvMessage<Spec>,
@@ -49,7 +49,7 @@ RoundRobinModelBuilder<Spec, EnvState, ProcessAction, Comm>
         self.env_builder = self.env_builder.with_processor(process_fn)?;
         Ok(self)
     }
-    pub fn get_agent(&self, s: &Spec::AgentId) -> Option<&Box<dyn AgentAuto<Spec> + Send>>{
+    pub fn get_agent(&self, s: &Spec::AgentId) -> Option<&Box<dyn AutomaticAgent<Spec> + Send>>{
         self.local_agents.get(s)
 
 
@@ -58,7 +58,7 @@ RoundRobinModelBuilder<Spec, EnvState, ProcessAction, Comm>
     //pub fn add_local_agent<A: AgentRR<Spec>>(&mut self, agent: A, )
     //pub fn with_local_agent<A: AgentRR<Spec>>(self, agent: A, env_comm: dyn CommEndpoint)
     pub fn with_local_agent(mut self,
-                            agent: Box<dyn AgentAuto<Spec> + Send>,
+                            agent: Box<dyn AutomaticAgent<Spec> + Send>,
                             env_comm: Comm)
                             -> Result<Self, SetupError<Spec>>{
         //if self.local_agents.contains_key(agent.as_ref().id())

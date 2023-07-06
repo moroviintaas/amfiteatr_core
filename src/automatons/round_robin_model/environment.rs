@@ -251,7 +251,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                                     }
                                 }
                                 Err(e) => {
-                                    self.send_to(&player, EnvMessage::RewardFragment(penalty.clone()))?;
+                                    self.send_to(&player, EnvMessage::RewardFragment(penalty))?;
                                     for (player, score) in actual_universal_scores.iter_mut(){
 
                                         let reward = self.actual_score_of_player(player) - score.clone();

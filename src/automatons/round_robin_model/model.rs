@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::thread;
 use log::{error, info};
 use crate::protocol::{DomainParameters};
-use crate::{EnvironmentState, GenericEnvironment, EnvCommEndpoint, AgentAuto, EnvironmentStateUniScore, ActionProcessor};
+use crate::{GenericEnvironment, EnvCommEndpoint, AutomaticAgent, EnvironmentStateUniScore, ActionProcessor};
 use crate::automatons::rr::{RoundRobinUniversalEnvironment};
 use crate::error::SztormError;
 
@@ -10,13 +10,13 @@ pub struct RoundRobinModel<Spec: DomainParameters + 'static,
     EnvState: EnvironmentStateUniScore<Spec>,
     ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>>{
     environment: GenericEnvironment<Spec, EnvState, ProcessAction, Comm>,
-    local_agents: HashMap<Spec::AgentId, Box<dyn AgentAuto<Spec> + Send>>,
+    local_agents: HashMap<Spec::AgentId, Box<dyn AutomaticAgent<Spec> + Send>>,
 }
 
 impl<Spec: DomainParameters + 'static,
     EnvState: EnvironmentStateUniScore<Spec>,
     ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>> RoundRobinModel<Spec, EnvState, ProcessAction, Comm>{
-    pub fn new(environment: GenericEnvironment<Spec, EnvState, ProcessAction, Comm>, local_agents: HashMap<Spec::AgentId,Box<dyn AgentAuto<Spec> + Send>>) -> Self{
+    pub fn new(environment: GenericEnvironment<Spec, EnvState, ProcessAction, Comm>, local_agents: HashMap<Spec::AgentId,Box<dyn AutomaticAgent<Spec> + Send>>) -> Self{
         Self{environment, local_agents}
     }
 
@@ -32,7 +32,7 @@ impl<Spec: DomainParameters + 'static,
 
 
     pub fn play(&mut self) -> Result<(), SztormError<Spec>>{
-        let mut agent_collectors = HashMap::<Spec::AgentId, std::sync::mpsc::Receiver<Box<dyn AgentAuto<Spec> + Send>>>::new();
+        let mut agent_collectors = HashMap::<Spec::AgentId, std::sync::mpsc::Receiver<Box<dyn AutomaticAgent<Spec> + Send>>>::new();
         //let mut join_handles = Vec::with_capacity(self.local_agents.len());
 
         //let moved_agents = std::mem::take(self.local_agents);
@@ -55,7 +55,7 @@ impl<Spec: DomainParameters + 'static,
             agent_collectors.insert(id, agent_return_receiver);
             thread::spawn(move ||{
                 //if let Ok(mut agent_guard) = agent.lock(){
-                    agent.run_rr().map_err(|e|{
+                    agent.run().map_err(|e|{
                         error!("Agent {id:} encountered error: {e:}")
                     }).unwrap();
                 //}

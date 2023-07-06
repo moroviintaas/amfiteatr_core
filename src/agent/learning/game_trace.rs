@@ -39,6 +39,11 @@ pub struct GameTrace<DP: DomainParameters, S: InformationSet<DP>> {
 
 }
 
+impl<DP: DomainParameters, S: InformationSet<DP>> Default for GameTrace<DP, S>{
+    fn default() -> Self {
+        Self{trace: Default::default()}
+    }
+}
 impl<DP: DomainParameters, S: InformationSet<DP>> GameTrace<DP, S>
 {
 
