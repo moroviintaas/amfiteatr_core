@@ -1,7 +1,8 @@
 use std::collections::{HashMap};
+use std::hash::Hash;
 
 use log::debug;
-use crate::{BroadcastingEnv, CommunicatingEnv, DomainEnvironment, EnvironmentState, EnvironmentWithAgents, StatefulEnvironment, EnvCommEndpoint, EnvironmentBuilderTrait, EnvironmentStateUniScore, ScoreEnvironment};
+use crate::{BroadcastingEnv, CommunicatingEnv, DomainEnvironment, EnvironmentState, EnvironmentWithAgents, StatefulEnvironment, EnvCommEndpoint, EnvironmentBuilderTrait, EnvironmentStateUniScore, ScoreEnvironment, Reward};
 use crate::error::{CommError, SetupError};
 
 use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
@@ -18,17 +19,7 @@ pub trait ActionProcessor<Spec: DomainParameters, State: EnvironmentState<Spec>>
 
 }
 
-pub trait ActionProcessorPenalising<
-    Spec: DomainParameters,
-    State: EnvironmentStateUniScore<Spec>>: ActionProcessor<Spec, State> {
-    fn process_action_penalise_illegal(
-        &self,
-        state: &mut State,
-        agent_id: &Spec::AgentId,
-        action: Spec::ActionType,
-        penalty_reward: Spec::UniversalReward)
-        -> Result<Vec<(Spec::AgentId, Spec::UpdateType)>, Spec::GameErrorType>;
-}
+
 
 /*
 impl <Spec: ProtocolSpecification, State: EnvironmentState<Spec>, F> ActionProcessor<Spec, State> for F
@@ -43,6 +34,7 @@ pub struct GenericEnvironment<Spec: DomainParameters, State: EnvironmentState<Sp
     AP: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec>>{
 
     comm_endpoints: HashMap<Spec::AgentId, Comm>,
+    penalties: HashMap<Spec::AgentId, Spec::UniversalReward>,
     //penalties: HashMap<Spec::AgentId, Spec::UniversalReward>,
 
     game_state: State,
@@ -63,8 +55,11 @@ impl <Spec: DomainParameters, State: EnvironmentState<Spec>,
         let k:Vec<Spec::AgentId> = comm_endpoints.keys().copied().collect();
         debug!("Creating environment with:{k:?}");
 
+        let penalties: HashMap<Spec::AgentId, Spec::UniversalReward> = comm_endpoints.iter()
+            .map(|(agent, _)| (agent.clone(), Spec::UniversalReward::neutral()))
+            .collect();
 
-        Self{comm_endpoints, game_state, action_processor}
+        Self{comm_endpoints, game_state, action_processor, penalties}
     }
 
     pub fn replace_state(&mut self, state: State){
@@ -102,19 +97,26 @@ StatefulEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction, Com
 }
 
 impl<Spec: DomainParameters, State: EnvironmentStateUniScore<Spec>,
-    ProcessAction: ActionProcessorPenalising<Spec, State>, Comm: EnvCommEndpoint<Spec> >
+    ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec> >
 ScoreEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
     fn process_action_penalise_illegal(&mut self, agent: &Spec::AgentId, action: Spec::ActionType, penalty_reward: Spec::UniversalReward) -> Result<Self::UpdatesIterator, Spec::GameErrorType> {
-        let updates = self.action_processor.process_action_penalise_illegal(&mut self.game_state, agent, action, penalty_reward)?;
-        Ok(updates.into_iter())
+        match self.action_processor.process_action(&mut self.game_state, agent, action){
+            Ok(updates) => Ok(updates.into_iter()),
+            Err(err) => {
+                self.penalties.insert(*agent, penalty_reward + &self.penalties[agent]);
+                Err(err)
+            }
+        }
+        //let updates = self.action_processor.process_action_penalise_illegal(&mut self.game_state, agent, action, penalty_reward)?;
+
     }
 
     fn actual_state_score_of_player(&self, agent: &Spec::AgentId) -> Spec::UniversalReward {
-        todo!()
+        self.game_state.state_score_of_player(agent)
     }
 
     fn actual_penalty_score_of_player(&self, agent: &Spec::AgentId) -> Spec::UniversalReward {
-        todo!()
+        self.penalties[agent].clone()
     }
 }
 
