@@ -1,8 +1,8 @@
 use crate::protocol::DomainParameters;
-use crate::state::agent::InformationSet;
+use crate::state::agent::{ScoringInformationSet};
 
 
-pub struct GameTraceLine<DP: DomainParameters, S: InformationSet<DP>> {
+pub struct GameTraceLine<DP: DomainParameters, S: ScoringInformationSet<DP>> {
     initial_state: S,
     taken_action: DP::ActionType,
     immediate_subjective_reward: S::RewardType,
@@ -10,7 +10,7 @@ pub struct GameTraceLine<DP: DomainParameters, S: InformationSet<DP>> {
 
 }
 
-impl<DP: DomainParameters, S: InformationSet<DP>> GameTraceLine<DP, S>{
+impl<DP: DomainParameters, S: ScoringInformationSet<DP>> GameTraceLine<DP, S>{
     pub fn new(initial_state: S, taken_action: DP::ActionType, immediate_subjective_reward: S::RewardType, immediate_universal_reward: DP::UniversalReward) -> Self{
         Self{initial_state, taken_action, immediate_subjective_reward, immediate_universal_reward }
     }
@@ -32,7 +32,7 @@ impl<DP: DomainParameters, S: InformationSet<DP>> GameTraceLine<DP, S>{
     }
 }
 
-pub struct GameTrace<DP: DomainParameters, S: InformationSet<DP>> {
+pub struct GameTrace<DP: DomainParameters, S: ScoringInformationSet<DP>> {
 
 
     //top_state: S,
@@ -40,12 +40,12 @@ pub struct GameTrace<DP: DomainParameters, S: InformationSet<DP>> {
 
 }
 
-impl<DP: DomainParameters, S: InformationSet<DP>> Default for GameTrace<DP, S>{
+impl<DP: DomainParameters, S: ScoringInformationSet<DP>> Default for GameTrace<DP, S>{
     fn default() -> Self {
         Self{trace: Default::default()}
     }
 }
-impl<DP: DomainParameters, S: InformationSet<DP>> GameTrace<DP, S>
+impl<DP: DomainParameters, S: ScoringInformationSet<DP>> GameTrace<DP, S>
 {
 
     pub fn new() -> Self{
