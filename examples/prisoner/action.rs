@@ -1,5 +1,0 @@
-/*
-enum PrisonerAction{
-    Betray,
-    Cover
-}*/
