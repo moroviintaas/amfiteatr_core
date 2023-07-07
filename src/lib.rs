@@ -1,3 +1,5 @@
+//! author: moroviintaas  
+//! Licence: MIT
 pub mod state;
 pub mod agent;
 mod action;

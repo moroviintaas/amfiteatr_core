@@ -1,4 +1,4 @@
-use crate::agent::learning::GameTrace;
+use crate::agent::GameTrace;
 use crate::protocol::DomainParameters;
 use crate::state::agent::InformationSet;
 
