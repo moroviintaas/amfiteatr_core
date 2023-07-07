@@ -1,5 +1,6 @@
 use crate::protocol::DomainParameters;
-use crate::{InformationSet};
+use crate::state::agent::InformationSet;
+
 
 pub struct GameTraceLine<DP: DomainParameters, S: InformationSet<DP>> {
     initial_state: S,

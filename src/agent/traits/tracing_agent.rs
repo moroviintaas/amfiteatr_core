@@ -1,6 +1,6 @@
-use crate::{InformationSet};
-use crate::learning::GameTrace;
+use crate::agent::learning::GameTrace;
 use crate::protocol::DomainParameters;
+use crate::state::agent::InformationSet;
 
 pub trait TracingAgent<DP: DomainParameters, S: InformationSet<DP>>{
     fn reset_trace(&mut self);

@@ -1,17 +1,13 @@
-mod state;
-mod agent;
+pub mod state;
+pub mod agent;
 mod action;
 pub mod protocol;
-mod comm;
+pub mod comm;
 pub mod error;
-pub mod automatons;
-mod env;
+pub mod env;
 mod reward;
 
 
-pub use state::*;
-pub use agent::*;
 pub use action::*;
-pub use comm::*;
-pub use env::*;
+
 pub use reward::*;

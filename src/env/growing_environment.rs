@@ -1,4 +1,5 @@
-use crate::{CommEndpoint, CommunicatingEnv};
+use crate::{comm::CommEndpoint};
+use crate::env::CommunicatingEnv;
 use crate::error::{CommError, SetupError};
 use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
 

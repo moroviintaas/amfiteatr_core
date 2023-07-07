@@ -1,5 +1,4 @@
-
-use crate::{Policy, StatefulAgent};
+use crate::agent::{Policy, StatefulAgent};
 use crate::protocol::DomainParameters;
 
 pub trait ActingAgent<Spec: DomainParameters> {

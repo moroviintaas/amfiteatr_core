@@ -1,9 +1,9 @@
 use std::marker::PhantomData;
-use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent};
+use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, DistinctAgent, RewardedAgent};
 use crate::agent::policy::Policy;
 use crate::comm::CommEndpoint;
 use crate::error::CommError;
-use crate::{DistinctAgent, PolicyAgent, Reward, RewardedAgent};
+use crate::{Reward};
 use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
 use crate::state::State;
 

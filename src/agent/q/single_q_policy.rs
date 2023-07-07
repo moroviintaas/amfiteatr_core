@@ -1,6 +1,7 @@
 use std::marker::PhantomData;
+use crate::agent::{Policy, QFunction};
 use crate::protocol::DomainParameters;
-use crate::{InformationSet, Policy, QFunction};
+use crate::state::agent::InformationSet;
 
 pub struct SingleQPolicyGen<
     Spec: DomainParameters,

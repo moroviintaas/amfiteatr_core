@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use log::{error, info, warn};
-use crate::{Reward, ScoreEnvironment};
-use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentWithAgents, StatefulEnvironment};
+use crate::{Reward};
+use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentWithAgents, ScoreEnvironment, StatefulEnvironment};
 use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::PlayerExited;
 use crate::error::SztormError::GameWithConvict;

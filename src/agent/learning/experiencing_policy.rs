@@ -1,6 +1,5 @@
 use std::error::Error;
-use crate::learning::GameTrace;
-use crate::Policy;
+use crate::agent::{GameTrace, Policy};
 use crate::protocol::DomainParameters;
 
 pub trait SelfExperiencingPolicy<DP:  DomainParameters>{

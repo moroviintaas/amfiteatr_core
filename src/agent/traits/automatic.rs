@@ -1,29 +1,12 @@
-use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent};
+use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, DistinctAgent, PolicyAgent, RewardedAgent};
 use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
 use crate::error::SztormError::Protocol;
 use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
 use crate::state::agent::InformationSet;
 use log::{info,  debug, error};
-use crate::{DistinctAgent, PolicyAgent, RewardedAgent};
 use crate::protocol::AgentMessage::{NotifyError, TakeAction};
-/*AgentState<ActionIteratorType=Spec::ActionIteratorType,
-        ActionType=Spec::ActionType, Error=Spec::GameErrorType, UpdateType=Spec::UpdateType>,*/
 
-/*
-impl <Spec: ProtocolSpecification, P: Policy,
-    Comm: CommEndpoint<OutwardType=Spec::ActionType, InwardType=Spec::UpdateType, Error=CommError>>
-    AutomaticAgent for AgentRR<Spec, P, Comm>{
-    type ProtocolSpecType = Spec;
-
-    fn run(&mut self) -> Result<(), TurError<Self::ProtocolSpecType>> {
-        loop{
-
-        }
-    }
-}
-
- */
 
 pub trait AutomaticAgent<Spec: DomainParameters>: DistinctAgent<Spec>{
     fn run(&mut self) -> Result<(), SztormError<Spec>>;

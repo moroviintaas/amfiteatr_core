@@ -1,7 +1,8 @@
 use std::collections::{HashMap};
 
 use log::debug;
-use crate::{BroadcastingEnv, CommunicatingEnv, DomainEnvironment, EnvironmentState, EnvironmentWithAgents, StatefulEnvironment, EnvCommEndpoint, EnvironmentBuilderTrait, EnvironmentStateUniScore, ScoreEnvironment, Reward};
+use crate::env::{BroadcastingEnv, CommunicatingEnv, DomainEnvironment, EnvironmentBuilderTrait, EnvironmentState, EnvironmentStateUniScore, EnvironmentWithAgents, ScoreEnvironment, StatefulEnvironment};
+use crate::{comm::EnvCommEndpoint, Reward};
 use crate::error::{CommError, SetupError};
 
 use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};

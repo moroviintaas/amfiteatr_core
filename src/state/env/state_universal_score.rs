@@ -1,5 +1,5 @@
+use crate::env::EnvironmentState;
 use crate::protocol::DomainParameters;
-use crate::{EnvironmentState};
 
 pub trait EnvironmentStateUniScore<DP: DomainParameters>: EnvironmentState<DP>{
 

@@ -1,5 +1,6 @@
+
 use crate::protocol::DomainParameters;
-use crate::{InformationSet};
+use crate::state::agent::InformationSet;
 
 pub trait QFunction<Spec: DomainParameters>{
 

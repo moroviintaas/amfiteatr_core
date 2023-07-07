@@ -2,10 +2,10 @@ use std::fmt::Debug;
 use std::marker::PhantomData;
 use tch::Kind::Float;
 use tch::nn::Optimizer;
-use crate::{InformationSet, Policy};
-use crate::learning::{SelfExperiencingPolicy, NeuralNet2, TensorBuilder, TensorInterpreter};
+use crate::agent::learning::{NeuralNet2, SelfExperiencingPolicy, TensorBuilder, TensorInterpreter};
+use crate::agent::Policy;
 use crate::protocol::DomainParameters;
-
+use crate::state::agent::InformationSet;
 
 
 pub struct ActorCriticPolicy<

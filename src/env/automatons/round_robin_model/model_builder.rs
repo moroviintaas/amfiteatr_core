@@ -1,10 +1,9 @@
 
 use std::collections::{HashMap};
-
-
-
-use crate::automatons::rr::{RoundRobinModel};
-use crate::{ActionProcessor, GenericEnvironmentBuilder, EnvCommEndpoint, EnvironmentBuilderTrait, AutomaticAgent, EnvironmentStateUniScore};
+use crate::agent::AutomaticAgent;
+use crate::env::{ActionProcessor, EnvironmentBuilderTrait, EnvironmentStateUniScore, GenericEnvironmentBuilder};
+use crate::env::automatons::rr::RoundRobinModel;
+use crate::comm::EnvCommEndpoint;
 use crate::error::{SetupError};
 
 use crate::protocol::{DomainParameters};

@@ -1,6 +1,6 @@
 use tch::{TchError, Tensor};
 use tch::nn::{Optimizer, OptimizerConfig, Path, VarStore};
-use crate::learning::{NetOutput};
+use crate::agent::learning::NetOutput;
 
 pub struct NeuralNet<Output: NetOutput>{
     net: Box<dyn Fn(&Tensor) -> Output + Send>,
@@ -15,9 +15,9 @@ pub type NeuralNet2 = NeuralNet<(Tensor, Tensor)>;
 /// in following example `NetOutput` of `(Tensor, Tensor)` is used for purpose of actor-critic method.
 /// # Example:
 /// ```
-/// use sztorm::learning::{NeuralNet2};
 /// use tch::{Device, nn, Tensor};
 /// use tch::nn::{Adam, VarStore};
+/// use sztorm::agent::learning::NeuralNet2;
 /// let device = Device::cuda_if_available();
 /// let var_store = VarStore::new(device);
 /// let number_of_actions = 33_i64;
@@ -58,7 +58,7 @@ impl<Output: NetOutput> NeuralNet<Output>{
     /// ```
     /// use tch::{Device, Kind, nn, Tensor};
     /// use tch::nn::VarStore;
-    /// use sztorm::learning::NeuralNet;
+    /// use sztorm::agent::learning::NeuralNet;
     /// let device = Device::cuda_if_available();
     /// let var_store = VarStore::new(device);
     /// let neural_net = NeuralNet::new(var_store, |path|{

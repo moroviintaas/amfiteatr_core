@@ -1,18 +1,19 @@
 
 
-use crate::{CommEndpoint, StatefulEnvironment};
+use crate::{comm::CommEndpoint};
+use crate::env::StatefulEnvironment;
 
 use crate::error::{SetupError};
 use crate::protocol::{DomainParameters};
 
-pub trait EnvironmentBuilderTrait<Spec: DomainParameters, Env: StatefulEnvironment<Spec>>: Default{
+pub trait EnvironmentBuilderTrait<DP: DomainParameters, Env: StatefulEnvironment<DP>>: Default{
 
     //type Environment: EnvironmentRR<Spec = Self::ProtocolSpec>;
     type Comm: CommEndpoint;
 
-    fn build(self) -> Result<Env, SetupError<Spec>>;
-    fn add_comm(self, agent_id: &Spec::AgentId, comm: Self::Comm) -> Result<Self, SetupError<Spec>>;
-    fn with_state(self, state: Env::State) -> Result<Self, SetupError<Spec>>;
+    fn build(self) -> Result<Env, SetupError<DP>>;
+    fn add_comm(self, agent_id: &DP::AgentId, comm: Self::Comm) -> Result<Self, SetupError<DP>>;
+    fn with_state(self, state: Env::State) -> Result<Self, SetupError<DP>>;
 
 }
 
