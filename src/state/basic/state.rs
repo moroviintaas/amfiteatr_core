@@ -7,7 +7,6 @@ pub trait State<Spec: DomainParameters>: Clone{
     //type Error: Error + Clone;
 
     fn update(&mut self, update: Spec::UpdateType) -> Result<(), Spec::GameErrorType>;
-    fn is_finished(&self) ->bool;
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -36,9 +35,5 @@ impl<U: StateUpdate> UpdateHistory<U>{
 impl <T: State<Spec>, Spec: DomainParameters> State<Spec> for Box<T>{
     fn update(&mut self, update: Spec::UpdateType) -> Result<(), Spec::GameErrorType> {
         self.as_mut().update(update)
-    }
-
-    fn is_finished(&self) -> bool {
-        self.as_ref().is_finished()
     }
 }

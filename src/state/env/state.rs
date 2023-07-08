@@ -7,6 +7,7 @@ pub trait EnvironmentState<DP: DomainParameters>: State<DP>{
     //type AgentId: AgentIdentifier;
 
     fn current_player(&self) -> Option<DP::AgentId>;
+    fn is_finished(&self) -> bool;
     //fn transform(&mut self, agent_id: &Spec::AgentId, action: Spec::ActionType) -> Result<Self::UpdatesCollection, Spec::GameErrorType>;
 
 }

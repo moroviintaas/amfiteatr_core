@@ -21,13 +21,6 @@ pub trait InformationSet<Spec: DomainParameters>: State<Spec>{
 pub trait ScoringInformationSet<DP: DomainParameters>: InformationSet<DP>{
     type RewardType: Reward;
     fn current_subjective_score(&self) -> Self::RewardType;
-    fn final_subjective_score(&self) -> Option<Self::RewardType>{
-        if self.is_finished(){
-            Some(self.current_subjective_score())
-        } else {
-            None
-        }
-    }
 }
 
 impl<T: InformationSet<Spec>, Spec: DomainParameters> InformationSet<Spec> for Box<T> {

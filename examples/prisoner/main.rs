@@ -1,3 +1,4 @@
+/*
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter, write};
 use sztorm::Action;
@@ -5,11 +6,12 @@ use sztorm::error::{InternalGameError, SztormError};
 use sztorm::protocol::DomainParameters;
 use sztorm::state::agent::{InformationSet, ScoringInformationSet};
 use sztorm::state::{State, StateUpdate};
-use crate::PrisonerAction::{Betray, Cover};
 
+
+use crate::PrisonerAction::{Betray, Cover};
 //---------------------------------------------------------------
 // Setup action
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug)]
 enum PrisonerAction{
     Betray,
     Cover
@@ -52,7 +54,8 @@ impl InternalGameError<PrisonerDomain> for PrisonerError{
 #[derive(Clone, Debug)]
 struct PrisonerDomain;
 
-type PrisonerCommit = (PrisonerAction, PrisonerAction);
+#[derive(Debug, Copy, Clone)]
+struct PrisonerCommit(PrisonerAction, PrisonerAction);
 impl StateUpdate for PrisonerCommit{}
 type PrisonerId = u8;
 
@@ -85,10 +88,6 @@ impl State<PrisonerDomain> for PrisonerState {
         Ok(())
     }
 
-    fn is_finished(&self) -> bool {
-        //self.finished
-        false
-    }
 }
 
 
@@ -120,6 +119,8 @@ impl ScoringInformationSet<PrisonerDomain> for PrisonerState{
 }
 
 
+
+ */
 
 
 fn main(){

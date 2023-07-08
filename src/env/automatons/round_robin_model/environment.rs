@@ -1,13 +1,12 @@
 use std::collections::HashMap;
 use log::{error, info, warn};
 use crate::{Reward};
-use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentWithAgents, ScoreEnvironment, StatefulEnvironment};
+use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentState, EnvironmentWithAgents, ScoreEnvironment, StatefulEnvironment};
 use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::PlayerExited;
 use crate::error::SztormError::GameWithConvict;
 use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
 use crate::protocol::EnvMessage::ErrorNotify;
-use crate::state::State;
 
 
 
