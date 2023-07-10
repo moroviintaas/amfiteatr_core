@@ -9,5 +9,5 @@ pub trait AgentIdentifier: Debug + Send + Copy + Hash + Display + PartialEq + Eq
 pub trait DistinctAgent<Spec: DomainParameters> {
     //type Id: AgentIdentifier;
 
-    fn id(&self) -> &Spec::AgentId;
+    fn id(&self) -> Spec::AgentId;
 }

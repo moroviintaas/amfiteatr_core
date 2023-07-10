@@ -101,8 +101,8 @@ impl<Spec: DomainParameters, P: Policy<Spec>,
     Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError<Spec>>>
 DistinctAgent<Spec> for AgentGen<Spec, P, Comm>{
 
-    fn id(&self) -> &Spec::AgentId {
-        &self.id
+    fn id(&self) -> Spec::AgentId {
+        self.id
     }
 }
 

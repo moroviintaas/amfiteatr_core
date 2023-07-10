@@ -6,13 +6,11 @@ use crate::Reward;
 use crate::state::State;
 
 pub trait InformationSet<Spec: DomainParameters>: State<Spec>{
-    //type ActionType: Action + Debug + Display;
     type ActionIteratorType: IntoIterator<Item = Spec::ActionType>;
-    //type Id: AgentIdentifier;
+
 
 
     fn available_actions(&self) -> Self::ActionIteratorType;
-    fn id(&self) -> &Spec::AgentId;
     fn is_action_valid(&self, action: &Spec::ActionType) -> bool;
 
 
@@ -31,9 +29,6 @@ impl<T: InformationSet<Spec>, Spec: DomainParameters> InformationSet<Spec> for B
         self.as_ref().available_actions()
     }
 
-    fn id(&self) -> &Spec::AgentId {
-        self.as_ref().id()
-    }
 
     fn is_action_valid(&self, action: &Spec::ActionType) -> bool {
         self.as_ref().is_action_valid(action)

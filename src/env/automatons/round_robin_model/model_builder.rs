@@ -62,8 +62,8 @@ RoundRobinModelBuilder<Spec, EnvState, ProcessAction, Comm>
                             -> Result<Self, SetupError<Spec>>{
         //if self.local_agents.contains_key(agent.as_ref().id())
         //self.comm_endpoints.insert(*agent.as_ref().id(), env_comm);
-        self.env_builder = self.env_builder.add_comm(agent.as_ref().id(), env_comm)?;
-        self.local_agents.insert(*agent.as_ref().id(), agent);
+        self.env_builder = self.env_builder.add_comm(&agent.as_ref().id(), env_comm)?;
+        self.local_agents.insert(agent.as_ref().id(), agent);
 
         Ok(self)
     }
