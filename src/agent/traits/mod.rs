@@ -10,3 +10,8 @@ pub use stateful_agent::*;
 pub use automatic::*;
 pub use rewarded_agent::*;
 pub use tracing_agent::*;
+use crate::protocol::DomainParameters;
+
+pub trait Agent<DP: DomainParameters>{
+    fn id(&self) -> DP::AgentId;
+}

@@ -1,19 +1,19 @@
-use crate::agent::{Policy, StatefulAgent};
+use crate::agent::{Agent, Policy, StatefulAgent};
 use crate::protocol::DomainParameters;
 
-pub trait ActingAgent<Spec: DomainParameters> {
+pub trait ActingAgent<DP: DomainParameters>: Agent<DP> {
 
-    fn take_action(&mut self) -> Option<Spec::ActionType>;
+    fn take_action(&mut self) -> Option<DP::ActionType>;
     fn finalize(&mut self);
 }
 
-pub trait PolicyAgent<Spec: DomainParameters>: StatefulAgent<Spec>{
-    type Policy: Policy<Spec, StateType = <Self as StatefulAgent<Spec>>::State>;
+pub trait PolicyAgent<DP: DomainParameters>: StatefulAgent<DP>{
+    type Policy: Policy<DP, StateType = <Self as StatefulAgent<DP>>::State>;
 
     fn policy(&self) -> &Self::Policy;
     fn policy_mut(&mut self) -> &mut Self::Policy;
     fn policy_select_action(&self)
-        -> Option<Spec::ActionType>{
+        -> Option<DP::ActionType>{
         self.policy().select_action(self.state())
     }
 }

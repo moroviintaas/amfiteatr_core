@@ -1,5 +1,5 @@
 use std::marker::PhantomData;
-use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, DistinctAgent, RewardedAgent};
+use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, RewardedAgent, Agent};
 use crate::agent::policy::Policy;
 use crate::comm::CommEndpoint;
 use crate::error::CommError;
@@ -97,11 +97,11 @@ PolicyAgent<Spec> for AgentGen<Spec, P, Comm>{
     }
 }
 
-impl<Spec: DomainParameters, P: Policy<Spec>,
-    Comm: CommEndpoint<OutwardType=AgentMessage<Spec>, InwardType=EnvMessage<Spec>, Error=CommError<Spec>>>
-DistinctAgent<Spec> for AgentGen<Spec, P, Comm>{
+impl<DP: DomainParameters, P: Policy<DP>,
+    Comm: CommEndpoint<OutwardType=AgentMessage<DP>, InwardType=EnvMessage<DP>, Error=CommError<DP>>>
+Agent<DP> for AgentGen<DP, P, Comm>{
 
-    fn id(&self) -> Spec::AgentId {
+    fn id(&self) -> DP::AgentId {
         self.id
     }
 }

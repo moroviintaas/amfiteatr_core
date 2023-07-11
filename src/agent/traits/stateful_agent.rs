@@ -1,10 +1,11 @@
+use crate::agent::Agent;
 use crate::protocol::DomainParameters;
 use crate::state::agent::InformationSet;
 
 
-pub trait StatefulAgent<Spec: DomainParameters>{
-    type State: InformationSet<Spec>;
+pub trait StatefulAgent<DP: DomainParameters>: Agent<DP>{
+    type State: InformationSet<DP>;
 
-    fn update(&mut self, state_update: Spec::UpdateType) -> Result<(), Spec::GameErrorType>;
+    fn update(&mut self, state_update: DP::UpdateType) -> Result<(), DP::GameErrorType>;
     fn state(&self) -> &Self::State;
 }

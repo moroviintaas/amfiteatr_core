@@ -1,9 +1,10 @@
 use std::error::Error;
+use crate::agent::Agent;
 use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
 
-pub trait CommunicatingAgent<Spec: DomainParameters>{
+pub trait CommunicatingAgent<DP: DomainParameters>: Agent<DP>{
     type CommunicationError: Error;
 
-    fn send(&mut self, message: AgentMessage<Spec>) -> Result<(), Self::CommunicationError>;
-    fn recv(&mut self) -> Result<EnvMessage<Spec>, Self::CommunicationError>;
+    fn send(&mut self, message: AgentMessage<DP>) -> Result<(), Self::CommunicationError>;
+    fn recv(&mut self) -> Result<EnvMessage<DP>, Self::CommunicationError>;
 }

@@ -1,4 +1,4 @@
-use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, DistinctAgent, PolicyAgent, RewardedAgent};
+use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, RewardedAgent, Agent};
 use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
 use crate::error::SztormError::Protocol;
@@ -8,7 +8,7 @@ use log::{info,  debug, error};
 use crate::protocol::AgentMessage::{NotifyError, TakeAction};
 
 
-pub trait AutomaticAgent<Spec: DomainParameters>: DistinctAgent<Spec>{
+pub trait AutomaticAgent<Spec: DomainParameters>: Agent<Spec>{
     fn run(&mut self) -> Result<(), SztormError<Spec>>;
 }
 
@@ -20,7 +20,7 @@ pub trait AutomaticAgentRewarded<Spec: DomainParameters>: AutomaticAgent<Spec>{
 impl<Agnt, Spec > AutomaticAgent<Spec> for Agnt
 where Agnt: StatefulAgent<Spec> + ActingAgent<Spec>
     + CommunicatingAgent<Spec, CommunicationError=CommError<Spec>>
-    + PolicyAgent<Spec> + DistinctAgent<Spec>,
+    + PolicyAgent<Spec> + Agent<Spec>,
       Spec: DomainParameters,
 {
     fn run(&mut self) -> Result<(), SztormError<Spec>> {
@@ -90,7 +90,7 @@ where Agnt: StatefulAgent<Spec> + ActingAgent<Spec>
 impl<Agnt, Spec > AutomaticAgentRewarded<Spec> for Agnt
 where Agnt: StatefulAgent<Spec> + ActingAgent<Spec>
     + CommunicatingAgent<Spec, CommunicationError=CommError<Spec>>
-    + PolicyAgent<Spec> + DistinctAgent<Spec>
+    + PolicyAgent<Spec> + Agent<Spec>
     + RewardedAgent<Spec>,
       Spec: DomainParameters,{
     fn run_rewarded(&mut self) -> Result<(), SztormError<Spec>> {
