@@ -15,12 +15,7 @@ pub trait ActionProcessor<Spec: DomainParameters, State: EnvironmentState<Spec>>
         agent_id: &Spec::AgentId,
         action: Spec::ActionType)
         -> Result<Vec<(Spec::AgentId, Spec::UpdateType)>, Spec::GameErrorType>;
-
-
 }
-
-
-
 
 
 pub struct GenericEnvironment<Spec: DomainParameters, State: EnvironmentState<Spec>,
@@ -100,8 +95,6 @@ ScoreEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
                 Err(err)
             }
         }
-        //let updates = self.action_processor.process_action_penalise_illegal(&mut self.game_state, agent, action, penalty_reward)?;
-
     }
 
     fn actual_state_score_of_player(&self, agent: &Spec::AgentId) -> Spec::UniversalReward {
@@ -169,7 +162,6 @@ impl <'a, Spec: DomainParameters + 'a,
 }
 
 
-//#[derive(Default)]
 pub struct GenericEnvironmentBuilder<Spec: DomainParameters, State:EnvironmentState<Spec>,
 ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec> >{
     state_opt: Option<State>,
@@ -184,9 +176,6 @@ impl <Spec: DomainParameters, State:EnvironmentState<Spec>,
 ProcessAction: ActionProcessor<Spec, State> , Comm: EnvCommEndpoint<Spec>>
 GenericEnvironmentBuilder<Spec, State, ProcessAction, Comm>{
 
-    /*pub fn init_builder(state: State, fn_action_process: ProcessAction) -> Self{
-        Self{state_opt: Some(state), fn_action_process: Some(fn_action_process), comm_endpoints: HashMap::new()}
-    }*/
 
     pub fn new() -> Self{
         Self{comm_endpoints: HashMap::new(), fn_action_process: None, state_opt: None}
@@ -230,10 +219,8 @@ EnvironmentBuilderTrait<Spec, GenericEnvironment<Spec, State, PA, Comm>> for Gen
 
     fn add_comm(mut self, agent_id: &Spec::AgentId, comm: Comm) -> Result<Self, SetupError<Spec>>{
 
-        //let mut hm = std::mem::take(&mut self.comm_endpoints);
         let _ = &mut self.comm_endpoints.insert(*agent_id, comm);
         Ok(self)
-        //self.comm_endpoints.insert(agent_id, comm)
     }
 
     fn with_state(mut self, state: State) -> Result<Self, SetupError<Spec>>{

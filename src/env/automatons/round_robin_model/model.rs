@@ -3,53 +3,37 @@ use std::thread;
 use log::{error, info};
 use crate::protocol::{DomainParameters};
 use crate::agent::AutomaticAgent;
-use crate::env::{ActionProcessor, EnvironmentStateUniScore, GenericEnvironment};
+use crate::env::{EnvironmentStateUniScore};
 use crate::env::automatons::rr::RoundRobinUniversalEnvironment;
 use crate::comm::EnvCommEndpoint;
+use crate::env::generic::{ActionProcessor, GenericEnvironment};
 use crate::error::SztormError;
 
-pub struct RoundRobinModel<Spec: DomainParameters + 'static,
-    EnvState: EnvironmentStateUniScore<Spec>,
-    ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>>{
-    environment: GenericEnvironment<Spec, EnvState, ProcessAction, Comm>,
-    local_agents: HashMap<Spec::AgentId, Box<dyn AutomaticAgent<Spec> + Send>>,
+pub struct RoundRobinModel<
+    DP: DomainParameters + 'static,
+    EnvState: EnvironmentStateUniScore<DP>,
+    ProcessAction: ActionProcessor<DP, EnvState>,
+    Comm: EnvCommEndpoint<DP>>{
+    environment: GenericEnvironment<DP, EnvState, ProcessAction, Comm>,
+    local_agents: HashMap<DP::AgentId, Box<dyn AutomaticAgent<DP> + Send>>,
 }
 
-impl<Spec: DomainParameters + 'static,
-    EnvState: EnvironmentStateUniScore<Spec>,
-    ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>> RoundRobinModel<Spec, EnvState, ProcessAction, Comm>{
-    pub fn new(environment: GenericEnvironment<Spec, EnvState, ProcessAction, Comm>, local_agents: HashMap<Spec::AgentId,Box<dyn AutomaticAgent<Spec> + Send>>) -> Self{
+impl<
+    DP: DomainParameters + 'static,
+    EnvState: EnvironmentStateUniScore<DP>,
+    ProcessAction: ActionProcessor<DP, EnvState>,
+    Comm: EnvCommEndpoint<DP>>
+RoundRobinModel<DP, EnvState, ProcessAction, Comm>{
+    pub fn new(environment: GenericEnvironment<DP, EnvState, ProcessAction, Comm>, local_agents: HashMap<DP::AgentId,Box<dyn AutomaticAgent<DP> + Send>>) -> Self{
         Self{environment, local_agents}
     }
 
-    /*
-    fn agent(&self, agent: &Spec::AgentId) -> Option<&Box<dyn AgentAuto<Spec> + Send>>{
-        self.local_agents.get(agent)
-    }
-
-    fn agent_mut(&mut self, agent: &Spec::AgentId) -> Option<&mut Box<dyn AgentAuto<Spec> + Send>>{
-        self.local_agents.get_mut(agent)
-    }
-     */
 
 
-    pub fn play(&mut self) -> Result<(), SztormError<Spec>>{
-        let mut agent_collectors = HashMap::<Spec::AgentId, std::sync::mpsc::Receiver<Box<dyn AutomaticAgent<Spec> + Send>>>::new();
-        //let mut join_handles = Vec::with_capacity(self.local_agents.len());
 
-        //let moved_agents = std::mem::take(self.local_agents);
-        /*thread::scope(|s|{
-            for (id, agent) in self.local_agents.drain().take(1){
-                let (agent_return_sender, agent_return_receiver) = std::sync::mpsc::channel();
-                agent_collectors.insert(id, agent_return_receiver);
-                s.spawn(||{
-                    agent_return_sender
-                })
+    pub fn play(&mut self) -> Result<(), SztormError<DP>>{
+        let mut agent_collectors = HashMap::<DP::AgentId, std::sync::mpsc::Receiver<Box<dyn AutomaticAgent<DP> + Send>>>::new();
 
-            }
-        });
-
-         */
 
         for (id, mut agent) in self.local_agents.drain(){
             //self.
