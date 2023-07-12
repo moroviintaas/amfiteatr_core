@@ -97,7 +97,7 @@ impl<
 ActingAgent<DP> for AgentGen<DP, P, Comm>{
 
     fn take_action(&mut self) -> Option<DP::ActionType> {
-        self.policy.select_action_mut(&self.state)
+        self.policy.select_action(&self.state)
 
     }
 

@@ -126,7 +126,7 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
     fn take_action(&mut self) -> Option<DP::ActionType> {
         self.commit_trace();
 
-        let action = self.policy.select_action_mut(&self.state);
+        let action = self.policy.select_action(&self.state);
         self.last_action = action.clone();
         self.state_before_last_action = Some(self.state.clone());
         action
