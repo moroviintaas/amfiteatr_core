@@ -3,77 +3,76 @@ use std::collections::{HashMap};
 use log::debug;
 use crate::env::{BroadcastingEnv, CommunicatingEnv, DomainEnvironment, EnvironmentBuilderTrait, EnvironmentState, EnvironmentStateUniScore, EnvironmentWithAgents, ScoreEnvironment, StatefulEnvironment};
 use crate::{comm::EnvCommEndpoint, Reward};
+use crate::env::generic::ActionProcessor;
 use crate::error::{CommError, SetupError};
-
-use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
-#[allow(clippy::type_complexity)]
-pub trait ActionProcessor<Spec: DomainParameters, State: EnvironmentState<Spec>> {
-
-    fn process_action(
-        &self,
-        state: &mut State,
-        agent_id: &Spec::AgentId,
-        action: Spec::ActionType)
-        -> Result<Vec<(Spec::AgentId, Spec::UpdateType)>, Spec::GameErrorType>;
-}
+use crate::protocol::{AgentMessage, DomainParameters, EnvMessage};
 
 
-pub struct GenericEnvironment<Spec: DomainParameters, State: EnvironmentState<Spec>,
-    AP: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec>>{
+pub struct GenericEnv<
+    DP: DomainParameters,
+    S: EnvironmentState<DP>,
+    AP: ActionProcessor<DP, S>,
+    C: EnvCommEndpoint<DP>>{
 
-    comm_endpoints: HashMap<Spec::AgentId, Comm>,
-    penalties: HashMap<Spec::AgentId, Spec::UniversalReward>,
-    //penalties: HashMap<Spec::AgentId, Spec::UniversalReward>,
-
-    game_state: State,
+    comm_endpoints: HashMap<DP::AgentId, C>,
+    penalties: HashMap<DP::AgentId, DP::UniversalReward>,
+    game_state: S,
     action_processor: AP,
 }
 
-impl <Spec: DomainParameters, State: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec>> GenericEnvironment<Spec, State, ProcessAction, Comm>{
+impl <
+    DP: DomainParameters,
+    S: EnvironmentState<DP>,
+    PA: ActionProcessor<DP, S>,
+    C: EnvCommEndpoint<DP>>
+GenericEnv<DP, S, PA, C>{
 
+    pub fn new(
+        game_state: S,
+        action_processor: PA,
+        comm_endpoints:  HashMap<DP::AgentId, C>) -> Self{
 
-    pub fn new(game_state: State, action_processor: ProcessAction,
-               comm_endpoints:  HashMap<Spec::AgentId,  Comm>
-               ) -> Self{
-        /*let penalties: HashMap<Spec::AgentId, Spec::UniversalReward> = comm_endpoints.iter()
-            .map(|(id, _)|{
-                (id.clone(), Spec::UniversalReward::neutral())
-            }).collect();*/
-        let k:Vec<Spec::AgentId> = comm_endpoints.keys().copied().collect();
+        let k:Vec<DP::AgentId> = comm_endpoints.keys().copied().collect();
         debug!("Creating environment with:{k:?}");
 
-        let penalties: HashMap<Spec::AgentId, Spec::UniversalReward> = comm_endpoints.keys()
-            .map(|agent| (*agent, Spec::UniversalReward::neutral()))
+        let penalties: HashMap<DP::AgentId, DP::UniversalReward> = comm_endpoints.keys()
+            .map(|agent| (*agent, DP::UniversalReward::neutral()))
             .collect();
 
         Self{comm_endpoints, game_state, action_processor, penalties}
     }
 
-    pub fn replace_state(&mut self, state: State){
+    pub fn replace_state(&mut self, state: S){
         self.game_state = state
     }
+
 }
 
 
-impl<Spec: DomainParameters, State: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec> >
-DomainEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
+impl<
+    DP: DomainParameters,
+    S: EnvironmentState<DP>,
+    PA: ActionProcessor<DP, S>,
+    C: EnvCommEndpoint<DP> >
+DomainEnvironment<DP> for GenericEnv<DP, S, PA, C>{
 }
 
-impl<Spec: DomainParameters, State: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec> >
-StatefulEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
-    type State = State;
-    type UpdatesIterator = <Vec<(Spec::AgentId, Spec::UpdateType)> as IntoIterator>::IntoIter;
+impl<
+    DP: DomainParameters,
+    S: EnvironmentState<DP>,
+    PA: ActionProcessor<DP, S>,
+    C: EnvCommEndpoint<DP>>
+StatefulEnvironment<DP> for GenericEnv<DP, S, PA, C>{
+
+    type State = S;
+    type UpdatesIterator = <Vec<(DP::AgentId, DP::UpdateType)> as IntoIterator>::IntoIter;
 
     fn state(&self) -> &Self::State {
         &self.game_state
     }
 
-    fn process_action(&mut self, agent: &Spec::AgentId, action: Spec::ActionType) -> Result<Self::UpdatesIterator, Spec::GameErrorType> {
+    fn process_action(&mut self, agent: &DP::AgentId, action: &DP::ActionType) -> Result<Self::UpdatesIterator, DP::GameErrorType> {
         let updates = self.action_processor.process_action(&mut self.game_state, agent, action)?;
-        //let (self.state, updates) = self.action_processor(self.game_state)
 
         Ok(updates.into_iter())
 
@@ -86,9 +85,9 @@ StatefulEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction, Com
 
 impl<Spec: DomainParameters, State: EnvironmentStateUniScore<Spec>,
     ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec> >
-ScoreEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
+ScoreEnvironment<Spec> for GenericEnv<Spec, State, ProcessAction, Comm>{
     fn process_action_penalise_illegal(&mut self, agent: &Spec::AgentId, action: Spec::ActionType, penalty_reward: Spec::UniversalReward) -> Result<Self::UpdatesIterator, Spec::GameErrorType> {
-        match self.action_processor.process_action(&mut self.game_state, agent, action){
+        match self.action_processor.process_action(&mut self.game_state, agent, &action){
             Ok(updates) => Ok(updates.into_iter()),
             Err(err) => {
                 self.penalties.insert(*agent, penalty_reward + &self.penalties[agent]);
@@ -109,7 +108,7 @@ ScoreEnvironment<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
 
 
 impl<Spec: DomainParameters, State: EnvironmentState<Spec>, ProcessAction: ActionProcessor<Spec, State>,Comm: EnvCommEndpoint<Spec> >
-CommunicatingEnv<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm> {
+CommunicatingEnv<Spec> for GenericEnv<Spec, State, ProcessAction, Comm> {
     type CommunicationError = CommError<Spec>;
 
     fn send_to(&mut self, agent_id: &Spec::AgentId, message: EnvMessage<Spec>) -> Result<(), Self::CommunicationError> {
@@ -131,7 +130,7 @@ CommunicatingEnv<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm> 
 impl <Spec: DomainParameters,
     State: EnvironmentState<Spec>,
     ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec>>
-BroadcastingEnv<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
+BroadcastingEnv<Spec> for GenericEnv<Spec, State, ProcessAction, Comm>{
     fn send_to_all(&mut self, message: EnvMessage<Spec>) -> Result<(), Self::CommunicationError> {
         let mut result:Option<Self::CommunicationError> = None;
 
@@ -151,7 +150,7 @@ BroadcastingEnv<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
 impl <'a, Spec: DomainParameters + 'a,
     State: EnvironmentState<Spec>,
     ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec>>
- EnvironmentWithAgents<Spec> for GenericEnvironment<Spec, State, ProcessAction, Comm>{
+ EnvironmentWithAgents<Spec> for GenericEnv<Spec, State, ProcessAction, Comm>{
     type PlayerIterator = Vec<Spec::AgentId>;
 
     fn players(&self) -> Self::PlayerIterator {
@@ -204,13 +203,13 @@ impl<Spec: DomainParameters, State: EnvironmentState<Spec>, PA: ActionProcessor<
 
 impl <Spec: DomainParameters, State:EnvironmentState<Spec>,
 PA: ActionProcessor<Spec, State> , Comm: EnvCommEndpoint<Spec>>
-EnvironmentBuilderTrait<Spec, GenericEnvironment<Spec, State, PA, Comm>> for GenericEnvironmentBuilder<Spec, State,PA, Comm >{
+EnvironmentBuilderTrait<Spec, GenericEnv<Spec, State, PA, Comm>> for GenericEnvironmentBuilder<Spec, State,PA, Comm >{
     type Comm = Comm;
 
-    fn build(self) -> Result<GenericEnvironment<Spec, State, PA, Comm>, SetupError<Spec>>{
+    fn build(self) -> Result<GenericEnv<Spec, State, PA, Comm>, SetupError<Spec>>{
 
 
-        Ok(GenericEnvironment::new(
+        Ok(GenericEnv::new(
             self.state_opt.ok_or(SetupError::MissingState)?,
             self.fn_action_process.ok_or(SetupError::<Spec>::MissingActionProcessingFunction)?,
             self.comm_endpoints))

@@ -24,7 +24,7 @@ pub trait RoundRobinPenalisingUniversalEnvironment<DP: DomainParameters>: RoundR
 pub(crate) trait EnvironmentRRInternal<DP: DomainParameters>{
     fn notify_error(&mut self, error: SztormError<DP>) -> Result<(), CommError<DP>>;
     fn send_message(&mut self, agent: &DP::AgentId, message: EnvMessage<DP>) -> Result<(), CommError<DP>>;
-    fn process_action_and_inform(&mut self, player: DP::AgentId, action: DP::ActionType) -> Result<(), SztormError<DP>>;
+    fn process_action_and_inform(&mut self, player: DP::AgentId, action: &DP::ActionType) -> Result<(), SztormError<DP>>;
 
     //fn broadcast_message(&mut self ,message: EnvMessage<Spec>) -> Result<(), CommError>;
 }
@@ -50,7 +50,7 @@ DP: DomainParameters
             })
     }
 
-    fn process_action_and_inform(&mut self, player: DP::AgentId, action: DP::ActionType) -> Result<(), SztormError<DP>> {
+    fn process_action_and_inform(&mut self, player: DP::AgentId, action: &DP::ActionType) -> Result<(), SztormError<DP>> {
         match self.process_action(&player, action){
             Ok(iter) => {
                 //let mut n=0;
@@ -91,7 +91,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                     Ok(agent_message) => match agent_message{
                         AgentMessage::TakeAction(action) => {
                             info!("Player {} performs action: {:#}", &player, &action);
-                            self.process_action_and_inform(player, action)?;
+                            self.process_action_and_inform(player, &action)?;
                             if let Some(next_player) = self.current_player(){
                                 self.send_message(&next_player, EnvMessage::YourMove)
                                     .map_err(|e| e.specify_id(next_player))?;
@@ -161,7 +161,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                     Ok(agent_message) => match agent_message{
                         AgentMessage::TakeAction(action) => {
                             info!("Player {} performs action: {:#}", &player, &action);
-                            self.process_action_and_inform(player, action)?;
+                            self.process_action_and_inform(player, &action)?;
                             for (player, score) in actual_universal_scores.iter_mut(){
 
                                 let reward = self.actual_score_of_player(player) - score.clone();
@@ -237,7 +237,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                     Ok(agent_message) => match agent_message{
                         AgentMessage::TakeAction(action) => {
                             info!("Player {} performs action: {:#}", &player, &action);
-                            match self.process_action(&player, action){
+                            match self.process_action(&player, &action){
                                 Ok(updates) => {
                                     for (ag, update) in updates{
                                         self.send_message(&ag, EnvMessage::UpdateState(update))?;
