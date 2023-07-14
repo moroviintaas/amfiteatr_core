@@ -112,31 +112,43 @@ ScoreEnvironment<DP> for GenericEnv<DP, S, AP, C>{
 
 
 
-impl<Spec: DomainParameters, State: EnvironmentState<Spec>, ProcessAction: ActionProcessor<Spec, State>,Comm: EnvCommEndpoint<Spec> >
-CommunicatingEnv<Spec> for GenericEnv<Spec, State, ProcessAction, Comm> {
-    type CommunicationError = CommError<Spec>;
+impl<
+    DP: DomainParameters,
+    S: EnvironmentState<DP>,
+    PA: ActionProcessor<DP, S>,
+    C: EnvCommEndpoint<DP>>
+CommunicatingEnv<DP> for GenericEnv<DP, S, PA, C> {
+    type CommunicationError = CommError<DP>;
 
-    fn send_to(&mut self, agent_id: &Spec::AgentId, message: EnvMessage<Spec>) -> Result<(), Self::CommunicationError> {
+    fn send_to(&mut self, agent_id: &DP::AgentId, message: EnvMessage<DP>)
+        -> Result<(), Self::CommunicationError> {
+
         self.comm_endpoints.get_mut(agent_id).ok_or(CommError::NoSuchConnection)
             .map(|v| v.send(message))?
     }
 
-    fn recv_from(&mut self, agent_id: &Spec::AgentId) -> Result<AgentMessage<Spec>, Self::CommunicationError> {
+    fn recv_from(&mut self, agent_id: &DP::AgentId)
+        -> Result<AgentMessage<DP>, Self::CommunicationError> {
+
         self.comm_endpoints.get_mut(agent_id).ok_or(CommError::NoSuchConnection)
             .map(|v| v.recv())?
     }
 
-    fn try_recv_from(&mut self, agent_id: &Spec::AgentId) -> Result<AgentMessage<Spec>, Self::CommunicationError> {
+    fn try_recv_from(&mut self, agent_id: &DP::AgentId)
+        -> Result<AgentMessage<DP>, Self::CommunicationError> {
+
         self.comm_endpoints.get_mut(agent_id).ok_or(CommError::NoSuchConnection)
             .map(|v| v.try_recv())?
     }
 }
 
-impl <Spec: DomainParameters,
-    State: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec>>
-BroadcastingEnv<Spec> for GenericEnv<Spec, State, ProcessAction, Comm>{
-    fn send_to_all(&mut self, message: EnvMessage<Spec>) -> Result<(), Self::CommunicationError> {
+impl<
+    DP: DomainParameters,
+    S: EnvironmentState<DP>,
+    PA: ActionProcessor<DP, S>,
+    C: EnvCommEndpoint<DP>>
+BroadcastingEnv<DP> for GenericEnv<DP, S, PA, C>{
+    fn send_to_all(&mut self, message: EnvMessage<DP>) -> Result<(), Self::CommunicationError> {
         let mut result:Option<Self::CommunicationError> = None;
 
         for comm in self.comm_endpoints.values_mut(){
@@ -152,11 +164,12 @@ BroadcastingEnv<Spec> for GenericEnv<Spec, State, ProcessAction, Comm>{
     }
 }
 
-impl <'a, Spec: DomainParameters + 'a,
-    State: EnvironmentState<Spec>,
-    ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec>>
- EnvironmentWithAgents<Spec> for GenericEnv<Spec, State, ProcessAction, Comm>{
-    type PlayerIterator = Vec<Spec::AgentId>;
+impl<'a, DP: DomainParameters + 'a,
+    S: EnvironmentState<DP>,
+    PA: ActionProcessor<DP, S>,
+    C: EnvCommEndpoint<DP>>
+ EnvironmentWithAgents<DP> for GenericEnv<DP, S, PA, C>{
+    type PlayerIterator = Vec<DP::AgentId>;
 
     fn players(&self) -> Self::PlayerIterator {
         self.comm_endpoints.keys().copied().collect()

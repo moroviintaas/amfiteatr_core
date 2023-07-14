@@ -2,9 +2,10 @@ use std::collections::HashMap;
 use std::vec::IntoIter;
 use log::debug;
 use crate::comm::EnvCommEndpoint;
-use crate::env::{EnvironmentState, EnvironmentStateUniScore, GameHistory, HistoryEntry, ScoreEnvironment, StatefulEnvironment};
+use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentState, EnvironmentStateUniScore, EnvironmentWithAgents, GameHistory, HistoryEntry, ScoreEnvironment, StatefulEnvironment};
 use crate::env::generic::{ActionProcessor, GenericEnv};
-use crate::protocol::DomainParameters;
+use crate::error::CommError;
+use crate::protocol::{AgentMessage, DomainParameters, EnvMessage};
 use crate::Reward;
 
 pub struct TracingGenericEnv<
@@ -136,3 +137,55 @@ ScoreEnvironment<DP> for TracingGenericEnv<DP, S, AP, C>{
         self.base_environment.actual_penalty_score_of_player(agent)
     }
 }
+
+impl<
+    DP: DomainParameters,
+    S: EnvironmentState<DP>,
+    PA: ActionProcessor<DP, S>,
+    C: EnvCommEndpoint<DP>>
+CommunicatingEnv<DP> for TracingGenericEnv<DP, S, PA, C>{
+    type CommunicationError = CommError<DP>;
+
+    fn send_to(&mut self, agent_id: &DP::AgentId, message: EnvMessage<DP>)
+        -> Result<(), Self::CommunicationError> {
+
+        self.base_environment.send_to(agent_id, message)
+    }
+
+    fn recv_from(&mut self, agent_id: &DP::AgentId)
+        -> Result<AgentMessage<DP>, Self::CommunicationError> {
+
+        self.base_environment.recv_from(agent_id)
+    }
+
+    fn try_recv_from(&mut self, agent_id: &DP::AgentId)
+        -> Result<AgentMessage<DP>, Self::CommunicationError> {
+
+        self.base_environment.try_recv_from(agent_id)
+    }
+}
+
+impl<
+    DP: DomainParameters,
+    S: EnvironmentState<DP>,
+    PA: ActionProcessor<DP, S>,
+    C: EnvCommEndpoint<DP>>
+BroadcastingEnv<DP> for TracingGenericEnv<DP, S, PA, C>{
+    fn send_to_all(&mut self, message: EnvMessage<DP>) -> Result<(), Self::CommunicationError> {
+        self.base_environment.send_to_all(message)
+    }
+}
+
+impl<'a, DP: DomainParameters + 'a,
+    S: EnvironmentState<DP>,
+    PA: ActionProcessor<DP, S>,
+    C: EnvCommEndpoint<DP>>
+ EnvironmentWithAgents<DP> for TracingGenericEnv<DP, S, PA, C>{
+    type PlayerIterator = Vec<DP::AgentId>;
+
+    fn players(&self) -> Self::PlayerIterator {
+        self.base_environment.players()
+    }
+}
+
+
