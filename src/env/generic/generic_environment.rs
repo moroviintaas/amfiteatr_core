@@ -1,7 +1,7 @@
 use std::collections::{HashMap};
 
 use log::debug;
-use crate::env::{BroadcastingEnv, CommunicatingEnv, DomainEnvironment, EnvironmentBuilderTrait, EnvironmentState, EnvironmentStateUniScore, EnvironmentWithAgents, ScoreEnvironment, StatefulEnvironment};
+use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentBuilderTrait, EnvironmentState, EnvironmentStateUniScore, EnvironmentWithAgents, ScoreEnvironment, StatefulEnvironment};
 use crate::{comm::EnvCommEndpoint, Reward};
 use crate::env::generic::ActionProcessor;
 use crate::error::{CommError, SetupError};
@@ -45,17 +45,16 @@ GenericEnv<DP, S, PA, C>{
     pub fn replace_state(&mut self, state: S){
         self.game_state = state
     }
-
 }
 
-
+/*
 impl<
     DP: DomainParameters,
     S: EnvironmentState<DP>,
     PA: ActionProcessor<DP, S>,
     C: EnvCommEndpoint<DP> >
 DomainEnvironment<DP> for GenericEnv<DP, S, PA, C>{
-}
+}*/
 
 impl<
     DP: DomainParameters,

@@ -1,5 +1,4 @@
-//mod automatic;
-mod domain_env;
+
 mod growing_environment;
 mod communication_env;
 mod contructed_environment;
@@ -8,7 +7,7 @@ mod stateful_env;
 mod score_environment;
 mod reset_environment;
 
-pub use domain_env::*;
+
 pub use growing_environment::*;
 pub use communication_env::*;
 pub use contructed_environment::*;
