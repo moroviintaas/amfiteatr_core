@@ -1,104 +1,13 @@
 use std::cell::Cell;
-use std::fmt::{Debug, Display, Formatter};
-use sztorm::Action;
 use sztorm::agent::Policy;
-use sztorm::error::{InternalGameError, SztormError};
-use sztorm::protocol::DomainParameters;
 use sztorm::state::agent::{InformationSet, ScoringInformationSet};
-use sztorm::state::{State, StateUpdate};
-
-
-use crate::PrisonerAction::{Betray, Cover};
-//---------------------------------------------------------------
-// Setup action
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub enum PrisonerAction{
-    Betray,
-    Cover
-}
-
-
-impl Display for PrisonerAction {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-impl Action for PrisonerAction{}
-//---------------------------------------------------------------
-
-type PrisonerReward = i32;
-
-
-
-#[derive(thiserror::Error, Debug, PartialEq, Clone)]
-pub enum PrisonerError{
-    #[error("Performed different action (chosen: {chosen:?}, logged: {logged:?})")]
-    DifferentActionPerformed{
-        chosen: PrisonerAction,
-        logged: PrisonerAction
-    },
-    #[error("Environment logged action {0}, but none was performed")]
-    NoLastAction(PrisonerAction)
-}
-
-
-impl Into<SztormError<PrisonerDomain>> for PrisonerError {
-    fn into(self) -> SztormError<PrisonerDomain> {
-        SztormError::Game(self)
-    }
-}
-
-
-
-impl InternalGameError<PrisonerDomain> for PrisonerError{
-
-}
+use sztorm::state::State;
+use crate::common::RewardTable;
+use crate::domain::{PrisonerAction, PrisonerCommit, PrisonerDomain, PrisonerError, PrisonerReward};
+use crate::domain::PrisonerAction::{Betray, Cover};
 
 #[derive(Clone, Debug)]
-struct PrisonerDomain;
-
-#[derive(Debug, Copy, Clone)]
-struct PrisonerCommit(PrisonerAction, PrisonerAction);
-impl StateUpdate for PrisonerCommit{}
-type PrisonerId = u8;
-
-impl DomainParameters for PrisonerDomain{
-    type ActionType = PrisonerAction;
-    type GameErrorType = PrisonerError;
-    type UpdateType = PrisonerCommit;
-    type AgentId = PrisonerId;
-    type UniversalReward = PrisonerReward;
-}
-
-//---------------------------------------------------------------
-// Setup state
-//pub type RewardTable= HashMap<(PrisonerAction, PrisonerAction),PrisonerReward>;
-#[derive(Debug, Copy, Clone)]
-pub struct RewardTable{
-    pub cover_v_cover: PrisonerReward,
-    pub cover_v_betray: PrisonerReward,
-    pub betray_v_cover: PrisonerReward,
-    pub betray_v_betray: PrisonerReward
-}
-
-impl RewardTable{
-
-    pub fn reward(&self, action: PrisonerAction, other_action: PrisonerAction) -> PrisonerReward{
-        match (action, other_action){
-            (Cover, Cover) => self.cover_v_cover,
-            (Cover, Betray) => self.cover_v_betray,
-            (Betray, Cover) => self.betray_v_cover,
-            (Betray, Betray) => self.betray_v_betray
-        }
-    }
-}
-
-
-
-
-#[derive(Clone, Debug)]
-struct PrisonerState{
+pub struct PrisonerState{
     previous_actions: Vec<PrisonerCommit>,
     reward_table: RewardTable,
     last_action: Cell<Option<PrisonerAction>>
@@ -167,12 +76,6 @@ impl Policy<PrisonerDomain> for Forgive1Policy{
     }
 }
 
-
-
-
-
-
-
 impl InformationSet<PrisonerDomain> for PrisonerState{
     type ActionIteratorType = [PrisonerAction;2];
 
@@ -196,11 +99,3 @@ impl ScoringInformationSet<PrisonerDomain> for PrisonerState{
     }
 }
 
-
-
-
-
-
-fn main(){
-    println!("Hello prisoners;")
-}
