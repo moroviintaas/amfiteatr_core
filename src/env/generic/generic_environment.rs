@@ -47,14 +47,6 @@ GenericEnv<DP, S, PA, C>{
     }
 }
 
-/*
-impl<
-    DP: DomainParameters,
-    S: EnvironmentState<DP>,
-    PA: ActionProcessor<DP, S>,
-    C: EnvCommEndpoint<DP> >
-DomainEnvironment<DP> for GenericEnv<DP, S, PA, C>{
-}*/
 
 impl<
     DP: DomainParameters,
@@ -82,10 +74,20 @@ StatefulEnvironment<DP> for GenericEnv<DP, S, PA, C>{
 
 }
 
-impl<Spec: DomainParameters, State: EnvironmentStateUniScore<Spec>,
-    ProcessAction: ActionProcessor<Spec, State>, Comm: EnvCommEndpoint<Spec> >
-ScoreEnvironment<Spec> for GenericEnv<Spec, State, ProcessAction, Comm>{
-    fn process_action_penalise_illegal(&mut self, agent: &Spec::AgentId, action: Spec::ActionType, penalty_reward: Spec::UniversalReward) -> Result<Self::UpdatesIterator, Spec::GameErrorType> {
+impl<
+    DP: DomainParameters,
+    S: EnvironmentStateUniScore<DP>,
+    AP: ActionProcessor<DP, S>,
+    C: EnvCommEndpoint<DP> >
+ScoreEnvironment<DP> for GenericEnv<DP, S, AP, C>{
+
+    fn process_action_penalise_illegal(
+        &mut self,
+        agent: &DP::AgentId,
+        action: &DP::ActionType,
+        penalty_reward: DP::UniversalReward)
+        -> Result<Self::UpdatesIterator, DP::GameErrorType> {
+
         match self.action_processor.process_action(&mut self.game_state, agent, &action){
             Ok(updates) => Ok(updates.into_iter()),
             Err(err) => {
@@ -95,12 +97,16 @@ ScoreEnvironment<Spec> for GenericEnv<Spec, State, ProcessAction, Comm>{
         }
     }
 
-    fn actual_state_score_of_player(&self, agent: &Spec::AgentId) -> Spec::UniversalReward {
+    fn actual_state_score_of_player(
+        &self, agent: &DP::AgentId) -> DP::UniversalReward {
+
         self.game_state.state_score_of_player(agent)
     }
 
-    fn actual_penalty_score_of_player(&self, agent: &Spec::AgentId) -> Spec::UniversalReward {
-        self.penalties.get(agent).unwrap_or(&Spec::UniversalReward::neutral()).to_owned()
+    fn actual_penalty_score_of_player
+    (&self, agent: &DP::AgentId) -> DP::UniversalReward {
+
+        self.penalties.get(agent).unwrap_or(&DP::UniversalReward::neutral()).to_owned()
     }
 }
 

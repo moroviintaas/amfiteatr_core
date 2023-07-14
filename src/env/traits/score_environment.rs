@@ -6,7 +6,7 @@ pub trait ScoreEnvironment<DP: DomainParameters>: StatefulEnvironment<DP>{
     fn process_action_penalise_illegal(
         &mut self,
         agent: &DP::AgentId,
-        action: DP::ActionType,
+        action: &DP::ActionType,
         penalty_reward: DP::UniversalReward)
         -> Result<Self::UpdatesIterator, DP::GameErrorType>;
 

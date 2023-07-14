@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::vec::IntoIter;
 use log::debug;
 use crate::comm::EnvCommEndpoint;
-use crate::env::{EnvironmentState, GameHistory, HistoryEntry, StatefulEnvironment};
+use crate::env::{EnvironmentState, EnvironmentStateUniScore, GameHistory, HistoryEntry, ScoreEnvironment, StatefulEnvironment};
 use crate::env::generic::{ActionProcessor, GenericEnv};
 use crate::protocol::DomainParameters;
 use crate::Reward;
@@ -101,5 +101,38 @@ StatefulEnvironment<DP> for TracingGenericEnv<DP, S, PA, C>{
                 Err(e)
             }
         }
+    }
+}
+
+impl<
+    DP: DomainParameters,
+    S: EnvironmentStateUniScore<DP>,
+    AP: ActionProcessor<DP, S>,
+    C: EnvCommEndpoint<DP> >
+ScoreEnvironment<DP> for TracingGenericEnv<DP, S, AP, C>{
+    fn process_action_penalise_illegal(
+        &mut self, agent: &DP::AgentId, action: &DP::ActionType, penalty_reward: DP::UniversalReward)
+        -> Result<Self::UpdatesIterator, DP::GameErrorType> {
+
+        let state_clone = self.state().clone();
+        match self.base_environment.process_action_penalise_illegal(agent, action, penalty_reward){
+            Ok(updates) => {
+                self.history.push(HistoryEntry::new(state_clone, *agent, action.clone(), true));
+                Ok(updates)
+            }
+            Err(e) => {
+                self.history.push(HistoryEntry::new(state_clone, *agent, action.clone(), false));
+                Err(e)
+            }
+        }
+
+    }
+
+    fn actual_state_score_of_player(&self, agent: &DP::AgentId) -> DP::UniversalReward {
+        self.base_environment.actual_state_score_of_player(agent)
+    }
+
+    fn actual_penalty_score_of_player(&self, agent: &DP::AgentId) -> DP::UniversalReward {
+        self.base_environment.actual_penalty_score_of_player(agent)
     }
 }
