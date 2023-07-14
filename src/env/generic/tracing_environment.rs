@@ -1,12 +1,9 @@
 use std::collections::HashMap;
-use std::vec::IntoIter;
-use log::debug;
 use crate::comm::EnvCommEndpoint;
-use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentState, EnvironmentStateUniScore, EnvironmentWithAgents, GameHistory, HistoryEntry, ScoreEnvironment, StatefulEnvironment};
+use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentState, EnvironmentStateUniScore, EnvironmentWithAgents, GameHistory, HistoryEntry, ScoreEnvironment, StatefulEnvironment, TracingEnv};
 use crate::env::generic::{ActionProcessor, GenericEnv};
 use crate::error::CommError;
 use crate::protocol::{AgentMessage, DomainParameters, EnvMessage};
-use crate::Reward;
 
 pub struct TracingGenericEnv<
     DP: DomainParameters,
@@ -14,13 +11,6 @@ pub struct TracingGenericEnv<
     AP:ActionProcessor<DP, S>,
     C: EnvCommEndpoint<DP>>{
 
-    /*
-    comm_endpoints: HashMap<DP::AgentId, C>,
-    penalties: HashMap<DP::AgentId, DP::UniversalReward>,
-    game_state: S,
-    action_processor: AP,
-
-     */
     base_environment: GenericEnv<DP, S, AP, C>,
     history: GameHistory<DP, S>
 }
@@ -187,5 +177,17 @@ impl<'a, DP: DomainParameters + 'a,
         self.base_environment.players()
     }
 }
+
+
+impl<'a, DP: DomainParameters + 'a,
+    S: EnvironmentState<DP>,
+    PA: ActionProcessor<DP, S>,
+    C: EnvCommEndpoint<DP>>
+TracingEnv<DP, S> for TracingGenericEnv<DP, S, PA, C>{
+    fn history(&self) -> &GameHistory<DP, S> {
+        &self.history
+    }
+}
+
 
 

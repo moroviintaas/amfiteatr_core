@@ -219,28 +219,31 @@ impl<Spec: DomainParameters, State: EnvironmentState<Spec>, PA: ActionProcessor<
     }
 }
 
-impl <Spec: DomainParameters, State:EnvironmentState<Spec>,
-PA: ActionProcessor<Spec, State> , Comm: EnvCommEndpoint<Spec>>
-EnvironmentBuilderTrait<Spec, GenericEnv<Spec, State, PA, Comm>> for GenericEnvironmentBuilder<Spec, State,PA, Comm >{
-    type Comm = Comm;
+impl<
+    DP: DomainParameters,
+    S:EnvironmentState<DP>,
+    PA: ActionProcessor<DP, S> ,
+    C: EnvCommEndpoint<DP>>
+EnvironmentBuilderTrait<DP, GenericEnv<DP, S, PA, C>> for GenericEnvironmentBuilder<DP, S,PA, C>{
+    type Comm = C;
 
-    fn build(self) -> Result<GenericEnv<Spec, State, PA, Comm>, SetupError<Spec>>{
+    fn build(self) -> Result<GenericEnv<DP, S, PA, C>, SetupError<DP>>{
 
 
         Ok(GenericEnv::new(
             self.state_opt.ok_or(SetupError::MissingState)?,
-            self.fn_action_process.ok_or(SetupError::<Spec>::MissingActionProcessingFunction)?,
+            self.fn_action_process.ok_or(SetupError::<DP>::MissingActionProcessingFunction)?,
             self.comm_endpoints))
 
     }
 
-    fn add_comm(mut self, agent_id: &Spec::AgentId, comm: Comm) -> Result<Self, SetupError<Spec>>{
+    fn add_comm(mut self, agent_id: &DP::AgentId, comm: C) -> Result<Self, SetupError<DP>>{
 
         let _ = &mut self.comm_endpoints.insert(*agent_id, comm);
         Ok(self)
     }
 
-    fn with_state(mut self, state: State) -> Result<Self, SetupError<Spec>>{
+    fn with_state(mut self, state: S) -> Result<Self, SetupError<DP>>{
         self.state_opt = Some(state);
         Ok(self)
     }
