@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use sztorm::protocol::DomainParameters;
-use sztorm::state::State;
 use crate::common::RewardTable;
 use crate::domain::{PrisonerAction, PrisonerCommit, PrisonerDomain, PrisonerId};
 
@@ -10,7 +9,7 @@ pub struct PrisonerEnvState{
     last_actions: HashMap<PrisonerId, PrisonerAction>,
     reward_table: RewardTable
 }
-
+/*
 impl State<PrisonerDomain> for PrisonerEnvState{
     fn update(&mut self, update: <PrisonerDomain as DomainParameters>::UpdateType)
         -> Result<(), <PrisonerDomain as DomainParameters>::GameErrorType> {
@@ -19,3 +18,5 @@ impl State<PrisonerDomain> for PrisonerEnvState{
 
     }
 }
+
+ */

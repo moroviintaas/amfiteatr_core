@@ -4,8 +4,6 @@ use crate::state::env::EnvironmentState;
 
 pub trait StatefulEnvironment<DP: DomainParameters>{
     type State: EnvironmentState<DP>;
-    //type Act: Action;
-    type UpdatesIterator: Iterator<Item=(DP::AgentId, DP::UpdateType)>;
 
     fn state(&self) -> &Self::State;
 
@@ -15,6 +13,7 @@ pub trait StatefulEnvironment<DP: DomainParameters>{
         self.state().current_player()
     }
 
-    fn process_action(&mut self, agent: &DP::AgentId, action: &DP::ActionType) -> Result<Self::UpdatesIterator, DP::GameErrorType>;
+    fn process_action(&mut self, agent: &DP::AgentId, action: &DP::ActionType) 
+        -> Result<<Self::State as EnvironmentState<DP>>::Updates, DP::GameErrorType>;
 
 }

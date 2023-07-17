@@ -4,7 +4,7 @@ use crate::agent::AutomaticAgent;
 use crate::env::{EnvironmentBuilderTrait, EnvironmentStateUniScore};
 use crate::env::automatons::rr::RoundRobinModel;
 use crate::comm::EnvCommEndpoint;
-use crate::env::generic::{ActionProcessor, GenericEnvironmentBuilder};
+use crate::env::generic::{GenericEnvironmentBuilder};
 use crate::error::{SetupError};
 
 use crate::protocol::{DomainParameters};
@@ -12,9 +12,8 @@ use crate::protocol::{DomainParameters};
 pub struct RoundRobinModelBuilder<
     DP: DomainParameters,
     EnvState: EnvironmentStateUniScore<DP>,
-    ProcessAction: ActionProcessor<DP, EnvState>,
     Comm: EnvCommEndpoint<DP> >{
-    env_builder: GenericEnvironmentBuilder<DP, EnvState, ProcessAction, Comm>,
+    env_builder: GenericEnvironmentBuilder<DP, EnvState,  Comm>,
     local_agents: HashMap<DP::AgentId, Box<dyn AutomaticAgent<DP> + Send>>,
 
 }
@@ -23,9 +22,8 @@ pub struct RoundRobinModelBuilder<
 impl<
     DP: DomainParameters,
     EnvState: EnvironmentStateUniScore<DP>,
-    ProcessAction: ActionProcessor<DP, EnvState>,
     Comm: EnvCommEndpoint<DP>>
-RoundRobinModelBuilder<DP, EnvState, ProcessAction, Comm>{
+RoundRobinModelBuilder<DP, EnvState,  Comm>{
     pub fn new() -> Self{
         Self{ env_builder: GenericEnvironmentBuilder::new(), local_agents:HashMap::new() }
     }
@@ -35,10 +33,11 @@ RoundRobinModelBuilder<DP, EnvState, ProcessAction, Comm>{
         self.env_builder = self.env_builder.with_state(environment_state)?;
         Ok(self)
     }
+    /*
     pub fn with_env_action_process_fn(mut self, process_fn: ProcessAction) -> Result<Self, SetupError<DP>>{
         self.env_builder = self.env_builder.with_processor(process_fn)?;
         Ok(self)
-    }
+    }*/
     pub fn get_agent(&self, s: &DP::AgentId) -> Option<&Box<dyn AutomaticAgent<DP> + Send>>{
         self.local_agents.get(s)
 
@@ -67,7 +66,7 @@ RoundRobinModelBuilder<DP, EnvState, ProcessAction, Comm>{
         Ok(self)
     }
 
-    pub fn build(self) -> Result<RoundRobinModel<DP, EnvState, ProcessAction, Comm>, SetupError<DP>>{
+    pub fn build(self) -> Result<RoundRobinModel<DP, EnvState, Comm>, SetupError<DP>>{
         Ok(RoundRobinModel::new(self.env_builder.build()?, self.local_agents))
     }
 
@@ -77,7 +76,7 @@ RoundRobinModelBuilder<DP, EnvState, ProcessAction, Comm>{
 }
 
 impl<Spec: DomainParameters, EnvState: EnvironmentStateUniScore<Spec>,
-ProcessAction: ActionProcessor<Spec, EnvState>, Comm: EnvCommEndpoint<Spec>> Default for RoundRobinModelBuilder<Spec, EnvState, ProcessAction, Comm> {
+ Comm: EnvCommEndpoint<Spec>> Default for RoundRobinModelBuilder<Spec, EnvState, Comm> {
     fn default() -> Self {
         Self::new()
     }

@@ -6,25 +6,23 @@ use crate::agent::AutomaticAgent;
 use crate::env::{EnvironmentStateUniScore};
 use crate::env::automatons::rr::RoundRobinUniversalEnvironment;
 use crate::comm::EnvCommEndpoint;
-use crate::env::generic::{ActionProcessor, GenericEnv};
+use crate::env::generic::{GenericEnv};
 use crate::error::SztormError;
 
 pub struct RoundRobinModel<
     DP: DomainParameters + 'static,
     EnvState: EnvironmentStateUniScore<DP>,
-    ProcessAction: ActionProcessor<DP, EnvState>,
     Comm: EnvCommEndpoint<DP>>{
-    environment: GenericEnv<DP, EnvState, ProcessAction, Comm>,
+    environment: GenericEnv<DP, EnvState,  Comm>,
     local_agents: HashMap<DP::AgentId, Box<dyn AutomaticAgent<DP> + Send>>,
 }
 
 impl<
     DP: DomainParameters + 'static,
     EnvState: EnvironmentStateUniScore<DP>,
-    ProcessAction: ActionProcessor<DP, EnvState>,
     Comm: EnvCommEndpoint<DP>>
-RoundRobinModel<DP, EnvState, ProcessAction, Comm>{
-    pub fn new(environment: GenericEnv<DP, EnvState, ProcessAction, Comm>, local_agents: HashMap<DP::AgentId,Box<dyn AutomaticAgent<DP> + Send>>) -> Self{
+RoundRobinModel<DP, EnvState, Comm>{
+    pub fn new(environment: GenericEnv<DP, EnvState, Comm>, local_agents: HashMap<DP::AgentId,Box<dyn AutomaticAgent<DP> + Send>>) -> Self{
         Self{environment, local_agents}
     }
 

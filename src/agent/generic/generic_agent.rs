@@ -5,7 +5,7 @@ use crate::comm::CommEndpoint;
 use crate::error::CommError;
 use crate::{Reward};
 use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
-use crate::state::State;
+use crate::state::agent::InformationSet;
 
 pub struct AgentGen<
     DP: DomainParameters,

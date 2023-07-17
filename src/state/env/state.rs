@@ -1,13 +1,15 @@
 
 use crate::protocol::DomainParameters;
-use crate::state::State;
 
-pub trait EnvironmentState<DP: DomainParameters>: State<DP>{
-    //type UpdatesCollection: IntoIterator<Item = (Spec::AgentId, Spec::UpdateType)>;
-    //type AgentId: AgentIdentifier;
+pub trait EnvironmentState<DP: DomainParameters>: Clone{
+    type Updates: IntoIterator<Item = (DP::AgentId, DP::UpdateType)>;
 
     fn current_player(&self) -> Option<DP::AgentId>;
     fn is_finished(&self) -> bool;
+
+    fn forward(&mut self, agent: DP::AgentId, action: DP::ActionType)
+        -> Result<Self::Updates, DP::GameErrorType>;
+
     //fn transform(&mut self, agent_id: &Spec::AgentId, action: Spec::ActionType) -> Result<Self::UpdatesCollection, Spec::GameErrorType>;
 
 }

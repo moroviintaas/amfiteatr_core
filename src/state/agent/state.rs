@@ -3,15 +3,15 @@
 
 use crate::protocol::DomainParameters;
 use crate::Reward;
-use crate::state::State;
 
-pub trait InformationSet<Spec: DomainParameters>: State<Spec>{
-    type ActionIteratorType: IntoIterator<Item = Spec::ActionType>;
+pub trait InformationSet<DP: DomainParameters>: Clone{
+    type ActionIteratorType: IntoIterator<Item = DP::ActionType>;
 
 
 
     fn available_actions(&self) -> Self::ActionIteratorType;
-    fn is_action_valid(&self, action: &Spec::ActionType) -> bool;
+    fn is_action_valid(&self, action: &DP::ActionType) -> bool;
+    fn update(&mut self, update: DP::UpdateType) -> Result<(), DP::GameErrorType>;
 
 
 }
@@ -21,7 +21,7 @@ pub trait ScoringInformationSet<DP: DomainParameters>: InformationSet<DP>{
     fn current_subjective_score(&self) -> Self::RewardType;
 }
 
-impl<T: InformationSet<Spec>, Spec: DomainParameters> InformationSet<Spec> for Box<T> {
+impl<T: InformationSet<DP>, DP: DomainParameters> InformationSet<DP> for Box<T> {
     type ActionIteratorType = T::ActionIteratorType;
 
 
@@ -30,11 +30,13 @@ impl<T: InformationSet<Spec>, Spec: DomainParameters> InformationSet<Spec> for B
     }
 
 
-    fn is_action_valid(&self, action: &Spec::ActionType) -> bool {
+    fn is_action_valid(&self, action: &DP::ActionType) -> bool {
         self.as_ref().is_action_valid(action)
     }
 
-
+    fn update(&mut self, update: DP::UpdateType) -> Result<(), DP::GameErrorType> {
+        self.as_mut().update(update)
+    }
 }
 
 impl<T: ScoringInformationSet<Spec>, Spec: DomainParameters> ScoringInformationSet<Spec> for Box<T> {

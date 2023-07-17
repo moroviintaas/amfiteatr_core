@@ -4,8 +4,7 @@ use crate::comm::CommEndpoint;
 use crate::error::CommError;
 use crate::protocol::{AgentMessage, DomainParameters, EnvMessage};
 use crate::Reward;
-use crate::state::agent::ScoringInformationSet;
-use crate::state::State;
+use crate::state::agent::{InformationSet, ScoringInformationSet};
 
 pub struct AgentGenT<
     DP: DomainParameters,

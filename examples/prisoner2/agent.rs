@@ -1,7 +1,6 @@
 use std::cell::Cell;
 use sztorm::agent::Policy;
 use sztorm::state::agent::{InformationSet, ScoringInformationSet};
-use sztorm::state::State;
 use crate::common::RewardTable;
 use crate::domain::{PrisonerAction, PrisonerCommit, PrisonerDomain, PrisonerError, PrisonerReward};
 use crate::domain::PrisonerAction::{Betray, Cover};
@@ -28,22 +27,6 @@ impl PrisonerState{
     }
 }
 
-impl State<PrisonerDomain> for PrisonerState {
-    fn update(&mut self, update: PrisonerCommit) -> Result<(), PrisonerError> {
-        let last = self.last_action.get();
-        if let Some(my_action) = last{
-            if my_action == update.0{
-                self.previous_actions.push(update);
-                self.last_action.set(None);
-                Ok(())
-            } else{
-                Err(PrisonerError::DifferentActionPerformed {chosen: my_action, logged: update.0})
-            }
-        } else {
-            Err(PrisonerError::NoLastAction(update.0))
-        }
-    }
-}
 
 pub struct CoverPolicy{}
 
@@ -86,6 +69,21 @@ impl InformationSet<PrisonerDomain> for PrisonerState{
 
     fn is_action_valid(&self, _action: &PrisonerAction) -> bool {
         true
+    }
+
+    fn update(&mut self, update: PrisonerCommit) -> Result<(), PrisonerError> {
+        let last = self.last_action.get();
+        if let Some(my_action) = last{
+            if my_action == update.0{
+                self.previous_actions.push(update);
+                self.last_action.set(None);
+                Ok(())
+            } else{
+                Err(PrisonerError::DifferentActionPerformed {chosen: my_action, logged: update.0})
+            }
+        } else {
+            Err(PrisonerError::NoLastAction(update.0))
+        }
     }
 }
 
