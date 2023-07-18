@@ -4,7 +4,7 @@ use rand::seq::IteratorRandom;
 use crate::protocol::DomainParameters;
 
 
-pub trait Policy<Spec: DomainParameters>{
+pub trait Policy<Spec: DomainParameters>: Send{
     type StateType: InformationSet<Spec>;
 
     fn select_action(&self, state: &Self::StateType) -> Option<Spec::ActionType>;

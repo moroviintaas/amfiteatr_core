@@ -66,7 +66,7 @@ where Agnt: StatefulAgent<Spec> + ActingAgent<Spec>
                                 debug!("Agent {:?}: successful state update", self.id());
                             }
                             Err(err) => {
-                                error!("Agent error on updating state: {}", &err);
+                                error!("Agent {:?} error on updating state: {}", self.id(), &err);
                                 self.send(AgentMessage::NotifyError(SztormError::Game(err.clone())))?;
                                 return Err(SztormError::Game(err));
                             }
@@ -136,7 +136,7 @@ where Agnt: StatefulAgent<Spec> + ActingAgent<Spec>
                                 debug!("Agent {:?}: successful state update", self.id());
                             }
                             Err(err) => {
-                                error!("Agent error on updating state: {}", &err);
+                                error!("Agent {:?} error on updating state: {}", self.id(), &err);
                                 self.send(AgentMessage::NotifyError(SztormError::Game(err.clone())))?;
                                 return Err(SztormError::Game(err));
                             }

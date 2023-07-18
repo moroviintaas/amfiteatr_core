@@ -4,7 +4,7 @@
 use crate::protocol::DomainParameters;
 use crate::Reward;
 
-pub trait InformationSet<DP: DomainParameters>: Clone{
+pub trait InformationSet<DP: DomainParameters>: Clone + Send{
     type ActionIteratorType: IntoIterator<Item = DP::ActionType>;
 
 

@@ -19,4 +19,5 @@ impl RewardTable{
             (PrisonerAction::Betray, PrisonerAction::Betray) => self.betray_v_betray
         }
     }
+
 }

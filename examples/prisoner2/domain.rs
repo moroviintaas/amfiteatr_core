@@ -1,5 +1,6 @@
 use std::fmt::{Display, Formatter};
 use sztorm::Action;
+use sztorm::agent::Policy;
 use sztorm::error::{InternalGameError, SztormError};
 use sztorm::protocol::DomainParameters;
 use sztorm::state::StateUpdate;
@@ -28,7 +29,11 @@ pub enum PrisonerError{
         logged: PrisonerAction
     },
     #[error("Environment logged action {0}, but none was performed")]
-    NoLastAction(PrisonerAction)
+    NoLastAction(PrisonerAction),
+    #[error("Player: {0} played after GameOver")]
+    ActionAfterGameOver(PrisonerId),
+    #[error("Player: {0} played out of order")]
+    ActionOutOfOrder(PrisonerId),
 }
 
 
@@ -47,11 +52,14 @@ impl InternalGameError<PrisonerDomain> for PrisonerError{
 
 #[derive(Clone, Debug)]
 pub struct PrisonerDomain;
-
 #[derive(Debug, Copy, Clone)]
-pub struct PrisonerCommit(pub PrisonerAction, pub PrisonerAction);
-impl StateUpdate for PrisonerCommit{}
+pub struct PrisonerUpdate{
+    pub own_action: PrisonerAction,
+    pub other_prisoner_action: PrisonerAction}
+impl StateUpdate for PrisonerUpdate{}
 pub type PrisonerId = u8;
+
+pub const PRISONERS:[u8;2] = [0u8,1];
 
 pub type PrisonerReward = i32;
 
@@ -59,7 +67,7 @@ pub type PrisonerReward = i32;
 impl DomainParameters for PrisonerDomain{
     type ActionType = PrisonerAction;
     type GameErrorType = PrisonerError;
-    type UpdateType = PrisonerCommit;
+    type UpdateType = PrisonerUpdate;
     type AgentId = PrisonerId;
     type UniversalReward = PrisonerReward;
 }

@@ -64,6 +64,13 @@ RoundRobinModel<DP, EnvState, Comm>{
 
         Ok(())
     }
+
+    pub fn env(&self) -> &GenericEnv<DP, EnvState,  Comm>{
+        &self.environment
+    }
+    pub fn local_agents(&self) -> &HashMap<DP::AgentId, Box<dyn AutomaticAgent<DP> + Send>>{
+        &self.local_agents
+    }
 }
 /*
 impl<Spec: ProtocolSpecification + 'static,

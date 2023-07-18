@@ -1,13 +1,16 @@
 use std::cell::Cell;
+use rand::rngs::ThreadRng;
+use rand::seq::IteratorRandom;
+use rand::thread_rng;
 use sztorm::agent::Policy;
 use sztorm::state::agent::{InformationSet, ScoringInformationSet};
 use crate::common::RewardTable;
-use crate::domain::{PrisonerAction, PrisonerCommit, PrisonerDomain, PrisonerError, PrisonerReward};
+use crate::domain::{PrisonerAction,  PrisonerDomain, PrisonerError, PrisonerReward, PrisonerUpdate};
 use crate::domain::PrisonerAction::{Betray, Cover};
 
 #[derive(Clone, Debug)]
 pub struct PrisonerState{
-    previous_actions: Vec<PrisonerCommit>,
+    previous_actions: Vec<PrisonerUpdate>,
     reward_table: RewardTable,
     last_action: Cell<Option<PrisonerAction>>
 
@@ -22,8 +25,13 @@ impl PrisonerState{
         self.last_action.set(Some(action));
     }
 
-    pub fn previous_actions(&self) -> &Vec<PrisonerCommit>{
+    pub fn previous_actions(&self) -> &Vec<PrisonerUpdate>{
         &self.previous_actions
+    }
+
+    pub fn count_actions(&self, action: PrisonerAction) -> usize{
+        self.previous_actions.iter().filter(|update| update.own_action == action)
+            .count()
     }
 }
 
@@ -46,7 +54,7 @@ impl Policy<PrisonerDomain> for Forgive1Policy{
 
     fn select_action(&self, state: &Self::StateType) -> Option<PrisonerAction> {
         let enemy_betrayals = state.previous_actions().iter().filter(| &step|{
-            step.1 == Betray
+            step.other_prisoner_action == Betray
         }).count();
         if enemy_betrayals > 1 {
             state._select_action(Betray);
@@ -58,6 +66,50 @@ impl Policy<PrisonerDomain> for Forgive1Policy{
 
     }
 }
+
+pub struct BetrayRatioPolicy{}
+
+impl Policy<PrisonerDomain> for BetrayRatioPolicy{
+    type StateType = PrisonerState;
+
+    fn select_action(&self, state: &Self::StateType) -> Option<PrisonerAction> {
+        let betrayed = state.previous_actions().iter()
+            .filter(|round| round.other_prisoner_action == Betray)
+            .count();
+        let covered = state.previous_actions().iter()
+            .filter(|round| round.other_prisoner_action == Cover)
+            .count();
+
+        if betrayed > covered{
+            state._select_action(Betray);
+            Some(Betray)
+        } else {
+            state._select_action(Cover);
+            Some(Cover)
+        }
+    }
+}
+
+
+pub struct RandomPrisonerPolicy{}
+
+
+impl Policy<PrisonerDomain> for RandomPrisonerPolicy{
+    type StateType = PrisonerState;
+
+
+    fn select_action(&self, state: &Self::StateType) -> Option<PrisonerAction> {
+        let mut rng = rand::thread_rng();
+        state.available_actions().into_iter().choose(&mut rng).and_then(|a|{
+            state._select_action(a);
+            Some(a)
+        })
+
+
+    }
+}
+
+
 
 impl InformationSet<PrisonerDomain> for PrisonerState{
     type ActionIteratorType = [PrisonerAction;2];
@@ -71,18 +123,18 @@ impl InformationSet<PrisonerDomain> for PrisonerState{
         true
     }
 
-    fn update(&mut self, update: PrisonerCommit) -> Result<(), PrisonerError> {
+    fn update(&mut self, update: PrisonerUpdate) -> Result<(), PrisonerError> {
         let last = self.last_action.get();
         if let Some(my_action) = last{
-            if my_action == update.0{
+            if my_action == update.own_action{
                 self.previous_actions.push(update);
                 self.last_action.set(None);
                 Ok(())
             } else{
-                Err(PrisonerError::DifferentActionPerformed {chosen: my_action, logged: update.0})
+                Err(PrisonerError::DifferentActionPerformed {chosen: my_action, logged: update.own_action})
             }
         } else {
-            Err(PrisonerError::NoLastAction(update.0))
+            Err(PrisonerError::NoLastAction(update.own_action))
         }
     }
 }
@@ -92,7 +144,7 @@ impl ScoringInformationSet<PrisonerDomain> for PrisonerState{
 
     fn current_subjective_score(&self) -> Self::RewardType {
         self.previous_actions.iter().fold(0, |acc, x|{
-            acc + self.reward_table.reward(x.0, x.1)
+            acc + self.reward_table.reward(x.own_action, x.other_prisoner_action)
         })
     }
 }

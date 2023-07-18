@@ -1,13 +1,13 @@
 
 use std::collections::{HashMap};
-use crate::agent::AutomaticAgent;
+use crate::agent::{Agent, AgentGen, AutomaticAgent, Policy};
 use crate::env::{EnvironmentBuilderTrait, EnvironmentStateUniScore};
 use crate::env::automatons::rr::RoundRobinModel;
-use crate::comm::EnvCommEndpoint;
+use crate::comm::{EnvCommEndpoint, SyncCommEnv};
 use crate::env::generic::{GenericEnvironmentBuilder};
-use crate::error::{SetupError};
+use crate::error::{CommError, SetupError};
 
-use crate::protocol::{DomainParameters};
+use crate::protocol::{AgentMessage, DomainParameters, EnvMessage};
 
 pub struct RoundRobinModelBuilder<
     DP: DomainParameters,
@@ -17,6 +17,48 @@ pub struct RoundRobinModelBuilder<
     local_agents: HashMap<DP::AgentId, Box<dyn AutomaticAgent<DP> + Send>>,
 
 }
+
+
+impl<
+    DP: DomainParameters,
+    EnvState: EnvironmentStateUniScore<DP>>
+RoundRobinModelBuilder<DP, EnvState,  SyncCommEnv<DP>>{
+    pub fn with_local_generic_agent<P: Policy<DP> + 'static>(
+        mut self,
+        id: DP::AgentId,
+        initial_state: <P as Policy<DP>>::StateType,
+        policy: P)
+        -> Result<Self, SetupError<DP>>{
+
+        let (comm_env, comm_agent) = SyncCommEnv::new_pair();
+        let agent = AgentGen::new(id, initial_state, comm_agent, policy);
+        self.env_builder = self.env_builder.add_comm(&agent.id(), comm_env)?;
+        self.local_agents.insert(agent.id(), Box::new(agent));
+        Ok(self)
+
+    }
+}
+/*
+impl<
+    DP: DomainParameters,
+    EnvState: EnvironmentStateUniScore<DP>>
+RoundRobinModelBuilder<DP, EnvState,  Box<dyn EnvCommEndpoint<DP, Error=CommError<DP>, InwardType=AgentMessage<DP>, OutwardType=EnvMessage<DP>>>>{
+    pub fn with_local_generic_agent<P: Policy<DP> + 'static>(
+        mut self,
+        id: DP::AgentId,
+        initial_state: <P as Policy<DP>>::StateType,
+        policy: P)
+        -> Result<Self, SetupError<DP>>{
+
+        let (comm_env, comm_agent) = SyncCommEnv::new_pair();
+        let agent = AgentGen::new(id, initial_state, comm_agent, policy);
+        self.env_builder = self.env_builder.add_comm(&agent.id(), Box::new(comm_env))?;
+        self.local_agents.insert(agent.id(), Box::new(agent));
+        Ok(self)
+
+    }
+}*/
+
 
 #[allow(clippy::borrowed_box)]
 impl<
@@ -44,16 +86,18 @@ RoundRobinModelBuilder<DP, EnvState,  Comm>{
 
     }
 
-    pub fn with_local_agent(mut self,
-                            agent: Box<dyn AutomaticAgent<DP> + Send>,
-                            env_comm: Comm)
-                            -> Result<Self, SetupError<DP>>{
+    pub fn add_local_agent(mut self,
+                           agent: Box<dyn AutomaticAgent<DP> + Send>,
+                           env_comm: Comm)
+                           -> Result<Self, SetupError<DP>>{
 
         self.env_builder = self.env_builder.add_comm(&agent.as_ref().id(), env_comm)?;
         self.local_agents.insert(agent.as_ref().id(), agent);
 
         Ok(self)
     }
+
+
 
     pub fn with_remote_agent(mut self, agent_id: DP::AgentId,
                              env_comm: Comm) -> Result<Self, SetupError<DP>>{

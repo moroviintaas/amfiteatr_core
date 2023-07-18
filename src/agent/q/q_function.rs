@@ -2,7 +2,7 @@
 use crate::protocol::DomainParameters;
 use crate::state::agent::InformationSet;
 
-pub trait QFunction<Spec: DomainParameters>{
+pub trait QFunction<Spec: DomainParameters>: Send{
 
     type StateType: InformationSet<Spec>;
     type QValue: PartialOrd;
