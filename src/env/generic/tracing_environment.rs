@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use crate::comm::EnvCommEndpoint;
-use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentState, EnvironmentStateUniScore, EnvironmentWithAgents, GameHistory, HistoryEntry, ScoreEnvironment, StatefulEnvironment, TracingEnv};
+use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentState, EnvironmentStateUniScore, EnvironmentWithAgents, EnvHistory, HistoryEntry, ScoreEnvironment, StatefulEnvironment, TracingEnv, ResetEnvironment};
 use crate::env::generic::{GenericEnv};
 use crate::error::CommError;
 use crate::protocol::{AgentMessage, DomainParameters, EnvMessage};
@@ -11,7 +11,7 @@ pub struct TracingGenericEnv<
     C: EnvCommEndpoint<DP>>{
 
     base_environment: GenericEnv<DP, S,C>,
-    history: GameHistory<DP, S>
+    history: EnvHistory<DP, S>
 }
 
 impl<
@@ -175,8 +175,19 @@ impl<'a, DP: DomainParameters + 'a,
     S: EnvironmentState<DP>,
     C: EnvCommEndpoint<DP>>
 TracingEnv<DP, S> for TracingGenericEnv<DP, S, C>{
-    fn history(&self) -> &GameHistory<DP, S> {
+    fn trajectory(&self) -> &EnvHistory<DP, S> {
         &self.history
+    }
+}
+
+impl<
+DP: DomainParameters,
+    S:EnvironmentState<DP>,
+    C: EnvCommEndpoint<DP>>
+ResetEnvironment<DP> for TracingGenericEnv<DP, S, C>{
+    fn reset(&mut self, initial_state: <Self as StatefulEnvironment<DP>>::State) {
+        self.base_environment.reset(initial_state);
+        self.history.clear();
     }
 }
 

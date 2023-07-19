@@ -52,6 +52,21 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
             last_action: None,
         }
     }
+    pub fn do_change_policy<P2: Policy<DP, StateType=P::StateType>>(self, new_policy: P2) -> AgentGenT<DP, P2, Comm>
+    {
+        AgentGenT::<DP, P2, Comm>{
+            state: self.state,
+            policy: new_policy,
+            _phantom: Default::default(),
+            id: self.id,
+            constructed_universal_reward: self.constructed_universal_reward,
+            actual_universal_score: self.actual_universal_score,
+            comm: self.comm,
+            last_action: self.last_action,
+            state_before_last_action: self.state_before_last_action,
+            game_trajectory: self.game_trajectory
+        }
+    }
 
 }
 
@@ -231,7 +246,10 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
 
     fn reset(&mut self, initial_state: <Self as StatefulAgent<DP>>::State) {
         self.state = initial_state;
+        self.game_trajectory.clear();
         self.constructed_universal_reward = DP::UniversalReward::neutral();
         self.actual_universal_score = DP::UniversalReward::neutral();
+        self.state_before_last_action = None;
+        self.last_action = None;
     }
 }

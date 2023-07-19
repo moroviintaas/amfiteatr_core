@@ -46,6 +46,19 @@ impl<
     pub fn replace_state(&mut self, state: <P as Policy<DP>>::StateType){
         self.state = state
     }
+
+    pub fn do_change_policy<P2: Policy<DP, StateType=P::StateType>>(self, new_policy: P2) -> AgentGen<DP, P2, Comm>
+    {
+        AgentGen::<DP, P2, Comm>{
+            state: self.state,
+            policy: new_policy,
+            _phantom: Default::default(),
+            id: self.id,
+            constructed_universal_reward: self.constructed_universal_reward,
+            actual_universal_score: self.actual_universal_score,
+            comm: self.comm
+        }
+    }
 }
 
 impl<

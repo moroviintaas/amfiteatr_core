@@ -1,8 +1,8 @@
-use crate::env::{EnvironmentState, GameHistory};
+use crate::env::{EnvironmentState, EnvHistory};
 use crate::protocol::DomainParameters;
 
 pub trait TracingEnv<DP: DomainParameters, S: EnvironmentState<DP>>{
 
-    fn history(&self) -> &GameHistory<DP, S>;
+    fn trajectory(&self) -> &EnvHistory<DP, S>;
 
 }

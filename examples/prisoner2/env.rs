@@ -1,19 +1,21 @@
 use std::collections::HashMap;
+use std::fmt::{Display, Formatter};
+use std::ptr::write;
 use enum_map::EnumMap;
 use sztorm::agent::AgentIdentifier;
 use sztorm::env::{EnvironmentState, EnvironmentStateUniScore};
 use sztorm::protocol::DomainParameters;
 use crate::common::RewardTable;
-use crate::domain::{PRISONERS, PrisonerAction,  PrisonerDomain, PrisonerError, PrisonerId, PrisonerUpdate};
+use crate::domain::{PRISONERS, PrisonerAction, PrisonerDomain, PrisonerError, PrisonerId, PrisonerUpdate, PrisonerMap};
 use crate::domain::PrisonerError::{ActionAfterGameOver, ActionOutOfOrder};
-
+use crate::domain::PrisonerId::{Andrzej, Janusz};
 
 
 #[derive(Clone, Debug)]
 pub struct PrisonerEnvState{
-    previous_actions: Vec<EnumMap<PrisonerId, Option<PrisonerAction>>>,
+    previous_actions: Vec<PrisonerMap<PrisonerAction>>,
     //last_actions: HashMap<PrisonerId, Option<PrisonerAction>>,
-    last_round_actions: EnumMap<PrisonerId, Option<PrisonerAction>>,
+    last_round_actions: PrisonerMap<Option<PrisonerAction>>,
     reward_table: RewardTable,
     target_rounds: usize,
 
@@ -23,7 +25,7 @@ impl PrisonerEnvState{
     pub fn new(reward_table: RewardTable, number_of_rounds: usize) -> Self{
         Self{
             previous_actions: Vec::with_capacity(number_of_rounds),
-            last_round_actions: EnumMap::default(),
+            last_round_actions: PrisonerMap::default(),
             reward_table,
             target_rounds: number_of_rounds
         }
@@ -31,7 +33,36 @@ impl PrisonerEnvState{
 }
 
 
+impl Display for PrisonerEnvState{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}/{}) | A-J: ", self.previous_actions.len(), self.target_rounds)?;
+        for p in &self.previous_actions{
+            //write!(f, "{},", p)?;
+            /*
+            match p[Andrzej]{
+                PrisonerAction::Betray => write!(f, "B")?,
+                PrisonerAction::Cover => write!(f, "C")?
+            };
+            match p[Janusz]{
+                PrisonerAction::Betray => write!(f, "-B ")?,
+                PrisonerAction::Cover => write!(f, "-C ")?
+            };*/
+            write!(f, "{:#}-{:#}", p[Andrzej], p[Janusz])?;
+        }
+        write!(f, " | ")?;
+        match self.last_round_actions[Andrzej]{
+            None => write!(f, "N-")?,
+            Some(s) => write!(f, "{:#}-", s)?
+        };
+        match self.last_round_actions[Janusz]{
+            None => write!(f, "N")?,
+            Some(s) => write!(f, "{:#}", s)?
+        };
+        write!(f, "")
 
+
+    }
+}
 
 impl EnvironmentState<PrisonerDomain> for PrisonerEnvState{
     type Updates = Vec<(PrisonerId, PrisonerUpdate)>;
@@ -78,18 +109,19 @@ impl EnvironmentState<PrisonerDomain> for PrisonerEnvState{
             }
         }
 
-        let a0 = self.last_round_actions[0].unwrap();
-        let a1 = self.last_round_actions[1].unwrap();
-        self.previous_actions.push(self.last_round_actions);
-        self.last_round_actions[0] = None;
-        self.last_round_actions[1] = None;
+        let a0 = self.last_round_actions[Andrzej].unwrap();
+        let a1 = self.last_round_actions[Janusz].unwrap();
+        let action_entry = PrisonerMap::new(a0, a1);
+        self.previous_actions.push(action_entry);
+        self.last_round_actions[Andrzej] = None;
+        self.last_round_actions[Janusz] = None;
 
         let mut updates = Vec::new();
-        updates.push((0, PrisonerUpdate{
+        updates.push((Andrzej, PrisonerUpdate{
             own_action: a0,
             other_prisoner_action: a1
         }));
-        updates.push((1, PrisonerUpdate{
+        updates.push((Janusz, PrisonerUpdate{
             own_action: a1,
             other_prisoner_action: a0
         }));
@@ -101,9 +133,9 @@ impl EnvironmentState<PrisonerDomain> for PrisonerEnvState{
 
 impl EnvironmentStateUniScore<PrisonerDomain> for PrisonerEnvState{
     fn state_score_of_player(&self, agent: &PrisonerId) -> <PrisonerDomain as DomainParameters>::UniversalReward {
-        let other = (agent+1) & 0x1;
+        let other = agent.other();
         self.previous_actions.iter().fold(0, |acc,x|{
-            self.reward_table.reward(x[*agent].unwrap(), x[other].unwrap())
+            self.reward_table.reward(x[*agent], x[other])
         })
     }
 }

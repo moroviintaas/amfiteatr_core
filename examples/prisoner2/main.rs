@@ -4,15 +4,16 @@ use std::thread;
 use itertools::Itertools;
 use log::LevelFilter;
 use log::LevelFilter::Debug;
-use sztorm::agent::{AgentGenT, AutomaticAgent, RandomPolicy, StatefulAgent};
+use sztorm::agent::{AgentGenT, AutomaticAgent, RandomPolicy, ResetAgent, StatefulAgent};
 use sztorm::comm::SyncCommEnv;
 use sztorm::env::generic::TracingGenericEnv;
-use sztorm::env::{RoundRobinModelBuilder, RoundRobinUniversalEnvironment};
+use sztorm::env::{ResetEnvironment, RoundRobinModelBuilder, RoundRobinUniversalEnvironment, TracingEnv};
 use sztorm::error::SztormError;
 use crate::agent::{BetrayRatioPolicy, CoverPolicy, Forgive1Policy, PrisonerState, RandomPrisonerPolicy};
 use crate::common::RewardTable;
 use crate::domain::{PrisonerDomain, PrisonerError};
 use crate::domain::PrisonerAction::Betray;
+use crate::domain::PrisonerId::{Andrzej, Janusz};
 use crate::env::PrisonerEnvState;
 
 pub mod domain;
@@ -67,16 +68,16 @@ fn main() -> Result<(), SztormError<PrisonerDomain>>{
     let (comm_env_1, comm_prisoner_1) = SyncCommEnv::new_pair();
 
     let mut prisoner0 = AgentGenT::new(
-        0,
+        Andrzej,
         PrisonerState::new(reward_table), comm_prisoner_0, CoverPolicy{});
 
     let mut prisoner1 = AgentGenT::new(
-        1,
+        Janusz,
         PrisonerState::new(reward_table), comm_prisoner_1, Forgive1Policy{});
 
     let mut env_coms = HashMap::new();
-    env_coms.insert(0, comm_env_0);
-    env_coms.insert(1, comm_env_1);
+    env_coms.insert(Andrzej, comm_env_0);
+    env_coms.insert(Janusz, comm_env_1);
 
     let mut env = TracingGenericEnv::new( env_state, env_coms);
 
@@ -95,24 +96,33 @@ fn main() -> Result<(), SztormError<PrisonerDomain>>{
     println!("Scenario 2");
 
 
+    /*
     let env_state = PrisonerEnvState::new(reward_table,  100);
 
     let (comm_env_0, comm_prisoner_0) = SyncCommEnv::new_pair();
     let (comm_env_1, comm_prisoner_1) = SyncCommEnv::new_pair();
 
     let mut prisoner0 = AgentGenT::new(
-        0,
+        Andrzej,
         PrisonerState::new(reward_table), comm_prisoner_0, RandomPrisonerPolicy{});
 
     let mut prisoner1 = AgentGenT::new(
-        1,
+        Janusz,
         PrisonerState::new(reward_table), comm_prisoner_1, BetrayRatioPolicy{});
 
     let mut env_coms = HashMap::new();
-    env_coms.insert(0, comm_env_0);
-    env_coms.insert(1, comm_env_1);
+    env_coms.insert(Andrzej, comm_env_0);
+    env_coms.insert(Janusz, comm_env_1);
 
     let mut env = TracingGenericEnv::new( env_state, env_coms);
+
+     */
+
+    env.reset(PrisonerEnvState::new(reward_table,  100));
+    let mut prisoner0 = prisoner0.do_change_policy(RandomPrisonerPolicy{});
+    let mut prisoner1 = prisoner1.do_change_policy(BetrayRatioPolicy{});
+    prisoner0.reset(PrisonerState::new(reward_table));
+    prisoner1.reset(PrisonerState::new(reward_table));
 
     thread::scope(|s|{
         s.spawn(||{
@@ -131,33 +141,9 @@ fn main() -> Result<(), SztormError<PrisonerDomain>>{
 
     println!("Prisoner 0 betrayed {:?} times and Prisoner 1 betrayed {:?} times.", prisoner0_betrayals, prisoner1_betrayals);
 
-
-    //let model_builder: RoundRobinModelBuilder<PrisonerDomain, PrisonerEnvState, SyncCommEnv<PrisonerDomain>> = RoundRobinModelBuilder::new()
-    /*
-    let mut model_builder = RoundRobinModelBuilder::new()
-        .with_env_state(env_state)?
-        .with_local_generic_agent(0, PrisonerState::new(reward_table), CoverPolicy{})?
-        .with_local_generic_agent(1, PrisonerState::new(reward_table), Forgive1Policy{})?
-        ;
-    let mut model = model_builder.build()?;
-    model.play()?;
-
-    let prisoner0_score = model.local_agents().get(&0u8).unwrap().as_ref()
-        .actual_universal_score();
-    println!("Scenario 1: prisoner 0 betrayed {:?} times, and prisoner 1 betrayed  times",
-             prisoner0_score);
-
-    let env_state = PrisonerEnvState::new(reward_table,  100);
-    //let model_builder: RoundRobinModelBuilder<PrisonerDomain, PrisonerEnvState, SyncCommEnv<PrisonerDomain>> = RoundRobinModelBuilder::new()
-    let mut model_builder = RoundRobinModelBuilder::new()
-        .with_env_state(env_state)?
-        .with_local_generic_agent(0, PrisonerState::new(reward_table), CoverPolicy{})?
-        .with_local_generic_agent(1, PrisonerState::new(reward_table), Forgive1Policy{})?
-        ;
-    let mut model = model_builder.build()?;
-    model.play()?;
-
-     */
+    for elem in env.trajectory().list(){
+        println!("{}", elem);
+    }
 
 
 

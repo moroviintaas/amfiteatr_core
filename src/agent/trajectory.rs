@@ -62,7 +62,7 @@ impl<DP: DomainParameters, S: ScoringInformationSet<DP>> GameTrace<DP, S>
         self.trace.clear();
     }
 
-    pub fn trace(&self) -> &Vec<GameTraceLine<DP, S>>{
+    pub fn list(&self) -> &Vec<GameTraceLine<DP, S>>{
         &self.trace
     }
 
