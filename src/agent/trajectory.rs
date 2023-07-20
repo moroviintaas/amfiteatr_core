@@ -1,8 +1,10 @@
+use std::fmt::{Display, Formatter};
 use crate::protocol::DomainParameters;
 use crate::state::agent::{ScoringInformationSet};
 
 
-pub struct GameTraceLine<DP: DomainParameters, S: ScoringInformationSet<DP>> {
+#[derive(Clone, Debug)]
+pub struct AgentTrace<DP: DomainParameters, S: ScoringInformationSet<DP>> {
     initial_state: S,
     taken_action: DP::ActionType,
     immediate_subjective_reward: S::RewardType,
@@ -10,7 +12,7 @@ pub struct GameTraceLine<DP: DomainParameters, S: ScoringInformationSet<DP>> {
 
 }
 
-impl<DP: DomainParameters, S: ScoringInformationSet<DP>> GameTraceLine<DP, S>{
+impl<DP: DomainParameters, S: ScoringInformationSet<DP>> AgentTrace<DP, S>{
     pub fn new(initial_state: S, taken_action: DP::ActionType, immediate_subjective_reward: S::RewardType, immediate_universal_reward: DP::UniversalReward) -> Self{
         Self{initial_state, taken_action, immediate_subjective_reward, immediate_universal_reward }
     }
@@ -32,20 +34,35 @@ impl<DP: DomainParameters, S: ScoringInformationSet<DP>> GameTraceLine<DP, S>{
     }
 }
 
-pub struct GameTrace<DP: DomainParameters, S: ScoringInformationSet<DP>> {
+impl<DP: DomainParameters, S: ScoringInformationSet<DP>> Display for AgentTrace<DP, S>
+where
+    S: Display,
+    <DP as DomainParameters>::UniversalReward: Display,
+    <DP as DomainParameters>::ActionType: Display,
+    <S as  ScoringInformationSet<DP>>::RewardType : Display{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[State: {} ][Action: {} ][Score change: U= {} |A= {}]",
+            self.initial_state,
+            self.taken_action,
+            self.immediate_universal_reward,
+            self.immediate_subjective_reward)
+    }
+}
+
+pub struct AgentTrajectory<DP: DomainParameters, S: ScoringInformationSet<DP>> {
 
 
     //top_state: S,
-    trace: Vec<GameTraceLine<DP, S>>
+    trace: Vec<AgentTrace<DP, S>>
 
 }
 
-impl<DP: DomainParameters, S: ScoringInformationSet<DP>> Default for GameTrace<DP, S>{
+impl<DP: DomainParameters, S: ScoringInformationSet<DP>> Default for AgentTrajectory<DP, S>{
     fn default() -> Self {
         Self{trace: Default::default()}
     }
 }
-impl<DP: DomainParameters, S: ScoringInformationSet<DP>> GameTrace<DP, S>
+impl<DP: DomainParameters, S: ScoringInformationSet<DP>> AgentTrajectory<DP, S>
 {
 
     pub fn new() -> Self{
@@ -55,18 +72,18 @@ impl<DP: DomainParameters, S: ScoringInformationSet<DP>> GameTrace<DP, S>
         self.trace.push(GameTraceLine::new(state, action, reward_for_action));
 
     }*/
-    pub fn push_line(&mut self, trace_line: GameTraceLine<DP, S>){
+    pub fn push_line(&mut self, trace_line: AgentTrace<DP, S>){
         self.trace.push(trace_line);
     }
     pub fn clear(&mut self){
         self.trace.clear();
     }
 
-    pub fn list(&self) -> &Vec<GameTraceLine<DP, S>>{
+    pub fn list(&self) -> &Vec<AgentTrace<DP, S>>{
         &self.trace
     }
 
-    pub fn pop_step(&mut self) -> Option<GameTraceLine<DP, S>>{
+    pub fn pop_step(&mut self) -> Option<AgentTrace<DP, S>>{
         self.trace.pop()
     }
 

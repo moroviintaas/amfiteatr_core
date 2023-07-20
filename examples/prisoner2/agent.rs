@@ -1,8 +1,10 @@
 use std::cell::Cell;
+use std::fmt::{Display, Formatter};
 use rand::rngs::ThreadRng;
 use rand::seq::IteratorRandom;
 use rand::thread_rng;
 use sztorm::agent::Policy;
+use sztorm::Reward;
 use sztorm::state::agent::{InformationSet, ScoringInformationSet};
 use crate::common::RewardTable;
 use crate::domain::{PrisonerAction,  PrisonerDomain, PrisonerError, PrisonerReward, PrisonerUpdate};
@@ -32,6 +34,18 @@ impl PrisonerState{
     pub fn count_actions(&self, action: PrisonerAction) -> usize{
         self.previous_actions.iter().filter(|update| update.own_action == action)
             .count()
+    }
+}
+
+impl Display for PrisonerState{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Rounds: {} |", self.previous_actions.len())?;
+        let mut s = self.previous_actions.iter().fold( String::new(),|mut acc, update|{
+            acc.push_str(&format!("{:#}-{:#} ", update.own_action, update.other_prisoner_action));
+            acc
+        });
+        s.pop();
+        write!(f, "{}", s)
     }
 }
 
@@ -140,12 +154,22 @@ impl InformationSet<PrisonerDomain> for PrisonerState{
 }
 
 impl ScoringInformationSet<PrisonerDomain> for PrisonerState{
-    type RewardType = PrisonerReward;
+    type RewardType = f64;
 
     fn current_subjective_score(&self) -> Self::RewardType {
-        self.previous_actions.iter().fold(0, |acc, x|{
-            acc + self.reward_table.reward(x.own_action, x.other_prisoner_action)
-        })
+        if !self.previous_actions.is_empty(){
+            let sum = self.previous_actions.iter().fold(0.0, |acc, x|{
+                acc + self.reward_table.reward(x.own_action, x.other_prisoner_action) as f64
+            });
+            sum/(self.previous_actions.len() as f64)
+
+        } else{
+            Self::RewardType::neutral()
+        }
+
+
+
+        //self.previous_actions.len() as f64
     }
 }
 

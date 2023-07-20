@@ -1,5 +1,5 @@
 use std::error::Error;
-use crate::agent::{GameTrace, Policy};
+use crate::agent::{AgentTrajectory, Policy};
 use crate::protocol::DomainParameters;
 use crate::state::agent::ScoringInformationSet;
 
@@ -17,7 +17,7 @@ pub trait SelfExperiencingPolicy<DP:  DomainParameters>{
 pub trait UpdatablePolicy<DP:  DomainParameters>: Policy<DP>
 where <Self as Policy<DP>>::StateType: ScoringInformationSet<DP>{
     type PolicyUpdateError: Error;
-    fn policy_update(&mut self, traces: &[GameTrace<DP, <Self as Policy<DP>>::StateType>])
+    fn policy_update(&mut self, traces: &[AgentTrajectory<DP, <Self as Policy<DP>>::StateType>])
         -> Result<(), Self::PolicyUpdateError>;
 
 }

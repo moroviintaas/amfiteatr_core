@@ -151,6 +151,7 @@ where Agnt: StatefulAgent<Spec> + ActingAgent<Spec>
                     EnvMessage::RewardFragment(r) =>{
                         //current_score = current_score + r;
                         //self.set_current_universal_reward(current_score.clone());
+                        debug!("Received reward fragment: {:?}", r);
                         self.current_universal_reward_add(&r);
                     }
                 }

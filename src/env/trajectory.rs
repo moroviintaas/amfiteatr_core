@@ -43,13 +43,13 @@ impl<DP: DomainParameters> CheckedAction<DP>{
 
 
 #[derive(Debug, Clone)]
-pub struct HistoryEntry<DP: DomainParameters, S: EnvironmentState<DP>>{
+pub struct EnvTrace<DP: DomainParameters, S: EnvironmentState<DP>>{
     state_before: S,
     agent: DP::AgentId,
     performed_action: CheckedAction<DP>,
 }
 
-impl<DP: DomainParameters, S: EnvironmentState<DP>> Display for HistoryEntry<DP, S>
+impl<DP: DomainParameters, S: EnvironmentState<DP>> Display for EnvTrace<DP, S>
 where S: Display, <DP as DomainParameters>::AgentId: Display,
       <DP as DomainParameters>::ActionType: Display{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -58,7 +58,7 @@ where S: Display, <DP as DomainParameters>::AgentId: Display,
 }
 
 
-impl<DP: DomainParameters, S: EnvironmentState<DP>> HistoryEntry<DP, S>{
+impl<DP: DomainParameters, S: EnvironmentState<DP>> EnvTrace<DP, S>{
 
     pub fn new(state_before: S, agent: DP::AgentId,
                action: DP::ActionType, is_valid: bool) -> Self{
@@ -88,22 +88,22 @@ impl<DP: DomainParameters, S: EnvironmentState<DP>> HistoryEntry<DP, S>{
 }
 
 #[derive(Debug, Clone)]
-pub struct EnvHistory<DP: DomainParameters, S: EnvironmentState<DP>>{
-    history: Vec<HistoryEntry<DP, S>>,
+pub struct EnvTrajectory<DP: DomainParameters, S: EnvironmentState<DP>>{
+    history: Vec<EnvTrace<DP, S>>,
 
 }
 
-impl<DP: DomainParameters, S: EnvironmentState<DP>> EnvHistory<DP, S>{
+impl<DP: DomainParameters, S: EnvironmentState<DP>> EnvTrajectory<DP, S>{
     pub fn new() -> Self{
         Self{history: Vec::new()}
     }
     pub fn new_reserve(capacity: usize) -> Self{
         Self{history: Vec::with_capacity(capacity)}
     }
-    pub fn list(&self) -> &Vec<HistoryEntry<DP, S>>{
+    pub fn list(&self) -> &Vec<EnvTrace<DP, S>>{
         &self.history
     }
-    pub fn push(&mut self, entry: HistoryEntry<DP, S>){
+    pub fn push(&mut self, entry: EnvTrace<DP, S>){
         self.history.push(entry);
     }
     pub fn clear(&mut self){
@@ -111,7 +111,7 @@ impl<DP: DomainParameters, S: EnvironmentState<DP>> EnvHistory<DP, S>{
     }
 }
 
-impl<DP: DomainParameters, S: EnvironmentState<DP>> Default for EnvHistory<DP, S>{
+impl<DP: DomainParameters, S: EnvironmentState<DP>> Default for EnvTrajectory<DP, S>{
     fn default() -> Self {
         Self{history: Default::default()}
     }

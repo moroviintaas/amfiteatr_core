@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use log::{error, info, warn};
+use log::{debug, error, info, warn};
 use crate::{Reward};
 use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentState, EnvironmentWithAgents, ScoreEnvironment, StatefulEnvironment};
 use crate::error::{CommError, SztormError};
@@ -162,10 +162,12 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                         AgentMessage::TakeAction(action) => {
                             info!("Player {} performs action: {:#}", &player, &action);
                             self.process_action_and_inform(player, &action)?;
+                            debug!("Preparing rewards, previous scores: {:?}", actual_universal_scores);
                             for (player, score) in actual_universal_scores.iter_mut(){
 
                                 let reward = self.actual_score_of_player(player) - score.clone();
                                 *score = self.actual_score_of_player(player);
+                                debug!("Sending reward fragment  to player {:?}",  player);
                                 self.send_to(player, EnvMessage::RewardFragment(reward))?;
                             }
                             if let Some(next_player) = self.current_player(){

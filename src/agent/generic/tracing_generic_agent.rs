@@ -1,5 +1,5 @@
 use std::marker::PhantomData;
-use crate::agent::{ActingAgent, Agent, CommunicatingAgent, GameTrace, GameTraceLine, Policy, PolicyAgent, ResetAgent, RewardedAgent, StatefulAgent, TracingAgent};
+use crate::agent::{ActingAgent, Agent, CommunicatingAgent, AgentTrajectory, AgentTrace, Policy, PolicyAgent, ResetAgent, RewardedAgent, StatefulAgent, TracingAgent};
 use crate::comm::CommEndpoint;
 use crate::error::CommError;
 use crate::protocol::{AgentMessage, DomainParameters, EnvMessage};
@@ -25,7 +25,7 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
     constructed_universal_reward: <DP as DomainParameters>::UniversalReward,
     actual_universal_score: <DP as DomainParameters>::UniversalReward,
 
-    game_trajectory: GameTrace<DP, P::StateType>,
+    game_trajectory: AgentTrajectory<DP, P::StateType>,
     last_action: Option<DP::ActionType>,
     state_before_last_action: Option<<P as Policy<DP>>::StateType>,
 }
@@ -47,7 +47,7 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
             id,
             constructed_universal_reward: Reward::neutral(),
             actual_universal_score: Reward::neutral(),
-            game_trajectory: GameTrace::new(),
+            game_trajectory: AgentTrajectory::new(),
             state_before_last_action: None,
             last_action: None,
         }
@@ -166,7 +166,7 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
         self.last_action = None;
     }
 
-    fn game_trajectory(&self) -> &GameTrace<DP, <P as Policy<DP>>::StateType> {
+    fn game_trajectory(&self) -> &AgentTrajectory<DP, <P as Policy<DP>>::StateType> {
         &self.game_trajectory
     }
 
@@ -180,7 +180,7 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
             let push_universal_reward = std::mem::replace(&mut self.constructed_universal_reward, Reward::neutral());
             self.actual_universal_score  += &push_universal_reward;
             self.game_trajectory.push_line(
-                GameTraceLine::new(
+                AgentTrace::new(
                     self.state_before_last_action.take().unwrap(),
                     prev_action,
                     self.state.current_subjective_score() - prev_subjective_score,
