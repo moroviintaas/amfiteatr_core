@@ -7,14 +7,36 @@ use crate::state::agent::{ScoringInformationSet};
 pub struct AgentTrace<DP: DomainParameters, S: ScoringInformationSet<DP>> {
     initial_state: S,
     taken_action: DP::ActionType,
-    immediate_subjective_reward: S::RewardType,
-    immediate_universal_reward: DP::UniversalReward
+    initial_universal_state_score: DP::UniversalReward,
+    updated_universal_state_score: DP::UniversalReward,
+
+    initial_subjective_state_score: S::RewardType,
+    updated_subjective_state_score: S::RewardType
+
 
 }
 
-impl<DP: DomainParameters, S: ScoringInformationSet<DP>> AgentTrace<DP, S>{
-    pub fn new(initial_state: S, taken_action: DP::ActionType, immediate_subjective_reward: S::RewardType, immediate_universal_reward: DP::UniversalReward) -> Self{
-        Self{initial_state, taken_action, immediate_subjective_reward, immediate_universal_reward }
+impl<DP: DomainParameters, S: ScoringInformationSet<DP>> AgentTrace<DP, S>
+//where for <'a> &'a<DP as DomainParameters>::UniversalReward: Sub<&'a <DP as DomainParameters>::UniversalReward, Output=<DP as DomainParameters>::UniversalReward>,
+//    for<'a> &'a <S as ScoringInformationSet<DP>>::RewardType: Sub<&'a  <S as ScoringInformationSet<DP>>::RewardType, Output = <S as ScoringInformationSet<DP>>::RewardType>
+
+{
+    pub fn new(
+        initial_state: S,
+        taken_action: DP::ActionType,
+        initial_universal_state_score: DP::UniversalReward,
+        updated_universal_state_score: DP::UniversalReward,
+        initial_subjective_state_score: S::RewardType,
+        updated_subjective_state_score: S::RewardType
+    )-> Self{
+        Self {
+            initial_state,
+            taken_action,
+            initial_universal_state_score,
+            updated_universal_state_score,
+            initial_subjective_state_score,
+            updated_subjective_state_score
+        }
     }
 
     pub fn step_state(&self) -> &S{
@@ -23,13 +45,39 @@ impl<DP: DomainParameters, S: ScoringInformationSet<DP>> AgentTrace<DP, S>{
     pub fn taken_action(&self) -> &DP::ActionType{
         &self.taken_action
     }
-    pub fn step_subjective_reward(&self) -> &S::RewardType{
-        &self.immediate_subjective_reward
+
+    pub fn step_subjective_reward(&self) -> S::RewardType{
+        let n = self.updated_subjective_state_score.clone();
+        n - &self.initial_subjective_state_score
+
     }
-    pub fn step_universal_reward(&self) -> &DP::UniversalReward{
-        &self.immediate_universal_reward
+    pub fn step_universal_reward(&self) -> DP::UniversalReward{
+        let n = self.updated_universal_state_score.clone();
+        n - &self.initial_universal_state_score
     }
-    pub fn borrowed_tuple(&self) -> (&S, &DP::ActionType, &S::RewardType) {
+
+    pub fn universal_score_before(&self) -> &DP::UniversalReward{
+        &self.initial_universal_state_score
+    }
+    pub fn subjective_score_before(&self) -> &S::RewardType{
+        &self.initial_subjective_state_score
+    }
+
+
+    pub fn universal_score_after(&self) -> &DP::UniversalReward{
+        &self.updated_universal_state_score
+    }
+
+    pub fn subjective_score_after(&self) -> &S::RewardType{
+        &self.updated_subjective_state_score
+    }
+
+
+
+    pub fn s_a_r_universal(&self) -> (&S, &DP::ActionType, DP::UniversalReward) {
+        (self.step_state(), self.taken_action(), self.step_universal_reward())
+    }
+    pub fn s_a_r_subjective(&self) -> (&S, &DP::ActionType, S::RewardType) {
         (self.step_state(), self.taken_action(), self.step_subjective_reward())
     }
 }
@@ -41,11 +89,15 @@ where
     <DP as DomainParameters>::ActionType: Display,
     <S as  ScoringInformationSet<DP>>::RewardType : Display{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[State: {} ][Action: {} ][Score change: U= {} |A= {}]",
+        write!(f, "[State: {} ][From Score: U = {} | A = {}][Action: {} ][To Score: U = {} | A = {}]",
             self.initial_state,
+
+            self.initial_universal_state_score,
+            self.initial_subjective_state_score,
             self.taken_action,
-            self.immediate_universal_reward,
-            self.immediate_subjective_reward)
+            self.updated_universal_state_score,
+            self.updated_subjective_state_score
+        )
     }
 }
 
@@ -72,7 +124,7 @@ impl<DP: DomainParameters, S: ScoringInformationSet<DP>> AgentTrajectory<DP, S>
         self.trace.push(GameTraceLine::new(state, action, reward_for_action));
 
     }*/
-    pub fn push_line(&mut self, trace_line: AgentTrace<DP, S>){
+    pub fn push_trace(&mut self, trace_line: AgentTrace<DP, S>){
         self.trace.push(trace_line);
     }
     pub fn clear(&mut self){

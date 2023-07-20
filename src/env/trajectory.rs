@@ -1,4 +1,4 @@
-use std::fmt::{Display, Formatter, write};
+use std::fmt::{Display, Formatter};
 use crate::env::EnvironmentState;
 use crate::protocol::DomainParameters;
 

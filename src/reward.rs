@@ -6,14 +6,14 @@ use std::ops::{Add, AddAssign, Sub};
 /// if only you made it partially comparable and summable.
 pub trait Reward: Send + Clone + Debug + PartialEq  + PartialOrd + Default +
     for<'a> Add<&'a Self, Output=Self> + Add<Output=Self> + for<'a> AddAssign<&'a Self>
-    + Sub<Output=Self> + for<'a> Sub<&'a Self, Output=Self>
+    + Sub<Output=Self> + for<'a> Sub<&'a Self, Output=Self> + Sub + Add
 {
     /// This is constructor used to produce neutral value of reward, i.e.
     /// the reward that does not change the score. For standard numeric
     /// types this is just value of 0.
     fn neutral() -> Self;
 //where for<'a> &'a Self: Add<Output=Self> + Sub<Output=Self>{
-
+//where for<'a> &'a Self: Sub<&'a Self, Output=Self>
 }
 /*
 impl<T: Send + Clone + Debug + PartialEq + Eq + PartialOrd + Default +

@@ -1,4 +1,5 @@
 use std::marker::PhantomData;
+
 use crate::agent::{ActingAgent, Agent, CommunicatingAgent, AgentTrajectory, AgentTrace, Policy, PolicyAgent, ResetAgent, RewardedAgent, StatefulAgent, TracingAgent};
 use crate::comm::CommEndpoint;
 use crate::error::CommError;
@@ -23,7 +24,7 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
 
     id: DP::AgentId,
     constructed_universal_reward: <DP as DomainParameters>::UniversalReward,
-    actual_universal_score: <DP as DomainParameters>::UniversalReward,
+    committed_universal_score: <DP as DomainParameters>::UniversalReward,
 
     game_trajectory: AgentTrajectory<DP, P::StateType>,
     last_action: Option<DP::ActionType>,
@@ -46,7 +47,7 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
             _phantom:PhantomData::default(),
             id,
             constructed_universal_reward: Reward::neutral(),
-            actual_universal_score: Reward::neutral(),
+            committed_universal_score: Reward::neutral(),
             game_trajectory: AgentTrajectory::new(),
             state_before_last_action: None,
             last_action: None,
@@ -60,7 +61,7 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
             _phantom: Default::default(),
             id: self.id,
             constructed_universal_reward: self.constructed_universal_reward,
-            actual_universal_score: self.actual_universal_score,
+            committed_universal_score: self.committed_universal_score,
             comm: self.comm,
             last_action: self.last_action,
             state_before_last_action: self.state_before_last_action,
@@ -160,7 +161,10 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
 TracingAgent<DP, <P as Policy<DP>>::StateType> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>,
+//for <'a> &'a<DP as DomainParameters>::UniversalReward: Sub<&'a <DP as DomainParameters>::UniversalReward, Output=<DP as DomainParameters>::UniversalReward>,
+//for<'a> &'a <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType: Sub<&'a  <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType, Output = <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType>
+{
     fn reset_trace(&mut self) {
         self.game_trajectory.clear();
         self.last_action = None;
@@ -173,18 +177,31 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
     fn commit_trace(&mut self) {
         if let Some(prev_action) = self.last_action.take(){
             //self.trace.push((self.last_action_state.take().unwrap(), prev_action, self.state.current_score()- std::mem::take(&mut self.last_action_accumulated_reward)))
-            let prev_subjective_score = match &self.state_before_last_action{
+            /*let prev_subjective_score = match &self.state_before_last_action{
                 None => Reward::neutral(),
                 Some(state) => state.current_subjective_score()
-            };
-            let push_universal_reward = std::mem::replace(&mut self.constructed_universal_reward, Reward::neutral());
-            self.actual_universal_score  += &push_universal_reward;
-            self.game_trajectory.push_line(
+            };*/
+            let universal_score_before_update = self.committed_universal_score.clone();
+            //let push_universal_reward = std::mem::replace(&mut self.constructed_universal_reward, Reward::neutral());
+            self.committed_universal_score += &self.constructed_universal_reward;
+            let universal_score_after_update = self.committed_universal_score.clone();
+            self.constructed_universal_reward = DP::UniversalReward::neutral();
+
+
+            let initial_state = self.state_before_last_action.take().unwrap();
+            let subjective_score_before_update = initial_state.current_subjective_score();
+            let subjective_score_after_update = self.state.current_subjective_score();
+
+
+            self.game_trajectory.push_trace(
                 AgentTrace::new(
-                    self.state_before_last_action.take().unwrap(),
+                    initial_state,
                     prev_action,
-                    self.state.current_subjective_score() - prev_subjective_score,
-                    push_universal_reward));
+                    universal_score_before_update,
+                    universal_score_after_update,
+                    subjective_score_before_update,
+                    subjective_score_after_update,
+                    ));
 
         }
     }
@@ -230,7 +247,7 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
 
 
     fn current_universal_score(&self) -> DP::UniversalReward {
-        self.actual_universal_score.clone() + &self.constructed_universal_reward
+        self.committed_universal_score.clone() + &self.constructed_universal_reward
     }
 }
 
@@ -248,7 +265,7 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
         self.state = initial_state;
         self.game_trajectory.clear();
         self.constructed_universal_reward = DP::UniversalReward::neutral();
-        self.actual_universal_score = DP::UniversalReward::neutral();
+        self.committed_universal_score = DP::UniversalReward::neutral();
         self.state_before_last_action = None;
         self.last_action = None;
     }

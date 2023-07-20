@@ -5,9 +5,9 @@ use crate::env::{EnvironmentBuilderTrait, EnvironmentStateUniScore};
 use crate::env::automatons::rr::RoundRobinModel;
 use crate::comm::{EnvCommEndpoint, SyncCommEnv};
 use crate::env::generic::{GenericEnvironmentBuilder};
-use crate::error::{CommError, SetupError};
+use crate::error::{SetupError};
 
-use crate::protocol::{AgentMessage, DomainParameters, EnvMessage};
+use crate::protocol::{DomainParameters};
 
 pub struct RoundRobinModelBuilder<
     DP: DomainParameters,
