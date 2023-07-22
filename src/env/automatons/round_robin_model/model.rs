@@ -6,14 +6,14 @@ use crate::agent::AutomaticAgent;
 use crate::env::{EnvironmentStateUniScore};
 use crate::env::automatons::rr::RoundRobinUniversalEnvironment;
 use crate::comm::EnvCommEndpoint;
-use crate::env::generic::{GenericEnv};
+use crate::env::generic::{HashMapEnv};
 use crate::error::SztormError;
 
 pub struct RoundRobinModel<
     DP: DomainParameters + 'static,
     EnvState: EnvironmentStateUniScore<DP>,
     Comm: EnvCommEndpoint<DP>>{
-    environment: GenericEnv<DP, EnvState,  Comm>,
+    environment: HashMapEnv<DP, EnvState,  Comm>,
     local_agents: HashMap<DP::AgentId, Box<dyn AutomaticAgent<DP> + Send>>,
 }
 
@@ -22,7 +22,7 @@ impl<
     EnvState: EnvironmentStateUniScore<DP>,
     Comm: EnvCommEndpoint<DP>>
 RoundRobinModel<DP, EnvState, Comm>{
-    pub fn new(environment: GenericEnv<DP, EnvState, Comm>, local_agents: HashMap<DP::AgentId,Box<dyn AutomaticAgent<DP> + Send>>) -> Self{
+    pub fn new(environment: HashMapEnv<DP, EnvState, Comm>, local_agents: HashMap<DP::AgentId,Box<dyn AutomaticAgent<DP> + Send>>) -> Self{
         Self{environment, local_agents}
     }
 
@@ -65,7 +65,7 @@ RoundRobinModel<DP, EnvState, Comm>{
         Ok(())
     }
 
-    pub fn env(&self) -> &GenericEnv<DP, EnvState,  Comm>{
+    pub fn env(&self) -> &HashMapEnv<DP, EnvState,  Comm>{
         &self.environment
     }
     pub fn local_agents(&self) -> &HashMap<DP::AgentId, Box<dyn AutomaticAgent<DP> + Send>>{

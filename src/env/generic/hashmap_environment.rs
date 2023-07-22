@@ -7,7 +7,7 @@ use crate::error::{CommError, SetupError};
 use crate::protocol::{AgentMessage, DomainParameters, EnvMessage};
 
 
-pub struct GenericEnv<
+pub struct HashMapEnv<
     DP: DomainParameters,
     S: EnvironmentState<DP>,
     C: EnvCommEndpoint<DP>>{
@@ -21,7 +21,7 @@ impl <
     DP: DomainParameters,
     S: EnvironmentState<DP>,
     C: EnvCommEndpoint<DP>>
-GenericEnv<DP, S, C>{
+HashMapEnv<DP, S, C>{
 
     pub fn new(
         game_state: S,
@@ -47,7 +47,7 @@ impl<
     DP: DomainParameters,
     S: EnvironmentState<DP>,
     C: EnvCommEndpoint<DP>>
-StatefulEnvironment<DP> for GenericEnv<DP, S, C>{
+StatefulEnvironment<DP> for HashMapEnv<DP, S, C>{
 
     type State = S;
     //type Updates = <Vec<(DP::AgentId, DP::UpdateType)> as IntoIterator>::IntoIter;
@@ -73,7 +73,7 @@ impl<
     DP: DomainParameters,
     S: EnvironmentStateUniScore<DP>,
     C: EnvCommEndpoint<DP> >
-ScoreEnvironment<DP> for GenericEnv<DP, S, C>{
+ScoreEnvironment<DP> for HashMapEnv<DP, S, C>{
 
     fn process_action_penalise_illegal(
         &mut self,
@@ -108,7 +108,7 @@ impl<
     DP: DomainParameters,
     S: EnvironmentState<DP>,
     C: EnvCommEndpoint<DP>>
-CommunicatingEnv<DP> for GenericEnv<DP, S, C> {
+CommunicatingEnv<DP> for HashMapEnv<DP, S, C> {
     type CommunicationError = CommError<DP>;
 
     fn send_to(&mut self, agent_id: &DP::AgentId, message: EnvMessage<DP>)
@@ -137,7 +137,7 @@ impl<
     DP: DomainParameters,
     S: EnvironmentState<DP>,
     C: EnvCommEndpoint<DP>>
-BroadcastingEnv<DP> for GenericEnv<DP, S, C>{
+BroadcastingEnv<DP> for HashMapEnv<DP, S, C>{
     fn send_to_all(&mut self, message: EnvMessage<DP>) -> Result<(), Self::CommunicationError> {
         let mut result:Option<Self::CommunicationError> = None;
 
@@ -157,7 +157,7 @@ BroadcastingEnv<DP> for GenericEnv<DP, S, C>{
 impl<'a, DP: DomainParameters + 'a,
     S: EnvironmentState<DP>,
     C: EnvCommEndpoint<DP>>
- EnvironmentWithAgents<DP> for GenericEnv<DP, S, C>{
+ EnvironmentWithAgents<DP> for HashMapEnv<DP, S, C>{
     type PlayerIterator = Vec<DP::AgentId>;
 
     fn players(&self) -> Self::PlayerIterator {
@@ -208,13 +208,13 @@ impl<
     DP: DomainParameters,
     S:EnvironmentState<DP>,
     C: EnvCommEndpoint<DP>>
-EnvironmentBuilderTrait<DP, GenericEnv<DP, S, C>> for GenericEnvironmentBuilder<DP, S, C>{
+EnvironmentBuilderTrait<DP, HashMapEnv<DP, S, C>> for GenericEnvironmentBuilder<DP, S, C>{
     type Comm = C;
 
-    fn build(self) -> Result<GenericEnv<DP, S, C>, SetupError<DP>>{
+    fn build(self) -> Result<HashMapEnv<DP, S, C>, SetupError<DP>>{
 
 
-        Ok(GenericEnv::new(
+        Ok(HashMapEnv::new(
             self.state_opt.ok_or(SetupError::MissingState)?,
             self.comm_endpoints))
 
@@ -236,7 +236,7 @@ impl<
 DP: DomainParameters,
     S:EnvironmentState<DP>,
     C: EnvCommEndpoint<DP>>
-ResetEnvironment<DP> for GenericEnv<DP, S, C>{
+ResetEnvironment<DP> for HashMapEnv<DP, S, C>{
     fn reset(&mut self, initial_state: <Self as StatefulEnvironment<DP>>::State) {
         self.game_state = initial_state;
         for vals in self.penalties.values_mut(){

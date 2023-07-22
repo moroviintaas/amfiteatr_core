@@ -1,23 +1,23 @@
 use std::collections::HashMap;
 use crate::comm::EnvCommEndpoint;
 use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentState, EnvironmentStateUniScore, EnvironmentWithAgents, EnvTrajectory, EnvTrace, ScoreEnvironment, StatefulEnvironment, TracingEnv, ResetEnvironment};
-use crate::env::generic::{GenericEnv};
+use crate::env::generic::{HashMapEnv};
 use crate::error::CommError;
 use crate::protocol::{AgentMessage, DomainParameters, EnvMessage};
 
-pub struct TracingGenericEnv<
+pub struct HashMapEnvT<
     DP: DomainParameters,
     S: EnvironmentState<DP>,
     C: EnvCommEndpoint<DP>>{
 
-    base_environment: GenericEnv<DP, S,C>,
+    base_environment: HashMapEnv<DP, S,C>,
     history: EnvTrajectory<DP, S>
 }
 
 impl<
     DP: DomainParameters,
     S: EnvironmentState<DP>,
-    Comm: EnvCommEndpoint<DP>> TracingGenericEnv<DP, S, Comm>{
+    Comm: EnvCommEndpoint<DP>> HashMapEnvT<DP, S, Comm>{
 
     pub fn new(
         game_state: S,
@@ -33,7 +33,7 @@ impl<
 
          */
 
-        let base_environment = GenericEnv::new(game_state,  comm_endpoints);
+        let base_environment = HashMapEnv::new(game_state, comm_endpoints);
 
 
         Self{base_environment, history: Default::default() }
@@ -49,7 +49,7 @@ impl<
     DP: DomainParameters,
     S: EnvironmentState<DP>,
     C: EnvCommEndpoint<DP>>
-StatefulEnvironment<DP> for TracingGenericEnv<DP, S,C>{
+StatefulEnvironment<DP> for HashMapEnvT<DP, S,C>{
 
     type State = S;
     //type Updates = <Vec<(DP::AgentId, DP::UpdateType)> as IntoIterator>::IntoIter;
@@ -95,7 +95,7 @@ impl<
     DP: DomainParameters,
     S: EnvironmentStateUniScore<DP>,
     C: EnvCommEndpoint<DP> >
-ScoreEnvironment<DP> for TracingGenericEnv<DP, S, C>{
+ScoreEnvironment<DP> for HashMapEnvT<DP, S, C>{
     fn process_action_penalise_illegal(
         &mut self, agent: &DP::AgentId, action: &DP::ActionType, penalty_reward: DP::UniversalReward)
         -> Result<<Self::State as EnvironmentState<DP>>::Updates, DP::GameErrorType> {
@@ -127,7 +127,7 @@ impl<
     DP: DomainParameters,
     S: EnvironmentState<DP>,
     C: EnvCommEndpoint<DP>>
-CommunicatingEnv<DP> for TracingGenericEnv<DP, S, C>{
+CommunicatingEnv<DP> for HashMapEnvT<DP, S, C>{
     type CommunicationError = CommError<DP>;
 
     fn send_to(&mut self, agent_id: &DP::AgentId, message: EnvMessage<DP>)
@@ -153,7 +153,7 @@ impl<
     DP: DomainParameters,
     S: EnvironmentState<DP>,
     C: EnvCommEndpoint<DP>>
-BroadcastingEnv<DP> for TracingGenericEnv<DP, S, C>{
+BroadcastingEnv<DP> for HashMapEnvT<DP, S, C>{
     fn send_to_all(&mut self, message: EnvMessage<DP>) -> Result<(), Self::CommunicationError> {
         self.base_environment.send_to_all(message)
     }
@@ -162,7 +162,7 @@ BroadcastingEnv<DP> for TracingGenericEnv<DP, S, C>{
 impl<'a, DP: DomainParameters + 'a,
     S: EnvironmentState<DP>,
     C: EnvCommEndpoint<DP>>
- EnvironmentWithAgents<DP> for TracingGenericEnv<DP, S, C>{
+ EnvironmentWithAgents<DP> for HashMapEnvT<DP, S, C>{
     type PlayerIterator = Vec<DP::AgentId>;
 
     fn players(&self) -> Self::PlayerIterator {
@@ -174,7 +174,7 @@ impl<'a, DP: DomainParameters + 'a,
 impl<'a, DP: DomainParameters + 'a,
     S: EnvironmentState<DP>,
     C: EnvCommEndpoint<DP>>
-TracingEnv<DP, S> for TracingGenericEnv<DP, S, C>{
+TracingEnv<DP, S> for HashMapEnvT<DP, S, C>{
     fn trajectory(&self) -> &EnvTrajectory<DP, S> {
         &self.history
     }
@@ -184,7 +184,7 @@ impl<
 DP: DomainParameters,
     S:EnvironmentState<DP>,
     C: EnvCommEndpoint<DP>>
-ResetEnvironment<DP> for TracingGenericEnv<DP, S, C>{
+ResetEnvironment<DP> for HashMapEnvT<DP, S, C>{
     fn reset(&mut self, initial_state: <Self as StatefulEnvironment<DP>>::State) {
         self.base_environment.reset(initial_state);
         self.history.clear();

@@ -4,7 +4,7 @@ use std::thread;
 use log::LevelFilter;
 use sztorm::agent::{AgentGenT, AutomaticAgentRewarded, ResetAgent, StatefulAgent, TracingAgent};
 use sztorm::comm::SyncCommEnv;
-use sztorm::env::generic::TracingGenericEnv;
+use sztorm::env::generic::HashMapEnvT;
 use sztorm::env::{ResetEnvironment,  RoundRobinUniversalEnvironment, TracingEnv};
 use sztorm::error::SztormError;
 use crate::agent::{BetrayRatioPolicy, CoverPolicy, Forgive1Policy, PrisonerState, RandomPrisonerPolicy};
@@ -77,7 +77,7 @@ fn main() -> Result<(), SztormError<PrisonerDomain>>{
     env_coms.insert(Andrzej, comm_env_0);
     env_coms.insert(Janusz, comm_env_1);
 
-    let mut env = TracingGenericEnv::new( env_state, env_coms);
+    let mut env = HashMapEnvT::new(env_state, env_coms);
 
     thread::scope(|s|{
         s.spawn(||{
