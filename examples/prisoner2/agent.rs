@@ -1,13 +1,11 @@
 use std::cell::Cell;
 use std::fmt::{Display, Formatter};
-use rand::rngs::ThreadRng;
 use rand::seq::IteratorRandom;
-use rand::thread_rng;
 use sztorm::agent::Policy;
 use sztorm::Reward;
 use sztorm::state::agent::{InformationSet, ScoringInformationSet};
 use crate::common::RewardTable;
-use crate::domain::{PrisonerAction,  PrisonerDomain, PrisonerError, PrisonerReward, PrisonerUpdate};
+use crate::domain::{PrisonerAction,  PrisonerDomain, PrisonerError, PrisonerUpdate};
 use crate::domain::PrisonerAction::{Betray, Cover};
 
 #[derive(Clone, Debug)]

@@ -1,8 +1,4 @@
-use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
-use std::ptr::write;
-use enum_map::EnumMap;
-use sztorm::agent::AgentIdentifier;
 use sztorm::env::{EnvironmentState, EnvironmentStateUniScore};
 use sztorm::protocol::DomainParameters;
 use crate::common::RewardTable;
@@ -135,7 +131,7 @@ impl EnvironmentStateUniScore<PrisonerDomain> for PrisonerEnvState{
     fn state_score_of_player(&self, agent: &PrisonerId) -> <PrisonerDomain as DomainParameters>::UniversalReward {
         let other = agent.other();
         self.previous_actions.iter().fold(0, |acc,x|{
-            self.reward_table.reward(x[*agent], x[other])
+            acc  + self.reward_table.reward(x[*agent], x[other])
         })
     }
 }
