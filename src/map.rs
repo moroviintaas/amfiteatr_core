@@ -70,7 +70,7 @@ impl<'a, K: 'a + EnumArray<V> + Clone + Copy, V: 'a> SMap<'a, K, V> for EnumMap<
 
     fn iter(&'a self) -> Self::Iter {
         //EnumMap::iter(&self)
-        todo!()
+        self.iter()
     }
 }
 
