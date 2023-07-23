@@ -91,7 +91,20 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                     Ok(agent_message) => match agent_message{
                         AgentMessage::TakeAction(action) => {
                             info!("Player {} performs action: {:#}", &player, &action);
-                            self.process_action_and_inform(player, &action)?;
+
+                            match self.process_action(&player, &action){
+                                Ok(updates) => {
+                                    for (ag, update) in updates{
+                                        self.send_message(&ag, EnvMessage::UpdateState(update))?;
+                                    }
+                                }
+                                Err(e) => {
+                                    error!("Action was refused or caused error in updating state: {e:}");
+                                    let _ = self.send_to(&player, EnvMessage::MoveRefused);
+                                    let _ = self.send_to_all(EnvMessage::GameFinished);
+                                    return Err(GameWithConvict(e, player));
+                                }
+                            }
                             if let Some(next_player) = self.current_player(){
                                 self.send_message(&next_player, EnvMessage::YourMove)
                                     .map_err(|e| e.specify_id(next_player))?;
@@ -161,15 +174,30 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                     Ok(agent_message) => match agent_message{
                         AgentMessage::TakeAction(action) => {
                             info!("Player {} performs action: {:#}", &player, &action);
-                            self.process_action_and_inform(player, &action)?;
-                            debug!("Preparing rewards, previous scores: {:?}", actual_universal_scores);
-                            for (player, score) in actual_universal_scores.iter_mut(){
 
-                                let reward = self.actual_score_of_player(player) - score.clone();
-                                *score = self.actual_score_of_player(player);
-                                debug!("Sending reward fragment  to player {:?}",  player);
-                                self.send_to(player, EnvMessage::RewardFragment(reward))?;
+                            match self.process_action(&player, &action){
+                                Ok(updates) => {
+                                    for (ag, update) in updates{
+                                        self.send_message(&ag, EnvMessage::UpdateState(update))?;
+                                    }
+                                    debug!("Preparing rewards, previous scores: {:?}", actual_universal_scores);
+                                    for (player, score) in actual_universal_scores.iter_mut(){
+
+                                        let reward = self.actual_score_of_player(player) - score.clone();
+                                        *score = self.actual_score_of_player(player);
+                                        self.send_to(player, EnvMessage::RewardFragment(reward))?;
+                                    }
+                                }
+                                Err(e) => {
+                                    error!("Action was refused or caused error in updating state: {e:}");
+                                    let _ = self.send_to(&player, EnvMessage::MoveRefused);
+
+                                    let _ = self.send_to_all(EnvMessage::GameFinished);
+                                    return Err(GameWithConvict(e, player));
+                                }
                             }
+
+
                             if let Some(next_player) = self.current_player(){
                                 self.send_message(&next_player, EnvMessage::YourMove)
                                     .map_err(|e| e.specify_id(next_player))?;
@@ -252,14 +280,15 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                                     }
                                 }
                                 Err(e) => {
-                                    self.send_to(&player, EnvMessage::RewardFragment(penalty))?;
+                                    let _ = self.send_to(&player, EnvMessage::MoveRefused);
+                                    let _ = self.send_to(&player, EnvMessage::RewardFragment(penalty));
                                     for (player, score) in actual_universal_scores.iter_mut(){
 
                                         let reward = self.actual_score_of_player(player) - score.clone();
                                         *score = self.actual_score_of_player(player);
-                                        self.send_to(player, EnvMessage::RewardFragment(reward))?;
+                                        let _ = self.send_to(player, EnvMessage::RewardFragment(reward));
                                     }
-                                    self.send_to_all(EnvMessage::GameFinished)?;
+                                    let _ = self.send_to_all(EnvMessage::GameFinished);
                                     return Err(GameWithConvict(e, player));
                                 }
                             }

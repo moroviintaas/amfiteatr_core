@@ -8,6 +8,7 @@ use crate::env::generic::{GenericEnvironmentBuilder};
 use crate::error::{SetupError};
 
 use crate::protocol::{DomainParameters};
+use crate::state::agent::ScoringInformationSet;
 
 pub struct RoundRobinModelBuilder<
     DP: DomainParameters,
@@ -22,13 +23,15 @@ pub struct RoundRobinModelBuilder<
 impl<
     DP: DomainParameters,
     EnvState: EnvironmentStateUniScore<DP>>
-RoundRobinModelBuilder<DP, EnvState,  SyncCommEnv<DP>>{
+RoundRobinModelBuilder<DP, EnvState,  SyncCommEnv<DP>>
+{
     pub fn with_local_generic_agent<P: Policy<DP> + 'static>(
         mut self,
         id: DP::AgentId,
         initial_state: <P as Policy<DP>>::StateType,
         policy: P)
-        -> Result<Self, SetupError<DP>>{
+        -> Result<Self, SetupError<DP>>
+        where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
 
         let (comm_env, comm_agent) = SyncCommEnv::new_pair();
         let agent = AgentGen::new(id, initial_state, comm_agent, policy);

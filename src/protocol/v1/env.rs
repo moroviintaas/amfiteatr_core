@@ -6,6 +6,7 @@ use crate::protocol::v1::domain_parameters::DomainParameters;
 #[cfg_attr(feature = "speedy", derive(speedy::Writable, speedy::Readable))]
 pub enum EnvMessage<Spec: DomainParameters>{
     YourMove,
+    MoveRefused,
     GameFinished,
     Kill,
     UpdateState(Spec::UpdateType),

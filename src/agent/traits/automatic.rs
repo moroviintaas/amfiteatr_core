@@ -1,9 +1,9 @@
-use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, RewardedAgent, Agent};
+use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, EnvRewardedAgent, Agent, InternalRewardedAgent};
 use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
 use crate::error::SztormError::Protocol;
 use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
-use crate::state::agent::InformationSet;
+use crate::state::agent::{InformationSet, ScoringInformationSet};
 use log::{info,  debug, error};
 use crate::protocol::AgentMessage::{NotifyError, TakeAction};
 
@@ -17,13 +17,15 @@ pub trait AutomaticAgentRewarded<Spec: DomainParameters>: AutomaticAgent<Spec>{
 }
 
 
-impl<Agnt, Spec > AutomaticAgent<Spec> for Agnt
-where Agnt: StatefulAgent<Spec> + ActingAgent<Spec>
-    + CommunicatingAgent<Spec, CommunicationError=CommError<Spec>>
-    + PolicyAgent<Spec> + Agent<Spec>,
-      Spec: DomainParameters,
+impl<Agnt, DP> AutomaticAgent<DP> for Agnt
+where Agnt: StatefulAgent<DP> + ActingAgent<DP>
+    + CommunicatingAgent<DP, CommunicationError=CommError<DP>>
+    + PolicyAgent<DP> + Agent<DP>
+    + InternalRewardedAgent<DP>,
+      DP: DomainParameters,
+      <Agnt as StatefulAgent<DP>>::State: ScoringInformationSet<DP>
 {
-    fn run(&mut self) -> Result<(), SztormError<Spec>> {
+    fn run(&mut self) -> Result<(), SztormError<DP>> {
         info!("Agent {} starts", self.id());
         //let mut current_score = Spec::UniversalReward::default();
         loop{
@@ -48,6 +50,11 @@ where Agnt: StatefulAgent<Spec> + ActingAgent<Spec>
                                 self.send(TakeAction(a))?;
                             }
                         }
+                    }
+                    EnvMessage::MoveRefused => {
+                        self.add_explicit_subjective_score(
+                            &<<Self as StatefulAgent<DP>>::State as ScoringInformationSet<DP>>
+                            ::penalty_for_illegal())
                     }
                     EnvMessage::GameFinished => {
                         info!("Agent {} received information that game is finished.", self.id());
@@ -87,13 +94,16 @@ where Agnt: StatefulAgent<Spec> + ActingAgent<Spec>
     }
 }
 
-impl<Agnt, Spec > AutomaticAgentRewarded<Spec> for Agnt
-where Agnt: StatefulAgent<Spec> + ActingAgent<Spec>
-    + CommunicatingAgent<Spec, CommunicationError=CommError<Spec>>
-    + PolicyAgent<Spec> + Agent<Spec>
-    + RewardedAgent<Spec>,
-      Spec: DomainParameters,{
-    fn run_rewarded(&mut self) -> Result<(), SztormError<Spec>> {
+impl<Agnt, DP> AutomaticAgentRewarded<DP> for Agnt
+where Agnt: StatefulAgent<DP> + ActingAgent<DP>
+    + CommunicatingAgent<DP, CommunicationError=CommError<DP>>
+    + PolicyAgent<DP> + Agent<DP>
+    + EnvRewardedAgent<DP>
+    + InternalRewardedAgent<DP>,
+      DP: DomainParameters,
+    <Agnt as StatefulAgent<DP>>::State: ScoringInformationSet<DP>{
+    fn run_rewarded(&mut self) -> Result<(), SztormError<DP>>
+    {
         info!("Agent {} starts", self.id());
         //let mut current_score = Spec::UniversalReward::default();
         loop{
@@ -118,6 +128,11 @@ where Agnt: StatefulAgent<Spec> + ActingAgent<Spec>
                                 self.send(TakeAction(a))?;
                             }
                         }
+                    }
+                    EnvMessage::MoveRefused => {
+                        self.add_explicit_subjective_score(
+                            &<<Self as StatefulAgent<DP>>::State as ScoringInformationSet<DP>>
+                            ::penalty_for_illegal())
                     }
                     EnvMessage::GameFinished => {
                         info!("Agent {} received information that game is finished.", self.id());

@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::agent::{ActingAgent, Agent, CommunicatingAgent, AgentTrajectory, AgentTrace, Policy, PolicyAgent, ResetAgent, RewardedAgent, StatefulAgent, TracingAgent};
+use crate::agent::{ActingAgent, Agent, CommunicatingAgent, AgentTrajectory, AgentTrace, Policy, PolicyAgent, ResetAgent, EnvRewardedAgent, StatefulAgent, TracingAgent, InternalRewardedAgent};
 use crate::comm::CommEndpoint;
 use crate::error::CommError;
 use crate::protocol::{AgentMessage, DomainParameters, EnvMessage};
@@ -29,6 +29,7 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
     game_trajectory: AgentTrajectory<DP, P::StateType>,
     last_action: Option<DP::ActionType>,
     state_before_last_action: Option<<P as Policy<DP>>::StateType>,
+    explicit_subjective_reward_component: <P::StateType as ScoringInformationSet<DP>>::RewardType,
 }
 
 impl <DP: DomainParameters,
@@ -51,6 +52,7 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
             game_trajectory: AgentTrajectory::new(),
             state_before_last_action: None,
             last_action: None,
+            explicit_subjective_reward_component: <P::StateType as ScoringInformationSet<DP>>::RewardType::neutral()
         }
     }
     pub fn do_change_policy<P2: Policy<DP, StateType=P::StateType>>(self, new_policy: P2) -> AgentGenT<DP, P2, Comm>
@@ -65,7 +67,8 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
             comm: self.comm,
             last_action: self.last_action,
             state_before_last_action: self.state_before_last_action,
-            game_trajectory: self.game_trajectory
+            game_trajectory: self.game_trajectory,
+            explicit_subjective_reward_component: self.explicit_subjective_reward_component
         }
     }
 
@@ -190,7 +193,7 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>,
 
             let initial_state = self.state_before_last_action.take().unwrap();
             let subjective_score_before_update = initial_state.current_subjective_score();
-            let subjective_score_after_update = self.state.current_subjective_score();
+            let subjective_score_after_update = self.state.current_subjective_score() + &self.explicit_subjective_reward_component;
 
 
             self.game_trajectory.push_trace(
@@ -204,6 +207,10 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>,
                     ));
 
         }
+    }
+
+    fn explicit_add_subjective_reward(&mut self, explicit: <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType) {
+        self.explicit_subjective_reward_component += &explicit
     }
 }
 
@@ -234,7 +241,7 @@ impl<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
-RewardedAgent<DP> for AgentGenT<DP, P, Comm>
+EnvRewardedAgent<DP> for AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
 
     fn current_universal_reward(&self) -> DP::UniversalReward {
@@ -268,5 +275,24 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
         self.committed_universal_score = DP::UniversalReward::neutral();
         self.state_before_last_action = None;
         self.last_action = None;
+    }
+}
+
+impl<
+    DP: DomainParameters,
+    P: Policy<DP>,
+    Comm: CommEndpoint<
+        OutwardType=AgentMessage<DP>,
+        InwardType=EnvMessage<DP>,
+        Error=CommError<DP>>>
+InternalRewardedAgent<DP> for AgentGenT<DP, P, Comm>
+where <Self as StatefulAgent<DP>>::State: ScoringInformationSet<DP>,
+<P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+    fn current_subjective_score(&self) ->  <<Self as StatefulAgent<DP>>::State as ScoringInformationSet<DP>>::RewardType{
+        self.state.current_subjective_score() + &self.explicit_subjective_reward_component
+    }
+
+    fn add_explicit_subjective_score(&mut self, explicit_reward: &<<Self as StatefulAgent<DP>>::State as ScoringInformationSet<DP>>::RewardType) {
+        self.explicit_subjective_reward_component += explicit_reward
     }
 }
