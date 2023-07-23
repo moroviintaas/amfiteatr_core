@@ -3,8 +3,6 @@ mod action_pair;
 mod policy;
 mod q;
 mod traits;
-#[cfg(feature = "learning")]
-pub mod learning;
 mod trajectory;
 mod generic;
 
