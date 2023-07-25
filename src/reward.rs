@@ -51,3 +51,9 @@ impl Reward for f64{
         0.0
     }
 }
+
+#[derive(Debug, Copy, Clone)]
+pub enum RewardSource{
+    Env,
+    Agent
+}
