@@ -1,5 +1,7 @@
 use std::fmt::{Display, Formatter};
+use std::ops::Index;
 use crate::protocol::DomainParameters;
+use crate::RewardSource;
 use crate::state::agent::{ScoringInformationSet};
 
 
@@ -80,6 +82,7 @@ impl<DP: DomainParameters, S: ScoringInformationSet<DP>> AgentTrace<DP, S>
     pub fn s_a_r_subjective(&self) -> (&S, &DP::ActionType, S::RewardType) {
         (self.step_state(), self.taken_action(), self.step_subjective_reward())
     }
+    //pub fn s_a_r(&self, source:S RewardSource) -
 }
 
 impl<DP: DomainParameters, S: ScoringInformationSet<DP>> Display for AgentTrace<DP, S>
@@ -139,4 +142,12 @@ impl<DP: DomainParameters, S: ScoringInformationSet<DP>> AgentTrajectory<DP, S>
         self.trace.pop()
     }
 
+}
+
+impl<DP: DomainParameters, S: ScoringInformationSet<DP>> Index<usize> for AgentTrajectory<DP, S>{
+    type Output = AgentTrace<DP, S>;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.trace[index]
+    }
 }

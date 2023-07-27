@@ -14,5 +14,7 @@ pub enum SztormError<Spec: DomainParameters>{
     #[error("Protocol error: {0}")]
     Protocol(ProtocolError<Spec>),
     #[error("Setup error: {0}")]
-    Setup(SetupError<Spec>)
+    Setup(SetupError<Spec>),
+    #[error("Data convert")]
+    DataConvert()
 }
