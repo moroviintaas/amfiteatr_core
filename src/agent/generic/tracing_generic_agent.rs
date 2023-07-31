@@ -72,6 +72,26 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
         }
     }
 
+
+
+    pub fn do_replace_policy<P2: Policy<DP, StateType=P::StateType>>(self, new_policy: P2) -> (AgentGenT<DP, P2, Comm>, P)
+    {
+        let p = self.policy;
+        (AgentGenT::<DP, P2, Comm>{
+            state: self.state,
+            policy: new_policy,
+            _phantom: Default::default(),
+            id: self.id,
+            constructed_universal_reward: self.constructed_universal_reward,
+            comm: self.comm,
+            explicit_subjective_reward_component: self.explicit_subjective_reward_component,
+            last_action: self.last_action,
+            state_before_last_action: self.state_before_last_action,
+            game_trajectory: self.game_trajectory,
+            committed_universal_score: self.committed_universal_score,
+        }, p)
+    }
+
 }
 
 impl<
