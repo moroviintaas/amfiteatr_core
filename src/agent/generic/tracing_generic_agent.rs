@@ -92,6 +92,15 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
         }, p)
     }
 
+    pub fn replace_comm(&mut self, mut comm: Comm) -> Comm{
+        std::mem::swap(&mut self.comm, &mut comm);
+        comm
+    }
+    pub fn swap_comms<P2: Policy<DP>>(&mut self, other: &mut AgentGenT<DP, P2, Comm>)
+    where <P2 as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+        std::mem::swap(&mut self.comm, &mut other.comm)
+    }
+
 }
 
 impl<
