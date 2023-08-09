@@ -197,9 +197,13 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>,
 //for <'a> &'a<DP as DomainParameters>::UniversalReward: Sub<&'a <DP as DomainParameters>::UniversalReward, Output=<DP as DomainParameters>::UniversalReward>,
 //for<'a> &'a <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType: Sub<&'a  <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType, Output = <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType>
 {
-    fn reset_trace(&mut self) {
+    fn reset_trajectory(&mut self) {
         self.game_trajectory.clear();
         self.last_action = None;
+    }
+
+    fn take_trajectory(&mut self) -> AgentTrajectory<DP, <P as Policy<DP>>::StateType> {
+        std::mem::take(&mut self.game_trajectory)
     }
 
     fn game_trajectory(&self) -> &AgentTrajectory<DP, <P as Policy<DP>>::StateType> {
