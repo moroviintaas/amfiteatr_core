@@ -59,7 +59,7 @@ StatefulEnvironment<DP> for HashMapEnv<DP, S, C>{
     fn process_action(&mut self, agent: &DP::AgentId, action: &DP::ActionType) 
         -> Result<<Self::State as EnvironmentState<DP>>::Updates, DP::GameErrorType> {
         //let updates = self.action_processor.process_action(&mut self.game_state, agent, action)?;
-        self.game_state.forward(agent.clone(), action.clone())
+        self.game_state.forward(*agent, action.clone())
         //Ok(updates)
 
     }
@@ -83,7 +83,7 @@ ScoreEnvironment<DP> for HashMapEnv<DP, S, C>{
         -> Result<<Self::State as EnvironmentState<DP>>::Updates, DP::GameErrorType> {
 
 
-        self.game_state.forward(agent.clone(), action.clone()).map_err(|e|{
+        self.game_state.forward(*agent, action.clone()).map_err(|e|{
             self.penalties.insert(*agent, penalty_reward + &self.penalties[agent]);
             e
         })

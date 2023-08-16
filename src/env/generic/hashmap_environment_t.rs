@@ -55,7 +55,7 @@ StatefulEnvironment<DP> for HashMapEnvT<DP, S,C>{
     //type Updates = <Vec<(DP::AgentId, DP::UpdateType)> as IntoIterator>::IntoIter;
 
     fn state(&self) -> &Self::State {
-        &self.base_environment.state()
+        self.base_environment.state()
     }
 
     fn process_action(&mut self, agent: &DP::AgentId, action: &DP::ActionType)

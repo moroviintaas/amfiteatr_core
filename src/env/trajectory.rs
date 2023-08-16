@@ -78,7 +78,7 @@ impl<DP: DomainParameters, S: EnvironmentState<DP>> EnvTrace<DP, S>{
     }
 
     pub fn action(&self) -> &DP::ActionType{
-        &self.performed_action.action()
+        self.performed_action.action()
     }
 
 
