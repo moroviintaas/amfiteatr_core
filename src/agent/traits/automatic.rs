@@ -4,7 +4,7 @@ use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
 use crate::error::SztormError::Protocol;
 use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
 use crate::state::agent::{InformationSet, ScoringInformationSet};
-use log::{info,  debug, error};
+use log::{info, debug, error, warn};
 use crate::protocol::AgentMessage::{NotifyError, TakeAction};
 
 
@@ -58,6 +58,12 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                     }
                     EnvMessage::GameFinished => {
                         info!("Agent {} received information that game is finished.", self.id());
+                        self.finalize();
+                        return Ok(())
+
+                    }
+                    EnvMessage::GameFinishedWithIllegalAction(id) => {
+                        warn!("Agent {} received information that game is finished with agent {id:} performing illegal action.", self.id());
                         self.finalize();
                         return Ok(())
 
@@ -136,6 +142,12 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                     }
                     EnvMessage::GameFinished => {
                         info!("Agent {} received information that game is finished.", self.id());
+                        self.finalize();
+                        return Ok(())
+
+                    }
+                    EnvMessage::GameFinishedWithIllegalAction(id)=> {
+                        warn!("Agent {} received information that game is finished with agent {id:} performing illegal action.", self.id());
                         self.finalize();
                         return Ok(())
 

@@ -8,6 +8,7 @@ pub enum EnvMessage<Spec: DomainParameters>{
     YourMove,
     MoveRefused,
     GameFinished,
+    GameFinishedWithIllegalAction(Spec::AgentId),
     Kill,
     UpdateState(Spec::UpdateType),
     ActionNotify(AgentActionPair<Spec::AgentId, Spec::ActionType>),
