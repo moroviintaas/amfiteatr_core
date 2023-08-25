@@ -16,20 +16,12 @@ pub trait InformationSet<DP: DomainParameters>: Clone + Send{
 
 }
 
-pub trait ScoringInformationSet<DP: DomainParameters>: InformationSet<DP>{
-    type RewardType: Reward;
-    fn current_subjective_score(&self) -> Self::RewardType;
-    fn penalty_for_illegal() -> Self::RewardType;
-}
-
-impl<T: InformationSet<DP>, DP: DomainParameters> InformationSet<DP> for Box<T> {
+impl<DP: DomainParameters, T: InformationSet<DP>> InformationSet<DP> for Box<T>{
     type ActionIteratorType = T::ActionIteratorType;
-
 
     fn available_actions(&self) -> Self::ActionIteratorType {
         self.as_ref().available_actions()
     }
-
 
     fn is_action_valid(&self, action: &DP::ActionType) -> bool {
         self.as_ref().is_action_valid(action)
@@ -38,7 +30,11 @@ impl<T: InformationSet<DP>, DP: DomainParameters> InformationSet<DP> for Box<T> 
     fn update(&mut self, update: DP::UpdateType) -> Result<(), DP::GameErrorType> {
         self.as_mut().update(update)
     }
-
+}
+pub trait ScoringInformationSet<DP: DomainParameters>: InformationSet<DP>{
+    type RewardType: Reward;
+    fn current_subjective_score(&self) -> Self::RewardType;
+    fn penalty_for_illegal() -> Self::RewardType;
 }
 
 impl<T: ScoringInformationSet<Spec>, Spec: DomainParameters> ScoringInformationSet<Spec> for Box<T> {

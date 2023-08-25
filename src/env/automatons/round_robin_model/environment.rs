@@ -6,7 +6,6 @@ use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::PlayerExited;
 use crate::error::SztormError::GameWithConvict;
 use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
-use crate::protocol::AgentMessage::NotifyError;
 use crate::protocol::EnvMessage::ErrorNotify;
 
 
