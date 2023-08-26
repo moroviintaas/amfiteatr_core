@@ -14,7 +14,7 @@ pub struct AgentGenT<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::StateType: ScoringInformationSet<DP> + Clone{
 
 
     state: <P as Policy<DP>>::StateType,
@@ -39,7 +39,7 @@ impl <DP: DomainParameters,
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
 AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::StateType: ScoringInformationSet<DP> + Clone{
 
     pub fn new(id: DP::AgentId, state: <P as Policy<DP>>::StateType, comm: Comm, policy: P) -> Self{
         Self{state,
@@ -97,7 +97,7 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
         comm
     }
     pub fn swap_comms<P2: Policy<DP>>(&mut self, other: &mut AgentGenT<DP, P2, Comm>)
-    where <P2 as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+    where <P2 as Policy<DP>>::StateType: ScoringInformationSet<DP> + Clone{
         std::mem::swap(&mut self.comm, &mut other.comm)
     }
 
@@ -111,7 +111,7 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
 Agent<DP> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::StateType: ScoringInformationSet<DP> + Clone{
 
     fn id(&self) -> DP::AgentId {
         self.id
@@ -126,7 +126,7 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
     CommunicatingAgent<DP> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::StateType: ScoringInformationSet<DP> + Clone{
 
     type CommunicationError = CommError<DP>;
 
@@ -147,7 +147,7 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
 StatefulAgent<DP> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::StateType: ScoringInformationSet<DP> + Clone{
 
     type State = <P as Policy<DP>>::StateType;
 
@@ -168,7 +168,7 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
 ActingAgent<DP> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::StateType: ScoringInformationSet<DP> + Clone{
 
     fn take_action(&mut self) -> Option<DP::ActionType> {
         self.commit_trace();
@@ -193,7 +193,7 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
 TracingAgent<DP, <P as Policy<DP>>::StateType> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>,
+where <P as Policy<DP>>::StateType: ScoringInformationSet<DP> + Clone,
 //for <'a> &'a<DP as DomainParameters>::UniversalReward: Sub<&'a <DP as DomainParameters>::UniversalReward, Output=<DP as DomainParameters>::UniversalReward>,
 //for<'a> &'a <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType: Sub<&'a  <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType, Output = <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType>
 {
@@ -255,7 +255,7 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
 PolicyAgent<DP> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::StateType: ScoringInformationSet<DP> + Clone{
     type Policy = P;
 
     fn policy(&self) -> &Self::Policy {
@@ -275,7 +275,7 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
 EnvRewardedAgent<DP> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::StateType: ScoringInformationSet<DP> + Clone{
 
     fn current_universal_reward(&self) -> DP::UniversalReward {
         self.constructed_universal_reward.clone()
@@ -299,7 +299,7 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
 ResetAgent<DP> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::StateType: ScoringInformationSet<DP> + Clone{
 
     fn reset(&mut self, initial_state: <Self as StatefulAgent<DP>>::State) {
         self.state = initial_state;
@@ -320,7 +320,7 @@ impl<
         Error=CommError<DP>>>
 InternalRewardedAgent<DP> for AgentGenT<DP, P, Comm>
 where <Self as StatefulAgent<DP>>::State: ScoringInformationSet<DP>,
-<P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+<P as Policy<DP>>::StateType: ScoringInformationSet<DP> + Clone{
     fn current_subjective_score(&self) ->  <<Self as StatefulAgent<DP>>::State as ScoringInformationSet<DP>>::RewardType{
         self.state.current_subjective_score() + &self.explicit_subjective_reward_component
     }
