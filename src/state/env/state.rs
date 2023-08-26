@@ -1,7 +1,7 @@
 
 use crate::protocol::DomainParameters;
 
-pub trait EnvironmentState<DP: DomainParameters>: Clone{
+pub trait EnvironmentState<DP: DomainParameters>{
     type Updates: IntoIterator<Item = (DP::AgentId, DP::UpdateType)>;
 
     fn current_player(&self) -> Option<DP::AgentId>;

@@ -47,7 +47,7 @@ impl<
 
 impl<
     DP: DomainParameters,
-    S: EnvironmentState<DP>,
+    S: EnvironmentState<DP> + Clone,
     C: EnvCommEndpoint<DP>>
 StatefulEnvironment<DP> for HashMapEnvT<DP, S,C>{
 
@@ -93,7 +93,7 @@ StatefulEnvironment<DP> for HashMapEnvT<DP, S,C>{
 
 impl<
     DP: DomainParameters,
-    S: EnvironmentStateUniScore<DP>,
+    S: EnvironmentStateUniScore<DP> + Clone,
     C: EnvCommEndpoint<DP> >
 ScoreEnvironment<DP> for HashMapEnvT<DP, S, C>{
     fn process_action_penalise_illegal(
@@ -182,7 +182,7 @@ TracingEnv<DP, S> for HashMapEnvT<DP, S, C>{
 
 impl<
 DP: DomainParameters,
-    S:EnvironmentState<DP>,
+    S:EnvironmentState<DP> + Clone,
     C: EnvCommEndpoint<DP>>
 ResetEnvironment<DP> for HashMapEnvT<DP, S, C>{
     fn reset(&mut self, initial_state: <Self as StatefulEnvironment<DP>>::State) {
