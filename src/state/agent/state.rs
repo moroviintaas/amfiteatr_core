@@ -3,6 +3,7 @@
 
 use crate::protocol::DomainParameters;
 use crate::Reward;
+use crate::state::ConstructedState;
 
 pub trait InformationSet<DP: DomainParameters>: Send{
     type ActionIteratorType: IntoIterator<Item = DP::ActionType>;
@@ -48,3 +49,8 @@ impl<T: ScoringInformationSet<Spec>, Spec: DomainParameters> ScoringInformationS
         T::penalty_for_illegal()
     }
 }
+
+pub trait ConstructedInfoSet<DP: DomainParameters, B>: InformationSet<DP> + ConstructedState<DP, B> {}
+impl<DP: DomainParameters, B, T: InformationSet<DP> + ConstructedState<DP, B>> ConstructedInfoSet<DP, B> for T{}
+
+//impl<DP: DomainParameters, B, T: ConstructedInfoSet<DP, B>> ConstructedInfoSet<DP, B> for Box<T>{}
