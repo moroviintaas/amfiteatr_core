@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::agent::{ActingAgent, Agent, CommunicatingAgent, AgentTrajectory, AgentTrace, Policy, PolicyAgent, ResetAgent, EnvRewardedAgent, StatefulAgent, TracingAgent, InternalRewardedAgent};
+use crate::agent::{ActingAgent, Agent, CommunicatingAgent, AgentTrajectory, AgentTrace, Policy, PolicyAgent, ResetAgent, EnvRewardedAgent, StatefulAgent, TracingAgent, InternalRewardedAgent, AgentGen};
 use crate::comm::CommEndpoint;
 use crate::error::CommError;
 use crate::protocol::{AgentMessage, DomainParameters, EnvMessage};
@@ -99,6 +99,14 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
     pub fn swap_comms<P2: Policy<DP>>(&mut self, other: &mut AgentGenT<DP, P2, Comm>)
     where <P2 as Policy<DP>>::StateType: ScoringInformationSet<DP> + Clone{
         std::mem::swap(&mut self.comm, &mut other.comm)
+    }
+    pub fn swap_comms_with_basic<P2: Policy<DP>>(&mut self, other: &mut AgentGen<DP, P2, Comm>)
+    where <P2 as Policy<DP>>::StateType: ScoringInformationSet<DP> + Clone{
+        std::mem::swap(&mut self.comm, &mut other.comm_mut())
+    }
+
+    pub(crate) fn comm_mut(&mut self) -> &mut Comm{
+        &mut self.comm
     }
 
 }
