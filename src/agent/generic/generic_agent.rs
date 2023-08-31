@@ -97,6 +97,10 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
     pub(crate) fn comm_mut(&mut self) -> &mut Comm{
         &mut self.comm
     }
+
+    pub fn change_id(&mut self, id: DP::AgentId){
+        self.id = id
+    }
 }
 
 impl<

@@ -109,6 +109,10 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
         &mut self.comm
     }
 
+    pub fn change_id(&mut self, id: DP::AgentId){
+        self.id = id
+    }
+
 }
 
 impl<
