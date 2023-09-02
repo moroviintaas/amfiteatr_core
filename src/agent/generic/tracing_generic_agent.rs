@@ -320,6 +320,7 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
         self.committed_universal_score = DP::UniversalReward::neutral();
         self.state_before_last_action = None;
         self.last_action = None;
+
     }
 }
 

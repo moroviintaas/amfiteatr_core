@@ -36,7 +36,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                         //current_score = Default::default();
 
                         //debug!("Agent's {:?} possible actions: {:?}", self.id(), Vec::from_iter(self.state().available_actions().into_iter()));
-                        debug!("Agent's {:?} possible actions: {}]", self.id(), self.state().available_actions().into_iter()
+                        debug!("Agent's {} possible actions: {}]", self.id(), self.state().available_actions().into_iter()
                             .fold(String::from("["), |a, b| a + &format!("{b:#}") + ", ").trim_end());
                         //match self.policy_select_action(){
                         match self.take_action(){
@@ -73,7 +73,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                         return Err(Protocol(ReceivedKill(self.id())))
                     }
                     EnvMessage::UpdateState(su) => {
-                        debug!("Agent {} received state update {:?}", self.id(), &su);
+                        debug!("Agent {} received state update {}", self.id(), &su);
                         match self.update(su){
                             Ok(_) => {
                                 debug!("Agent {:?}: successful state update", self.id());
@@ -178,7 +178,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                     EnvMessage::RewardFragment(r) =>{
                         //current_score = current_score + r;
                         //self.set_current_universal_reward(current_score.clone());
-                        debug!("Received reward fragment: {:?}", r);
+                        debug!("Agent {} received reward fragment: {:?}", self.id(), r);
                         self.current_universal_reward_add(&r);
                     }
                 }
