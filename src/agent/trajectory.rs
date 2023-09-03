@@ -141,6 +141,9 @@ impl<DP: DomainParameters, S: ScoringInformationSet<DP>> AgentTrajectory<DP, S>
         self.trace.pop()
     }
 
+    pub fn is_empty(&self) -> bool{
+        self.list().is_empty()
+    }
 }
 
 impl<DP: DomainParameters, S: ScoringInformationSet<DP>> Index<usize> for AgentTrajectory<DP, S>{
