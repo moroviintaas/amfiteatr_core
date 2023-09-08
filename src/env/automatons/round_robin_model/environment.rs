@@ -303,6 +303,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                                     }
                                 }
                                 Err(e) => {
+                                    error!("Player {player:} performed illegal action: {action:}");
                                     let _ = self.send_to(&player, EnvMessage::MoveRefused);
                                     let _ = self.send_to(&player, EnvMessage::RewardFragment(penalty));
                                     for (player, score) in actual_universal_scores.iter_mut(){
