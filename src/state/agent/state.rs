@@ -1,11 +1,9 @@
-
-
-
+use std::fmt::Debug;
 use crate::protocol::DomainParameters;
 use crate::Reward;
 use crate::state::ConstructedState;
 
-pub trait InformationSet<DP: DomainParameters>: Send{
+pub trait InformationSet<DP: DomainParameters>: Send + Debug{
     type ActionIteratorType: IntoIterator<Item = DP::ActionType>;
 
 
