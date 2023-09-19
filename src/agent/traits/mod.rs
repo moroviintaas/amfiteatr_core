@@ -19,4 +19,5 @@ use crate::protocol::DomainParameters;
 
 pub trait Agent<DP: DomainParameters>{
     fn id(&self) -> DP::AgentId;
+    fn change_id(&mut self, new_id: DP::AgentId);
 }

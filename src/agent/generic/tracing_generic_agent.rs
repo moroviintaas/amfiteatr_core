@@ -128,6 +128,10 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
     fn id(&self) -> DP::AgentId {
         self.id
     }
+
+    fn change_id(&mut self, new_id: DP::AgentId) {
+        self.id = new_id;
+    }
 }
 
 impl<
