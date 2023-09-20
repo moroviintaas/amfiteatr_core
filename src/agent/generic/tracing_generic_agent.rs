@@ -291,7 +291,7 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
 EnvRewardedAgent<DP> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP> + Clone{
+where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
 
     fn current_universal_reward(&self) -> DP::UniversalReward {
         self.constructed_universal_reward.clone()
