@@ -1,5 +1,5 @@
 use std::fmt::Debug;
-use std::ops::{Add, AddAssign, Div, Sub};
+use std::ops::{Add, AddAssign, Sub};
 
 
 /// `Reward` is trait for types to be used as policy performance assessment.
