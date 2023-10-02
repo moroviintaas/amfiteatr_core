@@ -1,7 +1,7 @@
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
 
-pub trait AgentIdentifier: Debug + Send + Copy + Hash + Display + PartialEq + Eq{
+pub trait AgentIdentifier: Debug + Send + Sync + Copy + Hash + Display + PartialEq + Eq{
 
 }
 

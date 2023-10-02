@@ -21,6 +21,7 @@ pub mod error;
 /// Traits and generic implementations for game controlling environment.
 pub mod env;
 mod reward;
+pub mod world;
 //mod map;
 
 

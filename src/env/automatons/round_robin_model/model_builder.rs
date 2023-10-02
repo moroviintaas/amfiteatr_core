@@ -1,5 +1,6 @@
 
 use std::collections::{HashMap};
+use std::sync::{Arc, Mutex};
 use crate::agent::{Agent, AgentGen, AutomaticAgent, Policy};
 use crate::env::{EnvironmentBuilderTrait, EnvironmentStateUniScore};
 use crate::env::automatons::rr::RoundRobinModel;
@@ -15,7 +16,7 @@ pub struct RoundRobinModelBuilder<
     EnvState: EnvironmentStateUniScore<DP>,
     Comm: EnvCommEndpoint<DP> >{
     env_builder: GenericEnvironmentBuilder<DP, EnvState,  Comm>,
-    local_agents: HashMap<DP::AgentId, Box<dyn AutomaticAgent<DP> + Send>>,
+    local_agents: HashMap<DP::AgentId, Arc<Mutex<dyn AutomaticAgent<DP> + Send>>>,
 
 }
 
@@ -36,7 +37,7 @@ RoundRobinModelBuilder<DP, EnvState,  SyncCommEnv<DP>>
         let (comm_env, comm_agent) = SyncCommEnv::new_pair();
         let agent = AgentGen::new(id, initial_state, comm_agent, policy);
         self.env_builder = self.env_builder.add_comm(&agent.id(), comm_env)?;
-        self.local_agents.insert(agent.id(), Box::new(agent));
+        self.local_agents.insert(agent.id(), Arc::new(Mutex::new(agent)));
         Ok(self)
 
     }
@@ -83,19 +84,22 @@ RoundRobinModelBuilder<DP, EnvState,  Comm>{
         self.env_builder = self.env_builder.with_processor(process_fn)?;
         Ok(self)
     }*/
-    pub fn get_agent(&self, s: &DP::AgentId) -> Option<&Box<dyn AutomaticAgent<DP> + Send>>{
+    pub fn get_agent(&self, s: &DP::AgentId) -> Option<&Arc<Mutex<dyn AutomaticAgent<DP> + Send>>>{
         self.local_agents.get(s)
 
 
     }
 
     pub fn add_local_agent(mut self,
-                           agent: Box<dyn AutomaticAgent<DP> + Send>,
+                           agent: Arc<Mutex<dyn AutomaticAgent<DP> + Send>>,
                            env_comm: Comm)
                            -> Result<Self, SetupError<DP>>{
 
-        self.env_builder = self.env_builder.add_comm(&agent.as_ref().id(), env_comm)?;
-        self.local_agents.insert(agent.as_ref().id(), agent);
+        let agent_guard = agent.as_ref().lock().unwrap();
+        let id = agent_guard.id();
+        std::mem::drop(agent_guard);
+        self.env_builder = self.env_builder.add_comm(&id, env_comm)?;
+        self.local_agents.insert(id, agent);
 
         Ok(self)
     }

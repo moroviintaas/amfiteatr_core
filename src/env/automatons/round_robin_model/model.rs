@@ -1,20 +1,21 @@
-use std::collections::HashMap;
+use std::collections::{HashMap};
+use std::sync::{Arc, Mutex};
 use std::thread;
-use log::{error, info};
+use log::{debug, error};
 use crate::protocol::{DomainParameters};
 use crate::agent::AutomaticAgent;
 use crate::env::{EnvironmentStateUniScore};
 use crate::env::automatons::rr::RoundRobinUniversalEnvironment;
 use crate::comm::EnvCommEndpoint;
 use crate::env::generic::{HashMapEnv};
-use crate::error::SztormError;
+use crate::error::{SetupError, SztormError};
 
 pub struct RoundRobinModel<
     DP: DomainParameters + 'static,
     EnvState: EnvironmentStateUniScore<DP>,
     Comm: EnvCommEndpoint<DP>>{
     environment: HashMapEnv<DP, EnvState,  Comm>,
-    local_agents: HashMap<DP::AgentId, Box<dyn AutomaticAgent<DP> + Send>>,
+    local_agents: HashMap<DP::AgentId, Arc<Mutex<dyn AutomaticAgent<DP> + Send>>>,
 }
 
 impl<
@@ -22,7 +23,7 @@ impl<
     EnvState: EnvironmentStateUniScore<DP>,
     Comm: EnvCommEndpoint<DP>>
 RoundRobinModel<DP, EnvState, Comm>{
-    pub fn new(environment: HashMapEnv<DP, EnvState, Comm>, local_agents: HashMap<DP::AgentId,Box<dyn AutomaticAgent<DP> + Send>>) -> Self{
+    pub fn new(environment: HashMapEnv<DP, EnvState, Comm>, local_agents: HashMap<DP::AgentId, Arc<Mutex<dyn AutomaticAgent<DP>  + Send >>>) -> Self{
         Self{environment, local_agents}
     }
 
@@ -30,9 +31,12 @@ RoundRobinModel<DP, EnvState, Comm>{
 
 
     pub fn play(&mut self) -> Result<(), SztormError<DP>>{
-        let mut agent_collectors = HashMap::<DP::AgentId, std::sync::mpsc::Receiver<Box<dyn AutomaticAgent<DP> + Send>>>::new();
 
 
+
+
+        /*
+        et mut agent_collectors = HashMap::<DP::AgentId, std::sync::mpsc::Receiver<Box<dyn AutomaticAgent<DP> + Send>>>::new();
         for (id, mut agent) in self.local_agents.drain(){
             //self.
             let (agent_return_sender, agent_return_receiver) = std::sync::mpsc::channel();
@@ -63,12 +67,68 @@ RoundRobinModel<DP, EnvState, Comm>{
         }
 
         Ok(())
+
+         */
+        /*
+        let mut handlers = HashMap::new();
+        for (id, mut agent) in self.local_agents.iter(){
+            let arc_agent = agent.clone();
+
+
+            let handler = thread::spawn(move ||{
+                debug!("Spawning thread for agent {}", id);
+                let mut guard = arc_agent.lock().or_else(|_|Err(SetupError::<DP>::AgentMutexLock)).unwrap();
+                let id = guard.id();
+                guard.run().map_err(|e|{
+                    error!("Agent {id:} encountered error: {e:}")
+                }).unwrap();
+            });
+            handlers.insert(id, handler);
+
+
+        }
+        //info!("Collector HashMap len: {}", agent_collectors.len());
+        self.environment.run_round_robin_uni_rewards().map_err(|e|{
+            error!("Environment run error: {e:}");
+            e
+        })?;
+        for (id, h) in handlers.into_iter(){
+            h.join().or_else(|_|Err(FailedJoinAgent(*id)))?;
+        }
+        Ok(())
+
+         */
+        thread::scope(|s|{
+            let mut handlers = HashMap::new();
+            for (id, agent) in self.local_agents.iter(){
+                let arc_agent = agent.clone();
+
+
+                let handler = s.spawn( move ||{
+                    debug!("Spawning thread for agent {}", id);
+                    let mut guard = arc_agent.lock().or_else(|_|Err(SetupError::<DP>::AgentMutexLock)).unwrap();
+                    let id = guard.id();
+                    guard.run().map_err(|e|{
+                        error!("Agent {id:} encountered error: {e:}")
+                    }).unwrap();
+                });
+                handlers.insert(id, handler);
+            }
+            self.environment.run_round_robin_uni_rewards().map_err(|e|{
+                error!("Environment run error: {e:}");
+                e
+            }).unwrap();
+
+        });
+
+        Ok(())
+
     }
 
     pub fn env(&self) -> &HashMapEnv<DP, EnvState,  Comm>{
         &self.environment
     }
-    pub fn local_agents(&self) -> &HashMap<DP::AgentId, Box<dyn AutomaticAgent<DP> + Send>>{
+    pub fn local_agents(&self) -> &HashMap<DP::AgentId, Arc<Mutex<dyn AutomaticAgent<DP> + Send>>>{
         &self.local_agents
     }
 }

@@ -1,8 +1,8 @@
 use thiserror::Error;
-use crate::error::{CommError, ProtocolError, SetupError};
+use crate::error::{CommError, ProtocolError, SetupError, WorldError};
 use crate::protocol::{DomainParameters};
 
-#[derive(Debug, Clone,  Error)]
+#[derive(Debug, Clone, Error)]
 #[cfg_attr(feature = "speedy", derive(speedy::Writable, speedy::Readable))]
 pub enum SztormError<Spec: DomainParameters>{
     #[error("Game error: {0}")]
@@ -16,5 +16,9 @@ pub enum SztormError<Spec: DomainParameters>{
     #[error("Setup error: {0}")]
     Setup(SetupError<Spec>),
     #[error("Data convert")]
-    DataConvert()
+    DataConvert(),
+    #[error("Internal")]
+    Internal(WorldError<Spec>),
+    //#[error("External: {0}")]
+    //External(String)
 }

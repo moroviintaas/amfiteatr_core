@@ -29,6 +29,7 @@ pub struct SyncComm<OT, IT, E: Error>{
     _phantom: PhantomData<E>
 }
 
+
 pub type SyncCommEnv<Spec> = SyncComm<EnvMessage<Spec>, AgentMessage<Spec>, CommError<Spec>>;
 pub type SyncCommAgent<Spec> = SyncComm<AgentMessage<Spec>, EnvMessage<Spec>,  CommError<Spec>>;
 
@@ -71,5 +72,39 @@ OT: Debug, IT:Debug{
     }
 
 
+}
+
+
+pub enum DynComm<OT, IT, E: Error>{
+    Std(SyncComm<OT, IT, E>),
+    Dynamic(Box<dyn CommEndpoint<OutwardType = OT, InwardType = IT, Error = E>>)
+}
+
+impl <OT: Debug, IT: Debug, E: Error> CommEndpoint for DynComm<OT, IT, E>
+where E: From<RecvError> + From<SendError<OT>> + From<TryRecvError> + From<SendError<IT>>{
+    type OutwardType = OT;
+    type InwardType = IT;
+    type Error = E;
+
+    fn send(&mut self, message: Self::OutwardType) -> Result<(), Self::Error> {
+        match self{
+            DynComm::Std(c) => c.send(message),
+            DynComm::Dynamic(c) => {c.as_mut().send(message)}
+        }
+    }
+
+    fn recv(&mut self) -> Result<Self::InwardType, Self::Error> {
+        match self{
+            DynComm::Std(c) => c.recv(),
+            DynComm::Dynamic(c) => {c.as_mut().recv()}
+        }
+    }
+
+    fn try_recv(&mut self) -> Result<Self::InwardType, Self::Error> {
+        match self{
+            DynComm::Std(c) => c.try_recv(),
+            DynComm::Dynamic(c) => {c.as_mut().try_recv()}
+        }
+    }
 }
 

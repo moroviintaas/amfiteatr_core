@@ -2,7 +2,7 @@
 use crate::protocol::DomainParameters;
 use crate::state::ConstructedState;
 
-pub trait EnvironmentState<DP: DomainParameters>{
+pub trait EnvironmentState<DP: DomainParameters>: Send{
     type Updates: IntoIterator<Item = (DP::AgentId, DP::UpdateType)>;
 
     fn current_player(&self) -> Option<DP::AgentId>;

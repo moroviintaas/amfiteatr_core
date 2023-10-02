@@ -12,8 +12,9 @@ pub enum SetupError<Spec: DomainParameters>{
     #[error("Missing environment initial state")]
     MissingState,
     #[error("Missing action processing function")]
-    MissingActionProcessingFunction
-
+    MissingActionProcessingFunction,
+    #[error("Failed locking mutex for agent")]
+    AgentMutexLock,
 
 }
 impl<Spec: DomainParameters> From<SetupError<Spec>> for SztormError<Spec>{
