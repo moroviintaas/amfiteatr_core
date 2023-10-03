@@ -3,17 +3,17 @@
 use crate::{comm::CommEndpoint};
 use crate::env::StatefulEnvironment;
 
-use crate::error::{SetupError};
 use crate::domain::{DomainParameters};
+use crate::error::WorldError;
 
 pub trait EnvironmentBuilderTrait<DP: DomainParameters, Env: StatefulEnvironment<DP>>: Default{
 
     //type Environment: EnvironmentRR<Spec = Self::ProtocolSpec>;
     type Comm: CommEndpoint;
 
-    fn build(self) -> Result<Env, SetupError<DP>>;
-    fn add_comm(self, agent_id: &DP::AgentId, comm: Self::Comm) -> Result<Self, SetupError<DP>>;
-    fn with_state(self, state: Env::State) -> Result<Self, SetupError<DP>>;
+    fn build(self) -> Result<Env, WorldError<DP>>;
+    fn add_comm(self, agent_id: &DP::AgentId, comm: Self::Comm) -> Result<Self, WorldError<DP>>;
+    fn with_state(self, state: Env::State) -> Result<Self, WorldError<DP>>;
 
 }
 

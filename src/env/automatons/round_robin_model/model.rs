@@ -8,7 +8,7 @@ use crate::env::{EnvironmentStateUniScore};
 use crate::env::automatons::rr::RoundRobinUniversalEnvironment;
 use crate::comm::EnvCommEndpoint;
 use crate::env::generic::{HashMapEnv};
-use crate::error::{SetupError, SztormError};
+use crate::error::{SztormError, WorldError};
 
 pub struct RoundRobinModel<
     DP: DomainParameters + 'static,
@@ -106,7 +106,7 @@ RoundRobinModel<DP, EnvState, Comm>{
 
                 let handler = s.spawn( move ||{
                     debug!("Spawning thread for agent {}", id);
-                    let mut guard = arc_agent.lock().or_else(|_|Err(SetupError::<DP>::AgentMutexLock)).unwrap();
+                    let mut guard = arc_agent.lock().or_else(|_|Err(WorldError::<DP>::AgentMutexLock)).unwrap();
                     let id = guard.id();
                     guard.run().map_err(|e|{
                         error!("Agent {id:} encountered error: {e:}")

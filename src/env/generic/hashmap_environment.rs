@@ -3,7 +3,7 @@ use std::collections::{HashMap};
 use log::debug;
 use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentBuilderTrait, EnvironmentState, EnvironmentStateUniScore, EnvironmentWithAgents, ResetEnvironment, ScoreEnvironment, StatefulEnvironment};
 use crate::{comm::EnvCommEndpoint};
-use crate::error::{CommError, SetupError};
+use crate::error::{CommError, WorldError};
 use crate::domain::{AgentMessage, DomainParameters, EnvMessage, Reward};
 
 
@@ -211,22 +211,22 @@ impl<
 EnvironmentBuilderTrait<DP, HashMapEnv<DP, S, C>> for GenericEnvironmentBuilder<DP, S, C>{
     type Comm = C;
 
-    fn build(self) -> Result<HashMapEnv<DP, S, C>, SetupError<DP>>{
+    fn build(self) -> Result<HashMapEnv<DP, S, C>, WorldError<DP>>{
 
 
         Ok(HashMapEnv::new(
-            self.state_opt.ok_or(SetupError::MissingState)?,
+            self.state_opt.ok_or(WorldError::MissingState)?,
             self.comm_endpoints))
 
     }
 
-    fn add_comm(mut self, agent_id: &DP::AgentId, comm: C) -> Result<Self, SetupError<DP>>{
+    fn add_comm(mut self, agent_id: &DP::AgentId, comm: C) -> Result<Self, WorldError<DP>>{
 
         let _ = &mut self.comm_endpoints.insert(*agent_id, comm);
         Ok(self)
     }
 
-    fn with_state(mut self, state: S) -> Result<Self, SetupError<DP>>{
+    fn with_state(mut self, state: S) -> Result<Self, WorldError<DP>>{
         self.state_opt = Some(state);
         Ok(self)
     }

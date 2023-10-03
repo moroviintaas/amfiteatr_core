@@ -80,8 +80,8 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                             }
                             Err(err) => {
                                 error!("Agent {:?} error on updating state: {}", self.id(), &err);
-                                self.send(AgentMessage::NotifyError(SztormError::Game(err.clone())))?;
-                                return Err(SztormError::Game(err));
+                                self.send(AgentMessage::NotifyError(SztormError::GameA(err.clone(), self.id())))?;
+                                return Err(SztormError::GameA(err.clone(), self.id()));
                             }
                         }
                     }

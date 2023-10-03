@@ -3,10 +3,9 @@ use log::{debug, error, info, warn};
 use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentState, EnvironmentWithAgents, ScoreEnvironment, StatefulEnvironment};
 use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::PlayerExited;
-use crate::error::SztormError::GameWithConvict;
 use crate::domain::{AgentMessage, EnvMessage, DomainParameters, Reward};
 use crate::domain::EnvMessage::ErrorNotify;
-
+use crate::error::SztormError::GameA;
 
 
 pub trait RoundRobinEnvironment<DP: DomainParameters>{
@@ -107,7 +106,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                                     error!("Action was refused or caused error in updating state: {e:}");
                                     let _ = self.send_to(&player, EnvMessage::MoveRefused);
                                     let _ = self.send_to_all(EnvMessage::GameFinishedWithIllegalAction(player));
-                                    return Err(GameWithConvict(e, player));
+                                    return Err(GameA(e, player));
                                 }
                             }
                             if let Some(next_player) = self.current_player(){
@@ -207,7 +206,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                                     let _ = self.send_to(&player, EnvMessage::MoveRefused);
 
                                     let _ = self.send_to_all(EnvMessage::GameFinishedWithIllegalAction(player));
-                                    return Err(GameWithConvict(e, player));
+                                    return Err(GameA(e, player));
                                 }
                             }
 
@@ -312,7 +311,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                                         let _ = self.send_to(player, EnvMessage::RewardFragment(reward));
                                     }
                                     let _ = self.send_to_all(EnvMessage::GameFinishedWithIllegalAction(player));
-                                    return Err(GameWithConvict(e, player));
+                                    return Err(GameA(e, player));
                                 }
                             }
                             if let Some(next_player) = self.current_player(){

@@ -6,9 +6,9 @@ use crate::env::{EnvironmentBuilderTrait, EnvironmentStateUniScore};
 use crate::env::automatons::rr::RoundRobinModel;
 use crate::comm::{EnvCommEndpoint, SyncCommEnv};
 use crate::env::generic::{GenericEnvironmentBuilder};
-use crate::error::{SetupError};
 
 use crate::domain::{DomainParameters};
+use crate::error::WorldError;
 use crate::state::agent::ScoringInformationSet;
 
 pub struct RoundRobinModelBuilder<
@@ -31,7 +31,7 @@ RoundRobinModelBuilder<DP, EnvState,  SyncCommEnv<DP>>
         id: DP::AgentId,
         initial_state: <P as Policy<DP>>::StateType,
         policy: P)
-        -> Result<Self, SetupError<DP>>
+        -> Result<Self, WorldError<DP>>
         where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
 
         let (comm_env, comm_agent) = SyncCommEnv::new_pair();
@@ -75,7 +75,7 @@ RoundRobinModelBuilder<DP, EnvState,  Comm>{
     }
     
     pub fn with_env_state(mut self, environment_state: EnvState)
-        -> Result<Self, SetupError<DP>>{
+        -> Result<Self, WorldError<DP>>{
         self.env_builder = self.env_builder.with_state(environment_state)?;
         Ok(self)
     }
@@ -93,7 +93,7 @@ RoundRobinModelBuilder<DP, EnvState,  Comm>{
     pub fn add_local_agent(mut self,
                            agent: Arc<Mutex<dyn AutomaticAgent<DP> + Send>>,
                            env_comm: Comm)
-                           -> Result<Self, SetupError<DP>>{
+                           -> Result<Self, WorldError<DP>>{
 
         let agent_guard = agent.as_ref().lock().unwrap();
         let id = agent_guard.id();
@@ -107,7 +107,7 @@ RoundRobinModelBuilder<DP, EnvState,  Comm>{
 
 
     pub fn with_remote_agent(mut self, agent_id: DP::AgentId,
-                             env_comm: Comm) -> Result<Self, SetupError<DP>>{
+                             env_comm: Comm) -> Result<Self, WorldError<DP>>{
 
         if self.local_agents.contains_key(&agent_id){
             self.local_agents.remove(&agent_id);
@@ -117,7 +117,7 @@ RoundRobinModelBuilder<DP, EnvState,  Comm>{
         Ok(self)
     }
 
-    pub fn build(self) -> Result<RoundRobinModel<DP, EnvState, Comm>, SetupError<DP>>{
+    pub fn build(self) -> Result<RoundRobinModel<DP, EnvState, Comm>, WorldError<DP>>{
         Ok(RoundRobinModel::new(self.env_builder.build()?, self.local_agents))
     }
 
