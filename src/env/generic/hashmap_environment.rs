@@ -2,9 +2,9 @@ use std::collections::{HashMap};
 
 use log::debug;
 use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentBuilderTrait, EnvironmentState, EnvironmentStateUniScore, EnvironmentWithAgents, ResetEnvironment, ScoreEnvironment, StatefulEnvironment};
-use crate::{comm::EnvCommEndpoint, Reward};
+use crate::{comm::EnvCommEndpoint};
 use crate::error::{CommError, SetupError};
-use crate::domain::{AgentMessage, DomainParameters, EnvMessage};
+use crate::domain::{AgentMessage, DomainParameters, EnvMessage, Reward};
 
 
 pub struct HashMapEnv<

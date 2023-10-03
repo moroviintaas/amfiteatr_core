@@ -1,4 +1,8 @@
 mod v1;
-pub mod reward;
+mod reward;
+mod action;
 
 pub use v1::*;
+
+pub use reward::*;
+pub use action::*;

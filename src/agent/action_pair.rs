@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
-use crate::action::Action;
 use crate::agent::AgentIdentifier;
+use crate::domain::Action;
 use crate::state::StateUpdate;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

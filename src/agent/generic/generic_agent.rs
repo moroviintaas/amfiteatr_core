@@ -3,8 +3,7 @@ use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, 
 use crate::agent::policy::Policy;
 use crate::comm::CommEndpoint;
 use crate::error::CommError;
-use crate::{Reward};
-use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
+use crate::domain::{AgentMessage, EnvMessage, DomainParameters, Reward};
 use crate::state::agent::{InformationSet, ScoringInformationSet};
 
 pub struct AgentGen<

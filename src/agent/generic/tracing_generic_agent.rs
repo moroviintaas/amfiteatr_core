@@ -3,8 +3,7 @@ use std::marker::PhantomData;
 use crate::agent::{ActingAgent, Agent, CommunicatingAgent, AgentTrajectory, AgentTrace, Policy, PolicyAgent, ResetAgent, EnvRewardedAgent, StatefulAgent, TracingAgent, InternalRewardedAgent, AgentGen};
 use crate::comm::CommEndpoint;
 use crate::error::CommError;
-use crate::domain::{AgentMessage, DomainParameters, EnvMessage};
-use crate::Reward;
+use crate::domain::{AgentMessage, DomainParameters, EnvMessage, Reward};
 use crate::state::agent::{InformationSet, ScoringInformationSet};
 
 pub struct AgentGenT<

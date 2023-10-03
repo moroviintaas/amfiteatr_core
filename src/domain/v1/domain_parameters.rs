@@ -1,8 +1,8 @@
 use std::fmt::{Debug, Display};
-use crate::action::Action;
+use crate::domain::action::Action;
 use crate::agent::AgentIdentifier;
+use crate::domain::Reward;
 use crate::error::{InternalGameError};
-use crate::Reward;
 use crate::state::StateUpdate;
 
 pub trait DomainParameters: Clone + Debug + Send + Sync + 'static{

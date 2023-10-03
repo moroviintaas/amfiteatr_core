@@ -1,6 +1,5 @@
 use std::fmt::Debug;
-use crate::domain::DomainParameters;
-use crate::Reward;
+use crate::domain::{DomainParameters, Reward};
 use crate::state::ConstructedState;
 
 pub trait InformationSet<DP: DomainParameters>: Send + Debug{

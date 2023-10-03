@@ -11,7 +11,6 @@
 pub mod state;
 /// Traits and generic implementations of agent (player).
 pub mod agent;
-mod action;
 /// Generic structs used in communication between _agents_ and _environment_.
 pub mod domain;
 /// Traits and basic implementation for communication driving structs.
@@ -24,7 +23,4 @@ pub mod world;
 //mod map;
 
 
-pub use action::*;
-
-pub use domain::reward::*;
 //pub use map::*;
