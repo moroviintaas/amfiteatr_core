@@ -1,6 +1,6 @@
 
 use crate::error::SztormError;
-use crate::protocol::DomainParameters;
+use crate::domain::DomainParameters;
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[cfg_attr(feature = "speedy", derive(speedy::Writable, speedy::Readable))]

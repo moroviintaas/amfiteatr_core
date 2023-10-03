@@ -1,5 +1,5 @@
 use crate::env::{EnvironmentState, EnvTrajectory};
-use crate::protocol::DomainParameters;
+use crate::domain::DomainParameters;
 
 pub trait TracingEnv<DP: DomainParameters, S: EnvironmentState<DP>>{
 

@@ -2,7 +2,7 @@ use std::collections::{HashMap};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use log::{debug, error};
-use crate::protocol::{DomainParameters};
+use crate::domain::{DomainParameters};
 use crate::agent::AutomaticAgent;
 use crate::env::{EnvironmentStateUniScore};
 use crate::env::automatons::rr::RoundRobinUniversalEnvironment;

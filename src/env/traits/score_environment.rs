@@ -1,5 +1,5 @@
 use crate::env::{EnvironmentState, StatefulEnvironment};
-use crate::protocol::DomainParameters;
+use crate::domain::DomainParameters;
 
 pub trait ScoreEnvironment<DP: DomainParameters>: StatefulEnvironment<DP>{
 

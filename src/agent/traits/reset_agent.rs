@@ -1,5 +1,5 @@
 use crate::agent::StatefulAgent;
-use crate::protocol::DomainParameters;
+use crate::domain::DomainParameters;
 
 pub trait ResetAgent<DP: DomainParameters>: StatefulAgent<DP>{
 

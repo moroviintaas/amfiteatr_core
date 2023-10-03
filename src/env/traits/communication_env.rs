@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
+use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
 
 pub trait CommunicatingEnv<Spec: DomainParameters>{
     //type Outward;

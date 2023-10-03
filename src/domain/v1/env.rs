@@ -1,6 +1,6 @@
 use crate::agent::AgentActionPair;
 use crate::error::SztormError;
-use crate::protocol::v1::domain_parameters::DomainParameters;
+use crate::domain::v1::domain_parameters::DomainParameters;
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "speedy", derive(speedy::Writable, speedy::Readable))]

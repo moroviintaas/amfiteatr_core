@@ -6,8 +6,8 @@ use std::ops::{Add, AddAssign, Sub};
 /// It is implemented for standard types and you can use your own type as reward,
 /// if only you made it partially comparable and summable.
 pub trait Reward: Send + Clone + Debug + PartialEq  + PartialOrd + Default +
-    for<'a> Add<&'a Self, Output=Self> + Add<Output=Self> + for<'a> AddAssign<&'a Self>
-    + Sub<Output=Self> + for<'a> Sub<&'a Self, Output=Self> + Sub + Add {
+    for<'a> Add<&'a Self, Output=Self> + Add<Output=Self> + Add + for<'a> AddAssign<&'a Self>
+    + Sub<Output=Self> + for<'a> Sub<&'a Self, Output=Self> + Sub {
     /// This is constructor used to produce neutral value of reward, i.e.
     /// the reward that does not change the score. For standard numeric
     /// types this is just value of 0.

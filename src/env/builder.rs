@@ -4,7 +4,7 @@ use crate::{comm::CommEndpoint};
 use crate::env::StatefulEnvironment;
 
 use crate::error::{SetupError};
-use crate::protocol::{DomainParameters};
+use crate::domain::{DomainParameters};
 
 pub trait EnvironmentBuilderTrait<DP: DomainParameters, Env: StatefulEnvironment<DP>>: Default{
 

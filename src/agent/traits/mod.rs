@@ -15,7 +15,7 @@ pub use tracing_agent::*;
 pub use reset_agent::*;
 pub use policy_agent::*;
 pub use internal_rewarded_agent::*;
-use crate::protocol::DomainParameters;
+use crate::domain::DomainParameters;
 
 pub trait Agent<DP: DomainParameters>{
     fn id(&self) -> DP::AgentId;

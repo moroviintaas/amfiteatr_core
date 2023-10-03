@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 use crate::state::agent::InformationSet;
 use rand::seq::IteratorRandom;
-use crate::protocol::DomainParameters;
+use crate::domain::DomainParameters;
 
 
 pub trait Policy<Spec: DomainParameters>: Send{

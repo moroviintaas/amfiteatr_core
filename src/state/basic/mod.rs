@@ -1,7 +1,7 @@
 mod state_update;
 
 pub use state_update::*;
-use crate::protocol::DomainParameters;
+use crate::domain::DomainParameters;
 
 pub trait ConstructedState<DP: DomainParameters, B>{
 

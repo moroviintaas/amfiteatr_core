@@ -4,7 +4,7 @@ use crate::agent::policy::Policy;
 use crate::comm::CommEndpoint;
 use crate::error::CommError;
 use crate::{Reward};
-use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
+use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
 use crate::state::agent::{InformationSet, ScoringInformationSet};
 
 pub struct AgentGen<

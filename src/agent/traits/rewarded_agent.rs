@@ -1,5 +1,5 @@
 use crate::agent::Agent;
-use crate::protocol::DomainParameters;
+use crate::domain::DomainParameters;
 
 pub trait EnvRewardedAgent<DP: DomainParameters>: Agent<DP>{
     fn current_universal_reward(&self) -> DP::UniversalReward;

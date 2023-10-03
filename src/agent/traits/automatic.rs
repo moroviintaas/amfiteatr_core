@@ -2,10 +2,10 @@ use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, 
 use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
 use crate::error::SztormError::Protocol;
-use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
+use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
 use crate::state::agent::{InformationSet, ScoringInformationSet};
 use log::{info, debug, error, warn};
-use crate::protocol::AgentMessage::{NotifyError, TakeAction};
+use crate::domain::AgentMessage::{NotifyError, TakeAction};
 
 
 pub trait AutomaticAgent<Spec: DomainParameters>: Agent<Spec>{

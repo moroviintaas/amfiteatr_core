@@ -1,5 +1,5 @@
 use crate::agent::Agent;
-use crate::protocol::DomainParameters;
+use crate::domain::DomainParameters;
 use crate::state::agent::InformationSet;
 
 

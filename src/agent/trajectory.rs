@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 use std::ops::Index;
-use crate::protocol::DomainParameters;
+use crate::domain::DomainParameters;
 use crate::state::agent::{ScoringInformationSet};
 
 

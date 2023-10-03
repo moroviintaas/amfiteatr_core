@@ -1,6 +1,6 @@
 use thiserror::Error;
 use crate::error::{CommError, ProtocolError, SetupError, WorldError};
-use crate::protocol::{DomainParameters};
+use crate::domain::{DomainParameters};
 
 #[derive(Debug, Clone, Error)]
 #[cfg_attr(feature = "speedy", derive(speedy::Writable, speedy::Readable))]

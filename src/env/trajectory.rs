@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 use crate::env::EnvironmentState;
-use crate::protocol::DomainParameters;
+use crate::domain::DomainParameters;
 
 #[derive(Clone, Debug)]
 pub enum CheckedAction<DP: DomainParameters>{

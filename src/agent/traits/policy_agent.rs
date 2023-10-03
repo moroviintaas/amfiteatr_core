@@ -1,5 +1,5 @@
 use crate::agent::{Agent, Policy, StatefulAgent};
-use crate::protocol::DomainParameters;
+use crate::domain::DomainParameters;
 
 pub trait ActingAgent<DP: DomainParameters>: Agent<DP> {
 

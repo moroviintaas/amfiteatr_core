@@ -1,5 +1,5 @@
 
-use crate::protocol::DomainParameters;
+use crate::domain::DomainParameters;
 /*
 pub trait EnvironmentWithAgents<'a, Id: AgentIdentifier + 'a>{
     type PlayerIterator: IntoIterator<Item = &'a Id>;

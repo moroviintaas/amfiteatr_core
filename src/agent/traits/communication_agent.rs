@@ -1,6 +1,6 @@
 use std::error::Error;
 use crate::agent::Agent;
-use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
+use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
 
 pub trait CommunicatingAgent<DP: DomainParameters>: Agent<DP>{
     type CommunicationError: Error;

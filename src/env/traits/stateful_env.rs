@@ -1,4 +1,4 @@
-use crate::protocol::DomainParameters;
+use crate::domain::DomainParameters;
 use crate::state::env::EnvironmentState;
 
 

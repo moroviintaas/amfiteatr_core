@@ -1,5 +1,5 @@
 use crate::agent::StatefulAgent;
-use crate::protocol::DomainParameters;
+use crate::domain::DomainParameters;
 use crate::state::agent::ScoringInformationSet;
 
 pub trait InternalRewardedAgent<DP: DomainParameters>: StatefulAgent<DP>

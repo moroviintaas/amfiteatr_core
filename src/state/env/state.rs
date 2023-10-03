@@ -1,5 +1,5 @@
 
-use crate::protocol::DomainParameters;
+use crate::domain::DomainParameters;
 use crate::state::ConstructedState;
 
 pub trait EnvironmentState<DP: DomainParameters>: Send{

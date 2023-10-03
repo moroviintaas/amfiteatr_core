@@ -3,7 +3,7 @@ use crate::comm::EnvCommEndpoint;
 use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentState, EnvironmentStateUniScore, EnvironmentWithAgents, EnvTrajectory, EnvTrace, ScoreEnvironment, StatefulEnvironment, TracingEnv, ResetEnvironment};
 use crate::env::generic::{HashMapEnv};
 use crate::error::CommError;
-use crate::protocol::{AgentMessage, DomainParameters, EnvMessage};
+use crate::domain::{AgentMessage, DomainParameters, EnvMessage};
 
 pub struct HashMapEnvT<
     DP: DomainParameters,

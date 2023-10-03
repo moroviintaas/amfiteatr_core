@@ -13,19 +13,18 @@ pub mod state;
 pub mod agent;
 mod action;
 /// Generic structs used in communication between _agents_ and _environment_.
-pub mod protocol;
+pub mod domain;
 /// Traits and basic implementation for communication driving structs.
 pub mod comm;
 /// Structures used for error handling in framework.
 pub mod error;
 /// Traits and generic implementations for game controlling environment.
 pub mod env;
-mod reward;
 pub mod world;
 //mod map;
 
 
 pub use action::*;
 
-pub use reward::*;
+pub use domain::reward::*;
 //pub use map::*;

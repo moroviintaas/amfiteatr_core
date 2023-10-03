@@ -8,7 +8,7 @@ use crate::comm::{EnvCommEndpoint, SyncCommEnv};
 use crate::env::generic::{GenericEnvironmentBuilder};
 use crate::error::{SetupError};
 
-use crate::protocol::{DomainParameters};
+use crate::domain::{DomainParameters};
 use crate::state::agent::ScoringInformationSet;
 
 pub struct RoundRobinModelBuilder<

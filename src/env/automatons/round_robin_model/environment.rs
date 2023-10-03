@@ -5,8 +5,8 @@ use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentState, Environmen
 use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::PlayerExited;
 use crate::error::SztormError::GameWithConvict;
-use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
-use crate::protocol::EnvMessage::ErrorNotify;
+use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
+use crate::domain::EnvMessage::ErrorNotify;
 
 
 

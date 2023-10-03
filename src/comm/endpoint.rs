@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fmt::Debug;
 
-use crate::{protocol::{EnvMessage, DomainParameters, AgentMessage}, error::CommError};
+use crate::{domain::{EnvMessage, DomainParameters, AgentMessage}, error::CommError};
 
 pub trait CommEndpoint{
     type OutwardType: Debug;

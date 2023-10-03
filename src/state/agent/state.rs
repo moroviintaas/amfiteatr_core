@@ -1,5 +1,5 @@
 use std::fmt::Debug;
-use crate::protocol::DomainParameters;
+use crate::domain::DomainParameters;
 use crate::Reward;
 use crate::state::ConstructedState;
 

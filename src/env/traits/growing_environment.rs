@@ -1,7 +1,7 @@
 use crate::{comm::CommEndpoint};
 use crate::env::CommunicatingEnv;
 use crate::error::{CommError, SetupError};
-use crate::protocol::{AgentMessage, EnvMessage, DomainParameters};
+use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
 
 pub trait GrowingEnvironment<Spec: DomainParameters>: CommunicatingEnv<Spec>{
     type Endpoint: CommEndpoint<OutwardType=EnvMessage<Spec>, InwardType=AgentMessage<Spec>, Error=CommError<Spec>> + ?Sized;
