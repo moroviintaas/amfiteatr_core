@@ -1,13 +1,12 @@
 use std::fmt::{Debug, Display, Formatter};
-use rand::{random, Rng, thread_rng};
+use rand::{thread_rng};
 use rand::distributions::Uniform;
-use crate::agent::{AgentActionPair, AgentIdentifier};
+use crate::agent::{AgentIdentifier};
 use crate::demo::DemoAgentID::Blue;
 use crate::domain::{Action, DomainParameters};
-use crate::env::{EnvironmentState, ScoreEnvironment};
-use crate::error::SztormError;
+use crate::env::{EnvironmentState, EnvironmentStateUniScore};
 use rand::distributions::Distribution;
-use crate::state::agent::InformationSet;
+use crate::state::agent::{InformationSet, ScoringInformationSet};
 
 #[derive(Clone, Debug)]
 pub struct DemoAction(u8);
@@ -82,7 +81,7 @@ impl EnvironmentState<DemoParams> for DemoState{
             return Err(DemoError{})
         }
         let mut r = thread_rng();
-        let mut d = Uniform::new(0.0, self.ceilings[action.0 as usize]);
+        let d = Uniform::new(0.0, self.ceilings[action.0 as usize]);
         let reward: f32 = d.sample(&mut r);
         self.rewards.push(reward);
 
@@ -123,7 +122,31 @@ impl InformationSet<DemoParams> for DemoInfoSet{
         (action.0 as usize) < self.number_of_bandits
     }
 
-    fn update(&mut self, _update: (DemoAgentID, DemoAction, f32)) -> Result<(), DemoError> {
+    fn update(&mut self, update: (DemoAgentID, DemoAction, f32)) -> Result<(), DemoError> {
+        self.rewards.push(update.2);
         Ok(())
+    }
+}
+
+impl ScoringInformationSet<DemoParams> for DemoInfoSet{
+    type RewardType = f32;
+
+    fn current_subjective_score(&self) -> Self::RewardType {
+        self.rewards.iter().sum()
+    }
+
+    fn penalty_for_illegal() -> Self::RewardType {
+        -100.0
+    }
+}
+
+impl EnvironmentStateUniScore<DemoParams> for DemoState{
+    fn state_score_of_player(&self, agent: &DemoAgentID) -> f32 {
+        match agent{
+            Blue => {
+                self.rewards.iter().sum()
+            }
+            _=> 0.0
+        }
     }
 }

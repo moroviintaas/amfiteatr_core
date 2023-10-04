@@ -1,5 +1,4 @@
 use std::error::Error;
-use crate::error::SztormError;
 use crate::domain::DomainParameters;
 
 pub trait InternalGameError<Spec: DomainParameters>: Error + Clone{

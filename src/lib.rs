@@ -10,12 +10,12 @@
 //! ```
 //! use std::collections::HashMap;
 //! use std::thread;
-//! use sztorm::agent::{AgentGenT, RandomPolicy};
+//! use sztorm::agent::{AgentGenT, AutomaticAgent, AutomaticAgentRewarded, RandomPolicy};
 //! use sztorm::comm::SyncCommEnv;
 //! use sztorm::demo::DemoAgentID::Blue;
 //! use sztorm::demo::{DemoInfoSet, DemoParams, DemoState};
 //! use sztorm::env::generic::{HashMapEnvT};
-//! use sztorm::env::{RoundRobinEnvironment, TracingEnv};
+//! use sztorm::env::{RoundRobinEnvironment, RoundRobinUniversalEnvironment, TracingEnv};
 //! let bandits = vec![5.0, 5.5, 6.0];
 //! let number_of_bandits = bandits.len();
 //! let state = DemoState::new(bandits, 10);
@@ -28,11 +28,11 @@
 //!
 //! thread::scope(|s|{
 //!     s.spawn(||{
-//!         environment.run_round_robin().unwrap();
+//!         environment.run_round_robin_uni_rewards().unwrap();
 //!     });
 //!     s.spawn(||{
-//!         agent.run_round_robin().unwrap();
-//!     })
+//!         agent.run_rewarded().unwrap();
+//!     });
 //! });
 //!
 //! assert_eq!(environment.trajectory().list().len(), 10);
