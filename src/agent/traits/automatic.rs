@@ -73,7 +73,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                         return Err(Protocol(ReceivedKill(self.id())))
                     }
                     EnvMessage::UpdateState(su) => {
-                        debug!("Agent {} received state update {}", self.id(), &su);
+                        debug!("Agent {} received state update {:?}", self.id(), &su);
                         match self.update(su){
                             Ok(_) => {
                                 debug!("Agent {:?}: successful state update", self.id());

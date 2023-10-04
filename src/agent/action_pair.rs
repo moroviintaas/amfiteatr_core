@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 use crate::agent::AgentIdentifier;
 use crate::domain::Action;
-use crate::state::StateUpdate;
+//use crate::state::StateUpdate;
 
 /// Structure to represent relation between agent and action.
 /// This is just named tuple (pair in this case).
@@ -25,6 +25,9 @@ impl<Agt: AgentIdentifier, Act: Action> Display for AgentActionPair<Agt, Act> {
     }
 }
 
+/*
 impl<Agt: AgentIdentifier, Act: Action> StateUpdate for AgentActionPair<Agt, Act>{
 
 }
+
+ */
