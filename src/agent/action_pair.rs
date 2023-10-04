@@ -3,11 +3,13 @@ use crate::agent::AgentIdentifier;
 use crate::domain::Action;
 use crate::state::StateUpdate;
 
+/// Structure to represent relation between agent and action.
+/// This is just named tuple (pair in this case).
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "speedy", derive(speedy::Writable, speedy::Readable))]
-pub struct AgentActionPair<Agt: AgentIdentifier, Act: Action>{
-    action: Act,
-    agent: Agt
+pub struct AgentActionPair<Id: AgentIdentifier, A: Action>{
+    pub action: A,
+    pub agent: Id
 }
 
 impl<Agt: AgentIdentifier, Act: Action> AgentActionPair<Agt, Act>{

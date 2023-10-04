@@ -6,6 +6,9 @@ use crate::error::CommError;
 use crate::domain::{AgentMessage, EnvMessage, DomainParameters, Reward};
 use crate::state::agent::{InformationSet, ScoringInformationSet};
 
+/// Generic agent implementing traits proposed in this crate.
+/// This agent implements minimal functionality to work automatically with environment.
+/// This agents does not collect trace of game, for are agent collecting it look for [AgentGenT](crate::agent::AgentGenT).
 pub struct AgentGen<
     DP: DomainParameters,
     P: Policy<DP>,
