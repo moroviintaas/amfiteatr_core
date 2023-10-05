@@ -13,10 +13,10 @@ pub struct AgentGenT<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
 
-    state: <P as Policy<DP>>::StateType,
+    state: <P as Policy<DP>>::InfoSetType,
     comm: Comm,
     policy: P,
     _phantom: PhantomData<DP>,
@@ -25,10 +25,10 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
     constructed_universal_reward: <DP as DomainParameters>::UniversalReward,
     committed_universal_score: <DP as DomainParameters>::UniversalReward,
 
-    game_trajectory: AgentTrajectory<DP, P::StateType>,
+    game_trajectory: AgentTrajectory<DP, P::InfoSetType>,
     last_action: Option<DP::ActionType>,
-    state_before_last_action: Option<<P as Policy<DP>>::StateType>,
-    explicit_subjective_reward_component: <P::StateType as ScoringInformationSet<DP>>::RewardType,
+    state_before_last_action: Option<<P as Policy<DP>>::InfoSetType>,
+    explicit_subjective_reward_component: <P::InfoSetType as ScoringInformationSet<DP>>::RewardType,
 }
 
 impl <DP: DomainParameters,
@@ -38,9 +38,9 @@ impl <DP: DomainParameters,
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
 AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
-    pub fn new(id: DP::AgentId, state: <P as Policy<DP>>::StateType, comm: Comm, policy: P) -> Self{
+    pub fn new(id: DP::AgentId, state: <P as Policy<DP>>::InfoSetType, comm: Comm, policy: P) -> Self{
         Self{state,
             comm,
             policy,
@@ -51,10 +51,22 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
             game_trajectory: AgentTrajectory::new(),
             state_before_last_action: None,
             last_action: None,
-            explicit_subjective_reward_component: <P::StateType as ScoringInformationSet<DP>>::RewardType::neutral()
+            explicit_subjective_reward_component: <P::InfoSetType as ScoringInformationSet<DP>>::RewardType::neutral()
         }
     }
-    pub fn do_change_policy<P2: Policy<DP, StateType=P::StateType>>(self, new_policy: P2) -> AgentGenT<DP, P2, Comm>
+
+    /// Given new policy consumes this agent producing replacement agent (with moved internal state).
+    /// New agent has now provided policy. Previous policy is dropped.
+    /// # Example:
+    /// ```
+    /// use sztorm::agent::{AgentGenT, RandomPolicy};
+    /// use sztorm::comm::SyncCommEnv;
+    /// use sztorm::demo::{DemoAgentID, DemoInfoSet, DemoPolicySelectFirst};
+    /// let (_, comm) = SyncCommEnv::new_pair();
+    /// let agent = AgentGenT::new(DemoAgentID::Red, DemoInfoSet::new(10), comm, RandomPolicy::new());
+    /// let agent_2 = agent.transform_replace_policy(DemoPolicySelectFirst{});
+    /// ```
+    pub fn transform_replace_policy<P2: Policy<DP, InfoSetType=P::InfoSetType>>(self, new_policy: P2) -> AgentGenT<DP, P2, Comm>
     {
         AgentGenT::<DP, P2, Comm>{
             state: self.state,
@@ -72,8 +84,18 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
     }
 
 
-
-    pub fn do_replace_policy<P2: Policy<DP, StateType=P::StateType>>(self, new_policy: P2) -> (AgentGenT<DP, P2, Comm>, P)
+    /// Given new policy consumes this agent producing replacement agent (with moved internal state).
+    /// New agent has now provided policy. Previous policy is returned as second element in tuple.
+    /// # Example:
+    /// ```
+    /// use sztorm::agent::{AgentGenT, RandomPolicy};
+    /// use sztorm::comm::SyncCommEnv;
+    /// use sztorm::demo::{DemoAgentID, DemoInfoSet, DemoPolicySelectFirst};
+    /// let (_, comm) = SyncCommEnv::new_pair();
+    /// let agent = AgentGenT::new(DemoAgentID::Red, DemoInfoSet::new(10), comm, RandomPolicy::new());
+    /// let (agent_2, old_policy) = agent.transform_replace_policy_ret(DemoPolicySelectFirst{});
+    /// ```
+    pub fn transform_replace_policy_ret<P2: Policy<DP, InfoSetType=P::InfoSetType>>(self, new_policy: P2) -> (AgentGenT<DP, P2, Comm>, P)
     {
         let p = self.policy;
         (AgentGenT::<DP, P2, Comm>{
@@ -91,16 +113,17 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
         }, p)
     }
 
+    /// Replaces communication endpoint returning old in return;
     pub fn replace_comm(&mut self, mut comm: Comm) -> Comm{
         std::mem::swap(&mut self.comm, &mut comm);
         comm
     }
     pub fn swap_comms<P2: Policy<DP>>(&mut self, other: &mut AgentGenT<DP, P2, Comm>)
-    where <P2 as Policy<DP>>::StateType: ScoringInformationSet<DP> + Clone{
+    where <P2 as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> + Clone{
         std::mem::swap(&mut self.comm, &mut other.comm)
     }
     pub fn swap_comms_with_basic<P2: Policy<DP>>(&mut self, other: &mut AgentGen<DP, P2, Comm>)
-    where <P2 as Policy<DP>>::StateType: ScoringInformationSet<DP> + Clone{
+    where <P2 as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> + Clone{
         std::mem::swap(&mut self.comm, &mut other.comm_mut())
     }
 
@@ -122,7 +145,7 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
 Agent<DP> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
     fn id(&self) -> DP::AgentId {
         self.id
@@ -141,7 +164,7 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
     CommunicatingAgent<DP> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP> + Clone{
+where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> + Clone{
 
     type CommunicationError = CommError<DP>;
 
@@ -162,9 +185,9 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
 StatefulAgent<DP> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
-    type State = <P as Policy<DP>>::StateType;
+    type State = <P as Policy<DP>>::InfoSetType;
 
     fn update(&mut self, state_update: DP::UpdateType) -> Result<(), DP::GameErrorType> {
         self.state.update(state_update)
@@ -183,7 +206,7 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
 ActingAgent<DP> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP> + Clone{
+where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> + Clone{
 
     fn take_action(&mut self) -> Option<DP::ActionType> {
         self.commit_trace();
@@ -207,8 +230,8 @@ impl<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
-TracingAgent<DP, <P as Policy<DP>>::StateType> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP> ,
+TracingAgent<DP, <P as Policy<DP>>::InfoSetType> for AgentGenT<DP, P, Comm>
+where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> ,
 //for <'a> &'a<DP as DomainParameters>::UniversalReward: Sub<&'a <DP as DomainParameters>::UniversalReward, Output=<DP as DomainParameters>::UniversalReward>,
 //for<'a> &'a <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType: Sub<&'a  <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType, Output = <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType>
 {
@@ -217,11 +240,11 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP> ,
         self.last_action = None;
     }
 
-    fn take_trajectory(&mut self) -> AgentTrajectory<DP, <P as Policy<DP>>::StateType> {
+    fn take_trajectory(&mut self) -> AgentTrajectory<DP, <P as Policy<DP>>::InfoSetType> {
         std::mem::take(&mut self.game_trajectory)
     }
 
-    fn game_trajectory(&self) -> &AgentTrajectory<DP, <P as Policy<DP>>::StateType> {
+    fn game_trajectory(&self) -> &AgentTrajectory<DP, <P as Policy<DP>>::InfoSetType> {
         &self.game_trajectory
     }
 
@@ -257,7 +280,7 @@ where <P as Policy<DP>>::StateType: ScoringInformationSet<DP> ,
         }
     }
 
-    fn explicit_add_subjective_reward(&mut self, explicit: <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType) {
+    fn explicit_add_subjective_reward(&mut self, explicit: <<P as Policy<DP>>::InfoSetType as ScoringInformationSet<DP>>::RewardType) {
         self.explicit_subjective_reward_component += &explicit
     }
 }
@@ -270,7 +293,7 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
 PolicyAgent<DP> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
     type Policy = P;
 
     fn policy(&self) -> &Self::Policy {
@@ -290,7 +313,7 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
 EnvRewardedAgent<DP> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
     fn current_universal_reward(&self) -> DP::UniversalReward {
         self.constructed_universal_reward.clone()
@@ -314,7 +337,7 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
 ResetAgent<DP> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
     fn reset(&mut self, initial_state: <Self as StatefulAgent<DP>>::State) {
         self.state = initial_state;
@@ -336,7 +359,7 @@ impl<
         Error=CommError<DP>>>
 InternalRewardedAgent<DP> for AgentGenT<DP, P, Comm>
 where <Self as StatefulAgent<DP>>::State: ScoringInformationSet<DP>,
-<P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+<P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
     fn current_subjective_score(&self) ->  <<Self as StatefulAgent<DP>>::State as ScoringInformationSet<DP>>::RewardType{
         self.state.current_subjective_score() + &self.explicit_subjective_reward_component
     }

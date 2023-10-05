@@ -4,46 +4,37 @@ use rand::seq::IteratorRandom;
 use crate::domain::DomainParameters;
 
 
-pub trait Policy<Spec: DomainParameters>: Send{
-    type StateType: InformationSet<Spec>;
+pub trait Policy<DP: DomainParameters>: Send{
+    type InfoSetType: InformationSet<DP>;
 
-    fn select_action(&self, state: &Self::StateType) -> Option<Spec::ActionType>;
+    fn select_action(&self, state: &Self::InfoSetType) -> Option<DP::ActionType>;
 }
 
 #[derive(Debug, Copy, Clone, Default)]
-pub struct RandomPolicy<Spec: DomainParameters, State: InformationSet<Spec>>{
+pub struct RandomPolicy<DP: DomainParameters, State: InformationSet<DP>>{
     state: PhantomData<State>,
-    _spec: PhantomData<Spec>
+    _spec: PhantomData<DP>
 }
-impl<Spec: DomainParameters, State: InformationSet<Spec>> RandomPolicy<Spec, State>{
+impl<DP: DomainParameters, InfoSet: InformationSet<DP>> RandomPolicy<DP, InfoSet>{
     pub fn new() -> Self{
         Self{state: PhantomData::default(), _spec: PhantomData::default()}
     }
 }
 
-impl<Spec: DomainParameters, State: InformationSet<Spec>> Policy<Spec> for RandomPolicy<Spec, State>
-where <<State as InformationSet<Spec>>::ActionIteratorType as IntoIterator>::IntoIter : ExactSizeIterator{
-    type StateType = State;
+impl<DP: DomainParameters, InfoSet: InformationSet<DP>> Policy<DP> for RandomPolicy<DP, InfoSet>
+where <<InfoSet as InformationSet<DP>>::ActionIteratorType as IntoIterator>::IntoIter : ExactSizeIterator{
+    type InfoSetType = InfoSet;
 
-    fn select_action(&self, state: &Self::StateType) -> Option<Spec::ActionType> {
+    fn select_action(&self, state: &Self::InfoSetType) -> Option<DP::ActionType> {
         let mut rng = rand::thread_rng();
         state.available_actions().into_iter().choose(&mut rng)
     }
 }
 
-impl<Spec: DomainParameters, P: Policy<Spec>> Policy<Spec> for Box<P>{
-    type StateType = P::StateType;
+impl<DP: DomainParameters, P: Policy<DP>> Policy<DP> for Box<P>{
+    type InfoSetType = P::InfoSetType;
 
-    fn select_action(&self, state: &Self::StateType) -> Option<Spec::ActionType> {
+    fn select_action(&self, state: &Self::InfoSetType) -> Option<DP::ActionType> {
         self.as_ref().select_action(state)
     }
 }
-/*
-pub trait CompatiblePolicy<Spec: ProtocolSpecification>: Policy{}
-impl<Spec: ProtocolSpecification, P: Policy> CompatiblePolicy<Spec> for P
-{
-
-}
-
- */
-//<<<StateType as InformationSet>::Id = Spec::AgentId>>{}

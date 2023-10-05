@@ -29,10 +29,10 @@ RoundRobinModelBuilder<DP, EnvState,  SyncCommEnv<DP>>
     pub fn with_local_generic_agent<P: Policy<DP> + 'static>(
         mut self,
         id: DP::AgentId,
-        initial_state: <P as Policy<DP>>::StateType,
+        initial_state: <P as Policy<DP>>::InfoSetType,
         policy: P)
         -> Result<Self, WorldError<DP>>
-        where <P as Policy<DP>>::StateType: ScoringInformationSet<DP>{
+        where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
         let (comm_env, comm_agent) = SyncCommEnv::new_pair();
         let agent = AgentGen::new(id, initial_state, comm_agent, policy);

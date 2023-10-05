@@ -31,7 +31,7 @@ impl<
 impl<
     Spec: DomainParameters,
     QFunc: QFunction<Spec>> Policy<Spec> for SingleQPolicyGen<Spec,  QFunc> {
-    type StateType = QFunc::StateType;
+    type InfoSetType = QFunc::StateType;
 
     fn select_action(&self, state: &QFunc::StateType) -> Option<Spec::ActionType> {
         state.available_actions().into_iter()

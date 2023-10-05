@@ -10,32 +10,43 @@
 //! ```
 //! use std::collections::HashMap;
 //! use std::thread;
-//! use sztorm::agent::{AgentGenT, AutomaticAgent, AutomaticAgentRewarded, RandomPolicy};
+//! use sztorm::agent::{AgentGen, AgentGenT, AutomaticAgent, AutomaticAgentRewarded, EnvRewardedAgent, RandomPolicy};
 //! use sztorm::comm::SyncCommEnv;
-//! use sztorm::demo::DemoAgentID::Blue;
-//! use sztorm::demo::{DemoInfoSet, DemoParams, DemoState};
-//! use sztorm::env::generic::{HashMapEnvT};
-//! use sztorm::env::{RoundRobinEnvironment, RoundRobinUniversalEnvironment, TracingEnv};
-//! let bandits = vec![5.0, 5.5, 6.0];
+//! use sztorm::demo::{DemoInfoSet, DemoParams, DemoState, DemoAgentID, DemoPolicySelectFirst};
+//! use sztorm::env::{*, generic::*};
+//!
+//!
+//! let bandits = vec![5.0, 11.5, 6.0];
 //! let number_of_bandits = bandits.len();
-//! let state = DemoState::new(bandits, 10);
-//! let (comm_env, comm_agent) = SyncCommEnv::new_pair();
+//! let state = DemoState::new(bandits, 100);
+//! let (comm_env_r, comm_agent_r) = SyncCommEnv::new_pair();
+//! let (comm_env_b, comm_agent_b) = SyncCommEnv::new_pair();
 //! let mut env_comms = HashMap::new();
-//! env_comms.insert(Blue, comm_env);
+//! env_comms.insert(DemoAgentID::Blue, comm_env_b);
+//! env_comms.insert(DemoAgentID::Red, comm_env_r);
 //! let mut environment = HashMapEnvT::new(state, env_comms);
 //! let blue_info_set = DemoInfoSet::new(number_of_bandits);
-//! let mut agent = AgentGenT::new(Blue, blue_info_set, comm_agent, RandomPolicy::<DemoParams, DemoInfoSet>::new());
+//! let red_info_set = DemoInfoSet::new(number_of_bandits);
+//! let mut agent_blue = AgentGenT::new(DemoAgentID::Blue, blue_info_set, comm_agent_b, RandomPolicy::<DemoParams, DemoInfoSet>::new());
+//! let mut agent_red = AgentGen::new(DemoAgentID::Red, red_info_set, comm_agent_r, DemoPolicySelectFirst{});
 //!
 //! thread::scope(|s|{
 //!     s.spawn(||{
 //!         environment.run_round_robin_uni_rewards().unwrap();
 //!     });
 //!     s.spawn(||{
-//!         agent.run_rewarded().unwrap();
+//!         agent_blue.run_rewarded().unwrap();
+//!     });
+//!     s.spawn(||{
+//!         agent_red.run_rewarded().unwrap();
 //!     });
 //! });
 //!
-//! assert_eq!(environment.trajectory().list().len(), 10);
+//! assert_eq!(environment.trajectory().list().len(), 200);
+//! assert!(environment.actual_score_of_player(&DemoAgentID::Blue)> 10.0);
+//! assert!(agent_blue.current_universal_score()> 10.0);
+//! assert!(agent_red.current_universal_score()> 10.0);
+//! assert!(agent_blue.current_universal_score()> agent_red.current_universal_score());
 //! ```
 
 /// Traits for managing state (or information set) of the game.
