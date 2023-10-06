@@ -250,18 +250,16 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> ,
 
     fn commit_trace(&mut self) {
         if let Some(prev_action) = self.last_action.take(){
-            //self.trace.push((self.last_action_state.take().unwrap(), prev_action, self.state.current_score()- std::mem::take(&mut self.last_action_accumulated_reward)))
-            /*let prev_subjective_score = match &self.state_before_last_action{
-                None => Reward::neutral(),
-                Some(state) => state.current_subjective_score()
-            };*/
-            let universal_score_before_update = self.committed_universal_score.clone();
-            //let push_universal_reward = std::mem::replace(&mut self.constructed_universal_reward, Reward::neutral());
+
+           /* let universal_score_before_update = self.committed_universal_score.clone();
+
             self.committed_universal_score += &self.constructed_universal_reward;
             let universal_score_after_update = self.committed_universal_score.clone();
             self.constructed_universal_reward = DP::UniversalReward::neutral();
-
-
+            */
+            let universal_score_before_update = self.committed_universal_score.clone();
+            self.commit_partial_rewards();
+            let universal_score_after_update = self.committed_universal_score.clone();
             let initial_state = self.state_before_last_action.take().unwrap();
             let subjective_score_before_update = initial_state.current_subjective_score();
             let subjective_score_after_update = self.state.current_subjective_score() + &self.explicit_subjective_reward_component;
@@ -326,6 +324,10 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
     fn current_universal_score(&self) -> DP::UniversalReward {
         self.committed_universal_score.clone() + &self.constructed_universal_reward
+    }
+    fn commit_partial_rewards(&mut self) {
+        self.committed_universal_score += &self.constructed_universal_reward;
+        self.constructed_universal_reward = DP::UniversalReward::neutral();
     }
 }
 

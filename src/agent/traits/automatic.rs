@@ -7,16 +7,36 @@ use crate::state::agent::{InformationSet, ScoringInformationSet};
 use log::{info, debug, error, warn};
 use crate::domain::AgentMessage::{NotifyError, TakeAction};
 
-
+/// Trait for agents that perform their interactions with environment automatically,
+/// without waiting for interrupting interaction from anyone but environment.
+/// This trait describes behaviour of agent that is not necessary interested in
+/// collecting rewards from environment.
+/// Implementations are perfectly fine to skip messages about rewards coming
+/// from environment. As trait suited for running game regarding collected rewards
+/// refer to [`AutomaticAgentRewarded`](crate::agent::AutomaticAgentRewarded)
 pub trait AutomaticAgent<Spec: DomainParameters>: Agent<Spec>{
+    /// Runs agent beginning in it's current state (information set)
+    /// and returns when game is finished.
+    /// > __Note__ It is not specified how agent should react when encountering error.
+    /// > One conception is to inform environment about error, which then should broadcast
+    /// > error message to every agent and end game.
     fn run(&mut self) -> Result<(), SztormError<Spec>>;
 }
 
+/// Trait for agents that perform their interactions with environment automatically,
+/// without waiting for interrupting interaction from anyone but environment.
+/// Difference between [`AutomaticAgent`](crate::agent::AutomaticAgent) is that
+/// this method should collect rewards and somehow store rewards sent by environment.
 pub trait AutomaticAgentRewarded<Spec: DomainParameters>: AutomaticAgent<Spec>{
+    /// Runs agent beginning in it's current state (information set)
+    /// and returns when game is finished.
     fn run_rewarded(&mut self) -> Result<(), SztormError<Spec>>;
 }
 
 
+
+/// Generic implementation of AutomaticAgent - probably will be done via macro
+/// in the future to avoid conflicts with custom implementations.
 impl<Agnt, DP> AutomaticAgent<DP> for Agnt
 where Agnt: StatefulAgent<DP> + ActingAgent<DP>
     + CommunicatingAgent<DP, CommunicationError=CommError<DP>>

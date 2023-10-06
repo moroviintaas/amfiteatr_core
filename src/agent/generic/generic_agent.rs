@@ -149,11 +149,14 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>
         self.id = id
     }
 
+    /*
     /// Adds current partial reward to actual score, and then neutralises universal reward
     fn commit_reward_to_score(&mut self){
         self.actual_universal_score += &self.constructed_universal_reward;
         self.constructed_universal_reward = DP::UniversalReward::neutral();
     }
+
+     */
 }
 
 impl<
@@ -212,13 +215,15 @@ ActingAgent<DP> for AgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
     fn take_action(&mut self) -> Option<DP::ActionType> {
-        self.commit_reward_to_score();
+        //self.commit_reward_to_score();
+        self.commit_partial_rewards();
         self.policy.select_action(&self.information_set)
 
     }
 
     fn finalize(&mut self) {
-        self.commit_reward_to_score();
+        self.commit_partial_rewards();
+        //self.commit_reward_to_score();
     }
 }
 
@@ -279,6 +284,11 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
     fn current_universal_score(&self) -> DP::UniversalReward {
         self.actual_universal_score.clone() + &self.constructed_universal_reward
+    }
+
+    fn commit_partial_rewards(&mut self) {
+        self.actual_universal_score += &self.constructed_universal_reward;
+        self.constructed_universal_reward = DP::UniversalReward::neutral();
     }
 }
 

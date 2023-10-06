@@ -6,31 +6,31 @@ use crate::domain::DomainParameters;
 
 #[derive(Debug, Clone, PartialEq, Eq, Error)]
 #[cfg_attr(feature = "speedy", derive(speedy::Writable, speedy::Readable))]
-pub enum CommError<Spec: DomainParameters>{
+pub enum CommError<DP: DomainParameters>{
     #[error("Send Error to {0}")]
-    SendError(Spec::AgentId),
+    SendError(DP::AgentId),
     #[error("Send Error")]
     SendErrorUnspecified,
     #[error("Broadcast Send Error (on {0})")]
-    BroadcastSendError(Spec::AgentId),
+    BroadcastSendError(DP::AgentId),
     #[error("Broadcast Send Error")]
     BroadcastSendErrorUnspecified,
     #[error("TrySend Error to {0}")]
-    TrySendError(Spec::AgentId),
+    TrySendError(DP::AgentId),
     #[error("TrySend Error")]
     TrySendErrorUnspecified,
     #[error("Recv Error from {0}")]
-    RecvError(Spec::AgentId),
+    RecvError(DP::AgentId),
     #[error("Recv Error")]
     RecvErrorUnspecified,
     #[error("TryRecv Error (empty) from {0}")]
-    TryRecvEmptyError(Spec::AgentId),
+    TryRecvEmptyError(DP::AgentId),
     #[error("TryRecv Error (empty")]
     TryRecvErrorEmptyUnspecified,
     #[error("TryRecv Error (disconnected")]
     TryRecvErrorDisconnectedUnspecified,
     #[error("TryRecv Error (disconnected) from {0}")]
-    TryRecvDisconnectedError(Spec::AgentId),
+    TryRecvDisconnectedError(DP::AgentId),
     #[error("Serialize Error")]
     SerializeError,
     #[error("Deserialize Error")]

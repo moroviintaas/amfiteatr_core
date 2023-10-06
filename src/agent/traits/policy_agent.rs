@@ -22,6 +22,7 @@ pub trait ActingAgent<DP: DomainParameters>: Agent<DP> {
 }
 /// Agent that follows some policy, which can be referenced.
 pub trait PolicyAgent<DP: DomainParameters>: StatefulAgent<DP>{
+    /// Policy type that is used by agent
     type Policy: Policy<DP, InfoSetType= <Self as StatefulAgent<DP>>::State>;
 
     /// Returns reference to policy followed by this instance of agent
