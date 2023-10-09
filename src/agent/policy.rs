@@ -4,12 +4,20 @@ use rand::seq::IteratorRandom;
 use crate::domain::DomainParameters;
 
 
+/// Trait meant for structures working as action selectors. Policy based on information set
+/// must select one action if possible.
 pub trait Policy<DP: DomainParameters>: Send{
+    /// Information set which for which this policy is meant to work.
     type InfoSetType: InformationSet<DP>;
 
+    /// Selects action based on information set.
+    /// If at least one action is possible result should be `Some()` otherwise `None`.
     fn select_action(&self, state: &Self::InfoSetType) -> Option<DP::ActionType>;
 }
 
+
+/// Generic random policy - selects action at random based on iterator of possible actions
+/// provided by [`InformationSet`](crate::state::agent::InformationSet).
 #[derive(Debug, Copy, Clone, Default)]
 pub struct RandomPolicy<DP: DomainParameters, State: InformationSet<DP>>{
     state: PhantomData<State>,

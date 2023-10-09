@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::agent::{ActingAgent, Agent, CommunicatingAgent, AgentTrajectory, AgentTrace, Policy, PolicyAgent, ResetAgent, EnvRewardedAgent, StatefulAgent, TracingAgent, InternalRewardedAgent, AgentGen};
+use crate::agent::{ActingAgent, Agent, CommunicatingAgent, AgentTrajectory, AgentTraceStep, Policy, PolicyAgent, ResetAgent, EnvRewardedAgent, StatefulAgent, TracingAgent, InternalRewardedAgent, AgentGen};
 use crate::comm::CommEndpoint;
 use crate::error::CommError;
 use crate::domain::{AgentMessage, DomainParameters, EnvMessage, Reward};
@@ -118,10 +118,13 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
         std::mem::swap(&mut self.comm, &mut comm);
         comm
     }
+    /// Using [`std::mem::swap`](::std::mem::swap) swaps communication endpoints between two instances.
     pub fn swap_comms<P2: Policy<DP>>(&mut self, other: &mut AgentGenT<DP, P2, Comm>)
     where <P2 as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> + Clone{
         std::mem::swap(&mut self.comm, &mut other.comm)
     }
+
+    /// Using [`std::mem::swap`](::std::mem::swap) swaps communication endpoints with instance of [`AgentGent`](crate::agent::AgentGen).
     pub fn swap_comms_with_basic<P2: Policy<DP>>(&mut self, other: &mut AgentGen<DP, P2, Comm>)
     where <P2 as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> + Clone{
         std::mem::swap(&mut self.comm, &mut other.comm_mut())
@@ -131,6 +134,8 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
         &mut self.comm
     }
 
+    /// Changes agent's id.
+    /// __Warning:__ id of agent should correspond with paired communication endpoint on the environment's side.
     pub fn change_id(&mut self, id: DP::AgentId){
         self.id = id
     }
@@ -208,6 +213,7 @@ impl<
 ActingAgent<DP> for AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> + Clone{
 
+    /// Firstly, agent commits last step to stack.
     fn take_action(&mut self) -> Option<DP::ActionType> {
         self.commit_trace();
 
@@ -248,6 +254,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> ,
         &self.game_trajectory
     }
 
+    /// Commits information set change to trajectory. Adds [
     fn commit_trace(&mut self) {
         if let Some(prev_action) = self.last_action.take(){
 
@@ -265,8 +272,8 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> ,
             let subjective_score_after_update = self.state.current_subjective_score() + &self.explicit_subjective_reward_component;
 
 
-            self.game_trajectory.push_trace(
-                AgentTrace::new(
+            self.game_trajectory.push_trace_step(
+                AgentTraceStep::new(
                     initial_state,
                     prev_action,
                     universal_score_before_update,

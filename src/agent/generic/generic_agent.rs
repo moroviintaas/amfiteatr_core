@@ -171,8 +171,10 @@ impl<
     CommunicatingAgent<DP> for AgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>
 {
+
     type CommunicationError = CommError<DP>;
 
+    
     fn send(&mut self, message: AgentMessage<DP>) -> Result<(), Self::CommunicationError> {
         self.comm.send(message)
     }
