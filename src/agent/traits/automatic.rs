@@ -1,10 +1,10 @@
-use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, EnvRewardedAgent, Agent, InternalRewardedAgent};
+use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, EnvRewardedAgent, Agent, InternalRewardedAgent, ScoringInformationSet};
 use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
 use crate::error::SztormError::Protocol;
 use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
-use crate::state::agent::{InformationSet, ScoringInformationSet};
 use log::{info, debug, error, warn};
+use crate::agent::info_set::InformationSet;
 use crate::domain::AgentMessage::{NotifyError, TakeAction};
 
 /// Trait for agents that perform their interactions with environment automatically,

@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
-use crate::state::agent::InformationSet;
 use rand::seq::IteratorRandom;
+use crate::agent::info_set::InformationSet;
 use crate::domain::DomainParameters;
 
 
@@ -17,7 +17,7 @@ pub trait Policy<DP: DomainParameters>: Send{
 
 
 /// Generic random policy - selects action at random based on iterator of possible actions
-/// provided by [`InformationSet`](crate::state::agent::InformationSet).
+/// provided by [`InformationSet`](crate::agent::InformationSet).
 #[derive(Debug, Copy, Clone, Default)]
 pub struct RandomPolicy<DP: DomainParameters, State: InformationSet<DP>>{
     state: PhantomData<State>,

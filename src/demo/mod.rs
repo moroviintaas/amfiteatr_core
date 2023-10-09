@@ -6,7 +6,7 @@ use crate::demo::DemoAgentID::{Blue, Red};
 use crate::domain::{Action, DomainParameters};
 use crate::env::{EnvironmentState, EnvironmentStateUniScore};
 use rand::distributions::Distribution;
-use crate::state::agent::{InformationSet, ScoringInformationSet};
+use crate::agent::{InformationSet, ScoringInformationSet};
 
 #[derive(Clone, Debug)]
 pub struct DemoAction(u8);

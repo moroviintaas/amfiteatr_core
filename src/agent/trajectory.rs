@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 use std::ops::Index;
+use crate::agent::info_set::ScoringInformationSet;
 use crate::domain::DomainParameters;
-use crate::state::agent::{ScoringInformationSet};
 
 /// This struct contains information about _information set (game state from view of agent)_
 /// before taken action along with taken action and saved score before and after taking action.

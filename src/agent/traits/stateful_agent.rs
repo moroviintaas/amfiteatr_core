@@ -1,6 +1,6 @@
 use crate::agent::Agent;
+use crate::agent::info_set::InformationSet;
 use crate::domain::DomainParameters;
-use crate::state::agent::InformationSet;
 
 
 pub trait StatefulAgent<DP: DomainParameters>: Agent<DP>{

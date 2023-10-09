@@ -9,16 +9,16 @@ use crate::agent::{
     InternalRewardedAgent,
     AgentGenT
 };
+use crate::agent::info_set::{InformationSet, ScoringInformationSet};
 use crate::agent::policy::Policy;
 use crate::comm::CommEndpoint;
 use crate::error::CommError;
 use crate::domain::{AgentMessage, EnvMessage, DomainParameters, Reward};
-use crate::state::agent::{InformationSet, ScoringInformationSet};
 
 /// Generic agent implementing traits proposed in this crate.
 /// This agent implements minimal functionality to work automatically with environment.
 /// This agents does not collect trace of game, for are agent collecting it look for [AgentGenT](crate::agent::AgentGenT).
-/// This agent can be built if used Policy operates on information set that is [`ScoringInformationSet`](crate::state::agent::ScoringInformationSet)
+/// This agent can be built if used Policy operates on information set that is [`ScoringInformationSet`](crate::agent::ScoringInformationSet)
 pub struct AgentGen<
     DP: DomainParameters,
     P: Policy<DP>,
@@ -174,7 +174,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>
 
     type CommunicationError = CommError<DP>;
 
-    
+
     fn send(&mut self, message: AgentMessage<DP>) -> Result<(), Self::CommunicationError> {
         self.comm.send(message)
     }

@@ -1,7 +1,7 @@
 
 use std::collections::{HashMap};
 use std::sync::{Arc, Mutex};
-use crate::agent::{Agent, AgentGen, AutomaticAgent, Policy};
+use crate::agent::{Agent, AgentGen, AutomaticAgent, Policy, ScoringInformationSet};
 use crate::env::{EnvironmentBuilderTrait, EnvironmentStateUniScore};
 use crate::env::automatons::rr::RoundRobinModel;
 use crate::comm::{EnvCommEndpoint, SyncCommEnv};
@@ -9,7 +9,6 @@ use crate::env::generic::{GenericEnvironmentBuilder};
 
 use crate::domain::{DomainParameters};
 use crate::error::WorldError;
-use crate::state::agent::ScoringInformationSet;
 
 pub struct RoundRobinModelBuilder<
     DP: DomainParameters,
@@ -42,26 +41,6 @@ RoundRobinModelBuilder<DP, EnvState,  SyncCommEnv<DP>>
 
     }
 }
-/*
-impl<
-    DP: DomainParameters,
-    EnvState: EnvironmentStateUniScore<DP>>
-RoundRobinModelBuilder<DP, EnvState,  Box<dyn EnvCommEndpoint<DP, Error=CommError<DP>, InwardType=AgentMessage<DP>, OutwardType=EnvMessage<DP>>>>{
-    pub fn with_local_generic_agent<P: Policy<DP> + 'static>(
-        mut self,
-        id: DP::AgentId,
-        initial_state: <P as Policy<DP>>::StateType,
-        policy: P)
-        -> Result<Self, SetupError<DP>>{
-
-        let (comm_env, comm_agent) = SyncCommEnv::new_pair();
-        let agent = AgentGen::new(id, initial_state, comm_agent, policy);
-        self.env_builder = self.env_builder.add_comm(&agent.id(), Box::new(comm_env))?;
-        self.local_agents.insert(agent.id(), Box::new(agent));
-        Ok(self)
-
-    }
-}*/
 
 
 #[allow(clippy::borrowed_box)]
