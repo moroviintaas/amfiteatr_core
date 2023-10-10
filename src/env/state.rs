@@ -1,6 +1,8 @@
 
-use crate::domain::DomainParameters;
-use crate::state::ConstructedState;
+
+
+use crate::domain::{Construct, DomainParameters};
+use crate::error::SztormError;
 
 pub trait EnvironmentState<DP: DomainParameters>: Send{
     type Updates: IntoIterator<Item = (DP::AgentId, DP::UpdateType)>;
@@ -32,9 +34,22 @@ impl<DP: DomainParameters, T: EnvironmentState<DP>> EnvironmentState<DP> for Box
 }
 
 
-pub trait ConstructedEnvState<DP: DomainParameters, B>: EnvironmentState<DP> + ConstructedState<DP, B>{}
-impl<DP: DomainParameters, B, T: EnvironmentState<DP> + ConstructedState<DP, B>> ConstructedEnvState<DP, B> for T{}
+pub trait ConstructedEnvState<DP: DomainParameters, B>: EnvironmentState<DP> + Construct<B>{}
+impl<DP: DomainParameters, B, T: EnvironmentState<DP> + Construct<B>> ConstructedEnvState<DP, B> for T{}
 
 
 //impl<DP: DomainParameters, B, T: ConstructedEnvState<DP, B>> ConstructedEnvState<DP, B> for Box<T>{}
 
+
+
+pub trait EnvironmentStateUniScore<DP: DomainParameters>: EnvironmentState<DP>{
+
+    fn state_score_of_player(&self, agent: &DP::AgentId) -> DP::UniversalReward;
+
+}
+
+pub trait ExpandingState<DP: DomainParameters>{
+
+    fn register_agent(&mut self, agent_id: DP::AgentId) -> Result<(), SztormError<DP>>;
+
+}

@@ -1,6 +1,5 @@
 use std::fmt::Debug;
-use crate::domain::{DomainParameters, Reward};
-use crate::state::ConstructedState;
+use crate::domain::{Construct, DomainParameters, Reward};
 
 pub trait InformationSet<DP: DomainParameters>: Send + Debug{
     type ActionIteratorType: IntoIterator<Item = DP::ActionType>;
@@ -47,7 +46,7 @@ impl<T: ScoringInformationSet<Spec>, Spec: DomainParameters> ScoringInformationS
     }
 }
 
-pub trait ConstructedInfoSet<DP: DomainParameters, B>: InformationSet<DP> + ConstructedState<DP, B> {}
-impl<DP: DomainParameters, B, T: InformationSet<DP> + ConstructedState<DP, B>> ConstructedInfoSet<DP, B> for T{}
+pub trait ConstructedInfoSet<DP: DomainParameters, B>: InformationSet<DP> + Construct<B> {}
+impl<DP: DomainParameters, B, T: InformationSet<DP> + Construct<B>> ConstructedInfoSet<DP, B> for T{}
 
 //impl<DP: DomainParameters, B, T: ConstructedInfoSet<DP, B>> ConstructedInfoSet<DP, B> for Box<T>{}

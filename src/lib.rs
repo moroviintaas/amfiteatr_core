@@ -49,8 +49,6 @@
 //! assert!(agent_blue.current_universal_score()> agent_red.current_universal_score());
 //! ```
 
-/// Traits for managing state (or information set) of the game.
-pub mod state;
 /// Traits and generic implementations of agent (player).
 pub mod agent;
 /// Generic structs used in communication between _agents_ and _environment_.

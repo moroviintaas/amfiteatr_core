@@ -1,5 +1,5 @@
 use crate::domain::DomainParameters;
-use crate::state::env::EnvironmentState;
+use crate::env::EnvironmentState;
 
 
 pub trait StatefulEnvironment<DP: DomainParameters>{
