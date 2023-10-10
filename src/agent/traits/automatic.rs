@@ -42,7 +42,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
     + PolicyAgent<DP> + Agent<DP>
     + InternalRewardedAgent<DP>,
       DP: DomainParameters,
-      <Agnt as StatefulAgent<DP>>::State: ScoringInformationSet<DP> + PresentPossibleActions<DP>
+      <Agnt as StatefulAgent<DP>>::InfoSetType: ScoringInformationSet<DP> + PresentPossibleActions<DP>
 {
     fn run(&mut self) -> Result<(), SztormError<DP>> {
         info!("Agent {} starts", self.id());
@@ -55,7 +55,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                         //current_score = Default::default();
 
                         //debug!("Agent's {:?} possible actions: {:?}", self.id(), Vec::from_iter(self.state().available_actions().into_iter()));
-                        debug!("Agent's {} possible actions: {}]", self.id(), self.state().available_actions().into_iter()
+                        debug!("Agent's {} possible actions: {}]", self.id(), self.info_set().available_actions().into_iter()
                             .fold(String::from("["), |a, b| a + &format!("{b:#}") + ", ").trim_end());
                         //match self.policy_select_action(){
                         match self.take_action(){
@@ -72,7 +72,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                     }
                     EnvMessage::MoveRefused => {
                         self.add_explicit_subjective_score(
-                            &<<Self as StatefulAgent<DP>>::State as ScoringInformationSet<DP>>
+                            &<<Self as StatefulAgent<DP>>::InfoSetType as ScoringInformationSet<DP>>
                             ::penalty_for_illegal())
                     }
                     EnvMessage::GameFinished => {
@@ -126,7 +126,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
     + EnvRewardedAgent<DP>
     + InternalRewardedAgent<DP>,
       DP: DomainParameters,
-    <Agnt as StatefulAgent<DP>>::State: ScoringInformationSet<DP> + PresentPossibleActions<DP>{
+    <Agnt as StatefulAgent<DP>>::InfoSetType: ScoringInformationSet<DP> + PresentPossibleActions<DP>{
     fn run_rewarded(&mut self) -> Result<(), SztormError<DP>>
     {
         info!("Agent {} starts", self.id());
@@ -139,7 +139,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                         //current_score = Default::default();
 
                         //debug!("Agent's {:?} possible actions: {:?}", self.id(), Vec::from_iter(self.state().available_actions().into_iter()));
-                        debug!("Agent's {:?} possible actions: {}]", self.id(), self.state().available_actions().into_iter()
+                        debug!("Agent's {:?} possible actions: {}]", self.id(), self.info_set().available_actions().into_iter()
                             .fold(String::from("["), |a, b| a + &format!("{b:#}") + ", ").trim_end());
                         //match self.policy_select_action(){
                         match self.take_action(){
@@ -156,7 +156,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                     }
                     EnvMessage::MoveRefused => {
                         self.add_explicit_subjective_score(
-                            &<<Self as StatefulAgent<DP>>::State as ScoringInformationSet<DP>>
+                            &<<Self as StatefulAgent<DP>>::InfoSetType as ScoringInformationSet<DP>>
                             ::penalty_for_illegal())
                     }
                     EnvMessage::GameFinished => {

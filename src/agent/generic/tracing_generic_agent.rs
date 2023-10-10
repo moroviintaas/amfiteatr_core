@@ -6,6 +6,11 @@ use crate::comm::CommEndpoint;
 use crate::error::CommError;
 use crate::domain::{AgentMessage, DomainParameters, EnvMessage, Reward};
 
+
+/// Generic agent implementing traits proposed in this crate.
+/// This agent implements minimal functionality to work automatically with environment.
+/// This agents  collects trace of game, for are agent not collecting it look for [AgentGen](crate::agent::AgentGen).
+/// This agent can be built if used Policy operates on information set that is [`ScoringInformationSet`](crate::agent::ScoringInformationSet)
 pub struct AgentGenT<
     DP: DomainParameters,
     P: Policy<DP>,
@@ -192,13 +197,13 @@ impl<
 StatefulAgent<DP> for AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
-    type State = <P as Policy<DP>>::InfoSetType;
+    type InfoSetType = <P as Policy<DP>>::InfoSetType;
 
     fn update(&mut self, state_update: DP::UpdateType) -> Result<(), DP::GameErrorType> {
         self.state.update(state_update)
     }
 
-    fn state(&self) -> &Self::State {
+    fn info_set(&self) -> &Self::InfoSetType {
         &self.state
     }
 }
@@ -348,7 +353,7 @@ impl<
 ResetAgent<DP> for AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
-    fn reset(&mut self, initial_state: <Self as StatefulAgent<DP>>::State) {
+    fn reset(&mut self, initial_state: <Self as StatefulAgent<DP>>::InfoSetType) {
         self.state = initial_state;
         self.game_trajectory.clear();
         self.constructed_universal_reward = DP::UniversalReward::neutral();
@@ -367,13 +372,13 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
 InternalRewardedAgent<DP> for AgentGenT<DP, P, Comm>
-where <Self as StatefulAgent<DP>>::State: ScoringInformationSet<DP>,
+where <Self as StatefulAgent<DP>>::InfoSetType: ScoringInformationSet<DP>,
 <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
-    fn current_subjective_score(&self) ->  <<Self as StatefulAgent<DP>>::State as ScoringInformationSet<DP>>::RewardType{
+    fn current_subjective_score(&self) ->  <<Self as StatefulAgent<DP>>::InfoSetType as ScoringInformationSet<DP>>::RewardType{
         self.state.current_subjective_score() + &self.explicit_subjective_reward_component
     }
 
-    fn add_explicit_subjective_score(&mut self, explicit_reward: &<<Self as StatefulAgent<DP>>::State as ScoringInformationSet<DP>>::RewardType) {
+    fn add_explicit_subjective_score(&mut self, explicit_reward: &<<Self as StatefulAgent<DP>>::InfoSetType as ScoringInformationSet<DP>>::RewardType) {
         self.explicit_subjective_reward_component += explicit_reward
     }
 }

@@ -14,9 +14,12 @@ pub trait InformationSet<DP: DomainParameters>: Send + Debug{
     fn is_action_valid(&self, action: &DP::ActionType) -> bool;
     fn update(&mut self, update: DP::UpdateType) -> Result<(), DP::GameErrorType>;
 }
-
+/// Trait for information sets that can provide iterator (Vec or some other kind of list) of
+/// actions that are possible in this state of game.
 pub trait PresentPossibleActions<DP: DomainParameters>: InformationSet<DP>{
+    /// Structure that can be transformed into iterator of actions.
     type ActionIteratorType: IntoIterator<Item = DP::ActionType>;
+    /// Construct and return iterator of possible actions.
     fn available_actions(&self) -> Self::ActionIteratorType;
 }
 
@@ -66,6 +69,12 @@ impl<T: ScoringInformationSet<Spec>, Spec: DomainParameters> ScoringInformationS
     }
 }
 
+
+/// Information set that can be constructed using certain (generic type) value to construct new
+/// information set instance.
+/// > This is meant to be implemented for every information set
+/// used in game by any agent and for state of environment.
+/// Implementing construction based on common seed allows to reload all info sets and states.
 pub trait ConstructedInfoSet<DP: DomainParameters, B>: InformationSet<DP> + Construct<B> {}
 impl<DP: DomainParameters, B, T: InformationSet<DP> + Construct<B>> ConstructedInfoSet<DP, B> for T{}
 

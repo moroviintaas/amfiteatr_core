@@ -23,7 +23,7 @@ pub trait ActingAgent<DP: DomainParameters>: Agent<DP> {
 /// Agent that follows some policy, which can be referenced.
 pub trait PolicyAgent<DP: DomainParameters>: StatefulAgent<DP>{
     /// Policy type that is used by agent
-    type Policy: Policy<DP, InfoSetType= <Self as StatefulAgent<DP>>::State>;
+    type Policy: Policy<DP, InfoSetType= <Self as StatefulAgent<DP>>::InfoSetType>;
 
     /// Returns reference to policy followed by this instance of agent
     fn policy(&self) -> &Self::Policy;
@@ -35,6 +35,6 @@ pub trait PolicyAgent<DP: DomainParameters>: StatefulAgent<DP>{
     /// (self reference is not mutable, however it can be cheated for example with [Cell](::std::cell::Cell))
     fn policy_select_action(&self)
         -> Option<DP::ActionType>{
-        self.policy().select_action(self.state())
+        self.policy().select_action(self.info_set())
     }
 }

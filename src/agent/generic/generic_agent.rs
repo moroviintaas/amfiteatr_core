@@ -195,13 +195,13 @@ impl<
 >
 StatefulAgent<DP> for AgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
-    type State = <P as Policy<DP>>::InfoSetType;
+    type InfoSetType = <P as Policy<DP>>::InfoSetType;
 
     fn update(&mut self, state_update: DP::UpdateType) -> Result<(), DP::GameErrorType> {
         self.information_set.update(state_update)
     }
 
-    fn state(&self) -> &Self::State {
+    fn info_set(&self) -> &Self::InfoSetType {
         &self.information_set
     }
 }
@@ -304,7 +304,7 @@ impl<
 ResetAgent<DP> for AgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
-    fn reset(&mut self, initial_state: <Self as StatefulAgent<DP>>::State) {
+    fn reset(&mut self, initial_state: <Self as StatefulAgent<DP>>::InfoSetType) {
         self.information_set = initial_state;
         self.constructed_universal_reward = DP::UniversalReward::neutral();
         self.actual_universal_score = DP::UniversalReward::neutral();
@@ -319,13 +319,13 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommError<DP>>>
 InternalRewardedAgent<DP> for AgentGen<DP, P, Comm>
-where <Self as StatefulAgent<DP>>::State: ScoringInformationSet<DP>,
+where <Self as StatefulAgent<DP>>::InfoSetType: ScoringInformationSet<DP>,
       <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
-    fn current_subjective_score(&self) ->  <<Self as StatefulAgent<DP>>::State as ScoringInformationSet<DP>>::RewardType{
+    fn current_subjective_score(&self) ->  <<Self as StatefulAgent<DP>>::InfoSetType as ScoringInformationSet<DP>>::RewardType{
         self.information_set.current_subjective_score() + &self.explicit_subjective_reward_component
     }
 
-    fn add_explicit_subjective_score(&mut self, explicit_reward: &<<Self as StatefulAgent<DP>>::State as ScoringInformationSet<DP>>::RewardType) {
+    fn add_explicit_subjective_score(&mut self, explicit_reward: &<<Self as StatefulAgent<DP>>::InfoSetType as ScoringInformationSet<DP>>::RewardType) {
         self.explicit_subjective_reward_component += explicit_reward
     }
 }

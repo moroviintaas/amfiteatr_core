@@ -6,5 +6,5 @@ use crate::domain::DomainParameters;
 /// when game is to be relaunched from beginning (optionally with new start point)
 pub trait ResetAgent<DP: DomainParameters>: StatefulAgent<DP>{
 
-    fn reset(&mut self, new_info_set: <Self as StatefulAgent<DP>>::State);
+    fn reset(&mut self, new_info_set: <Self as StatefulAgent<DP>>::InfoSetType);
 }
