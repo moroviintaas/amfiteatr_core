@@ -1,24 +1,29 @@
 use std::fmt::Debug;
 use crate::domain::{Construct, DomainParameters, Reward};
 
+/// Represents agent's point of view on game state.
+/// > Formally _information set_ is subset of game _states_ that are indistinguishable
+/// from the point of view of this agent.
+/// Most common case is when agent does not know some detail of the game state.
+/// Game states with identical observable details but differing in unobservable (not known) detail
+/// form single _information set_.
 pub trait InformationSet<DP: DomainParameters>: Send + Debug{
-    type ActionIteratorType: IntoIterator<Item = DP::ActionType>;
 
 
 
-    fn available_actions(&self) -> Self::ActionIteratorType;
     fn is_action_valid(&self, action: &DP::ActionType) -> bool;
     fn update(&mut self, update: DP::UpdateType) -> Result<(), DP::GameErrorType>;
+}
 
-
+pub trait PresentPossibleActions<DP: DomainParameters>: InformationSet<DP>{
+    type ActionIteratorType: IntoIterator<Item = DP::ActionType>;
+    fn available_actions(&self) -> Self::ActionIteratorType;
 }
 
 impl<DP: DomainParameters, T: InformationSet<DP>> InformationSet<DP> for Box<T>{
-    type ActionIteratorType = T::ActionIteratorType;
 
-    fn available_actions(&self) -> Self::ActionIteratorType {
-        self.as_ref().available_actions()
-    }
+
+
 
     fn is_action_valid(&self, action: &DP::ActionType) -> bool {
         self.as_ref().is_action_valid(action)
@@ -28,6 +33,21 @@ impl<DP: DomainParameters, T: InformationSet<DP>> InformationSet<DP> for Box<T>{
         self.as_mut().update(update)
     }
 }
+
+impl<DP: DomainParameters, T: PresentPossibleActions<DP>> PresentPossibleActions<DP> for Box<T>{
+    type ActionIteratorType = T::ActionIteratorType;
+
+    fn available_actions(&self) -> Self::ActionIteratorType {
+        self.as_ref().available_actions()
+    }
+}
+
+/// Information Set that can produce score based on it's state.
+/// This reward can be in different type that defined in [`DomainParameters`](crate::domain::DomainParameters).
+/// > It can represent different kind of reward than defined in protocol parameters.
+/// Primary use case is to allow agent interpret it's situation, for example instead of
+/// one numeric value as reward agent may be interested in some vector of numeric values representing
+/// his multi-criterion view on game's result.
 pub trait ScoringInformationSet<DP: DomainParameters>: InformationSet<DP>{
     type RewardType: Reward;
     fn current_subjective_score(&self) -> Self::RewardType;

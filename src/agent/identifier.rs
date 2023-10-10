@@ -1,6 +1,7 @@
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
 
+/// Marker trait for values identifying agent. This simplifies all required traits.
 pub trait AgentIdentifier: Debug + Send + Sync + Copy + Hash + Display + PartialEq + Eq{
 
 }

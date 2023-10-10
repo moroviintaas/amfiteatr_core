@@ -1,10 +1,9 @@
-use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, EnvRewardedAgent, Agent, InternalRewardedAgent, ScoringInformationSet};
+use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, EnvRewardedAgent, Agent, InternalRewardedAgent, ScoringInformationSet, PresentPossibleActions};
 use crate::error::{CommError, SztormError};
 use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
 use crate::error::SztormError::Protocol;
 use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
 use log::{info, debug, error, warn};
-use crate::agent::info_set::InformationSet;
 use crate::domain::AgentMessage::{NotifyError, TakeAction};
 
 /// Trait for agents that perform their interactions with environment automatically,
@@ -43,7 +42,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
     + PolicyAgent<DP> + Agent<DP>
     + InternalRewardedAgent<DP>,
       DP: DomainParameters,
-      <Agnt as StatefulAgent<DP>>::State: ScoringInformationSet<DP>
+      <Agnt as StatefulAgent<DP>>::State: ScoringInformationSet<DP> + PresentPossibleActions<DP>
 {
     fn run(&mut self) -> Result<(), SztormError<DP>> {
         info!("Agent {} starts", self.id());
@@ -127,7 +126,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
     + EnvRewardedAgent<DP>
     + InternalRewardedAgent<DP>,
       DP: DomainParameters,
-    <Agnt as StatefulAgent<DP>>::State: ScoringInformationSet<DP>{
+    <Agnt as StatefulAgent<DP>>::State: ScoringInformationSet<DP> + PresentPossibleActions<DP>{
     fn run_rewarded(&mut self) -> Result<(), SztormError<DP>>
     {
         info!("Agent {} starts", self.id());

@@ -1,7 +1,7 @@
 use std::fmt::{Debug, Display, Formatter};
 use rand::{thread_rng};
 use rand::distributions::Uniform;
-use crate::agent::{AgentIdentifier, Policy};
+use crate::agent::{AgentIdentifier, Policy, PresentPossibleActions};
 use crate::demo::DemoAgentID::{Blue, Red};
 use crate::domain::{Action, DomainParameters};
 use crate::env::{EnvironmentState, EnvironmentStateUniScore};
@@ -126,15 +126,7 @@ impl DemoInfoSet{
 }
 
 impl InformationSet<DemoParams> for DemoInfoSet{
-    type ActionIteratorType = Vec<DemoAction>;
 
-    fn available_actions(&self) -> Self::ActionIteratorType {
-        let mut v = Vec::with_capacity(self.number_of_bandits);
-        for i in 0..self.number_of_bandits as u8{
-            v.push(DemoAction(i));
-        }
-        v
-    }
 
     fn is_action_valid(&self, action: &DemoAction) -> bool {
         (action.0 as usize) < self.number_of_bandits
@@ -143,6 +135,18 @@ impl InformationSet<DemoParams> for DemoInfoSet{
     fn update(&mut self, update: (DemoAgentID, DemoAction, f32)) -> Result<(), DemoError> {
         self.rewards.push(update.2);
         Ok(())
+    }
+}
+
+impl PresentPossibleActions<DemoParams> for DemoInfoSet{
+    type ActionIteratorType = Vec<DemoAction>;
+
+    fn available_actions(&self) -> Self::ActionIteratorType {
+        let mut v = Vec::with_capacity(self.number_of_bandits);
+        for i in 0..self.number_of_bandits as u8{
+            v.push(DemoAction(i));
+        }
+        v
     }
 }
 

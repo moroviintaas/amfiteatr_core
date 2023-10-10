@@ -1,6 +1,7 @@
 use std::marker::PhantomData;
 use rand::seq::IteratorRandom;
 use crate::agent::info_set::InformationSet;
+use crate::agent::PresentPossibleActions;
 use crate::domain::DomainParameters;
 
 
@@ -29,8 +30,8 @@ impl<DP: DomainParameters, InfoSet: InformationSet<DP>> RandomPolicy<DP, InfoSet
     }
 }
 
-impl<DP: DomainParameters, InfoSet: InformationSet<DP>> Policy<DP> for RandomPolicy<DP, InfoSet>
-where <<InfoSet as InformationSet<DP>>::ActionIteratorType as IntoIterator>::IntoIter : ExactSizeIterator{
+impl<DP: DomainParameters, InfoSet: PresentPossibleActions<DP>> Policy<DP> for RandomPolicy<DP, InfoSet>
+where <<InfoSet as PresentPossibleActions<DP>>::ActionIteratorType as IntoIterator>::IntoIter : ExactSizeIterator{
     type InfoSetType = InfoSet;
 
     fn select_action(&self, state: &Self::InfoSetType) -> Option<DP::ActionType> {
