@@ -63,11 +63,11 @@ OT: Debug, IT:Debug{
         self.sender.send(message).map_err(|e| e.into())
     }
 
-    fn recv(&mut self) -> Result<IT, E> {
+    fn receive_blocking(&mut self) -> Result<IT, E> {
         self.receiver.recv().map_err(|e| e.into())
     }
 
-    fn try_recv(&mut self) -> Result<IT, E> {
+    fn receive_non_blocking(&mut self) -> Result<IT, E> {
         self.receiver.try_recv().map_err(|e| e.into())
     }
 
@@ -93,17 +93,17 @@ where E: From<RecvError> + From<SendError<OT>> + From<TryRecvError> + From<SendE
         }
     }
 
-    fn recv(&mut self) -> Result<Self::InwardType, Self::Error> {
+    fn receive_blocking(&mut self) -> Result<Self::InwardType, Self::Error> {
         match self{
-            DynComm::Std(c) => c.recv(),
-            DynComm::Dynamic(c) => {c.as_mut().recv()}
+            DynComm::Std(c) => c.receive_blocking(),
+            DynComm::Dynamic(c) => {c.as_mut().receive_blocking()}
         }
     }
 
-    fn try_recv(&mut self) -> Result<Self::InwardType, Self::Error> {
+    fn receive_non_blocking(&mut self) -> Result<Self::InwardType, Self::Error> {
         match self{
-            DynComm::Std(c) => c.try_recv(),
-            DynComm::Dynamic(c) => {c.as_mut().try_recv()}
+            DynComm::Std(c) => c.receive_non_blocking(),
+            DynComm::Dynamic(c) => {c.as_mut().receive_non_blocking()}
         }
     }
 }

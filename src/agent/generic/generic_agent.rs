@@ -180,7 +180,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>
     }
 
     fn recv(&mut self) -> Result<EnvMessage<DP>, Self::CommunicationError> {
-        self.comm.recv()
+        self.comm.receive_blocking()
     }
 }
 
