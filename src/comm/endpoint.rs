@@ -23,7 +23,7 @@ pub trait CommEndpoint{
     /// Method used to receive message. This method should block waiting for message to come.
     fn receive_blocking(&mut self) -> Result<Self::InwardType, Self::Error>;
     /// Method used to receive message. This method should not block.
-    fn receive_non_blocking(&mut self) -> Result<Self::InwardType, Self::Error>;
+    fn receive_non_blocking(&mut self) -> Result<Option<Self::InwardType>, Self::Error>;
 }
 
 impl<T: ?Sized> CommEndpoint for Box<T>
@@ -41,7 +41,7 @@ where T: CommEndpoint{
         self.as_mut().receive_blocking()
     }
 
-    fn receive_non_blocking(&mut self) -> Result<Self::InwardType, Self::Error> {
+    fn receive_non_blocking(&mut self) -> Result<Option<Self::InwardType>, Self::Error> {
         self.as_mut().receive_non_blocking()
     }
 }

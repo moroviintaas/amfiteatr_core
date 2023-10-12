@@ -143,7 +143,7 @@ CommunicatingEnv<DP> for HashMapEnvT<DP, S, C>{
     }
 
     fn try_recv_from(&mut self, agent_id: &DP::AgentId)
-        -> Result<AgentMessage<DP>, Self::CommunicationError> {
+        -> Result<Option<AgentMessage<DP>>, Self::CommunicationError> {
 
         self.base_environment.try_recv_from(agent_id)
     }

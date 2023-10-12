@@ -87,7 +87,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
         loop{
             for player in self.players(){
                 match self.try_recv_from(&player){
-                    Ok(agent_message) => match agent_message{
+                    Ok(Some(agent_message)) => match agent_message{
                         AgentMessage::TakeAction(action) => {
                             info!("Player {} performs action: {:#}", &player, &action);
 
@@ -138,6 +138,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                             return Err(SztormError::Protocol(PlayerExited(player)))
                         }
                     },
+                    Ok(None) => {},
                     Err(e) => match e{
 
                         CommError::TryRecvEmptyError(_) | CommError::TryRecvDisconnectedError(_) |
@@ -180,7 +181,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
         loop{
             for player in self.players(){
                 match self.try_recv_from(&player){
-                    Ok(agent_message) => match agent_message{
+                    Ok(Some(agent_message)) => match agent_message{
                         AgentMessage::TakeAction(action) => {
                             info!("Player {} performs action: {:#}", &player, &action);
 
@@ -239,6 +240,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                             return Err(SztormError::Protocol(PlayerExited(player)))
                         }
                     },
+                    Ok(None) => {},
                     Err(e) => match e{
 
                         CommError::TryRecvEmptyError(_) | CommError::TryRecvDisconnectedError(_) |
@@ -281,7 +283,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
         loop{
             for player in self.players(){
                 match self.try_recv_from(&player){
-                    Ok(agent_message) => match agent_message{
+                    Ok(Some(agent_message)) => match agent_message{
                         AgentMessage::TakeAction(action) => {
                             info!("Player {} performs action: {:#}", &player, &action);
                             match self.process_action(&player, &action){
@@ -342,6 +344,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                             return Err(SztormError::Protocol(PlayerExited(player)))
                         }
                     },
+                    Ok(None) => {},
                     Err(e) => match e{
 
                         CommError::TryRecvEmptyError(_) | CommError::TryRecvDisconnectedError(_) |

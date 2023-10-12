@@ -10,7 +10,7 @@ pub trait CommunicatingEnv<Spec: DomainParameters>{
     fn send_to(&mut self, agent_id: &Spec::AgentId,  message: EnvMessage<Spec>) -> Result<(), Self::CommunicationError>;
     fn recv_from(&mut self, agent_id: &Spec::AgentId) -> Result<AgentMessage<Spec>, Self::CommunicationError>;
 
-    fn try_recv_from(&mut self, agent_id: &Spec::AgentId) -> Result<AgentMessage<Spec>, Self::CommunicationError>;
+    fn try_recv_from(&mut self, agent_id: &Spec::AgentId) -> Result<Option<AgentMessage<Spec>>, Self::CommunicationError>;
 
 
 }

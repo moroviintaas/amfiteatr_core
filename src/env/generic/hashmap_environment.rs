@@ -126,7 +126,7 @@ CommunicatingEnv<DP> for HashMapEnv<DP, S, C> {
     }
 
     fn try_recv_from(&mut self, agent_id: &DP::AgentId)
-        -> Result<AgentMessage<DP>, Self::CommunicationError> {
+        -> Result<Option<AgentMessage<DP>>, Self::CommunicationError> {
 
         self.comm_endpoints.get_mut(agent_id).ok_or(CommError::NoSuchConnection)
             .map(|v| v.receive_non_blocking())?

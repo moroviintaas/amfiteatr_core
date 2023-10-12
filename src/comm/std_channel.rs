@@ -67,8 +67,15 @@ OT: Debug, IT:Debug{
         self.receiver.recv().map_err(|e| e.into())
     }
 
-    fn receive_non_blocking(&mut self) -> Result<IT, E> {
-        self.receiver.try_recv().map_err(|e| e.into())
+    fn receive_non_blocking(&mut self) -> Result<Option<IT>, E> {
+        self.receiver.try_recv().map_or_else(
+            |e| match e{
+                TryRecvError::Empty => Ok(None),
+                TryRecvError::Disconnected => Err(e.into())
+            },
+            |message| Ok(Some(message))
+        )
+
     }
 
 
@@ -100,7 +107,7 @@ where E: From<RecvError> + From<SendError<OT>> + From<TryRecvError> + From<SendE
         }
     }
 
-    fn receive_non_blocking(&mut self) -> Result<Self::InwardType, Self::Error> {
+    fn receive_non_blocking(&mut self) -> Result<Option<Self::InwardType>, Self::Error> {
         match self{
             DynComm::Std(c) => c.receive_non_blocking(),
             DynComm::Dynamic(c) => {c.as_mut().receive_non_blocking()}
