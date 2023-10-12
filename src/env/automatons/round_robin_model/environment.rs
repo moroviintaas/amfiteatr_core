@@ -141,8 +141,8 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                     Ok(None) => {},
                     Err(e) => match e{
 
-                        CommError::TryRecvEmptyError(_) | CommError::TryRecvDisconnectedError(_) |
-                        CommError::TryRecvErrorEmptyUnspecified | CommError::TryRecvErrorDisconnectedUnspecified=> {
+                        CommError::RecvEmptyBufferError(_) | CommError::RecvPeerDisconnectedError(_) |
+                        CommError::RecvEmptyBufferErrorUnspecified | CommError::RecvPeerDisconnectedErrorUnspecified => {
                             //debug!("Empty channel");
                         },
                         err => {
@@ -243,8 +243,8 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                     Ok(None) => {},
                     Err(e) => match e{
 
-                        CommError::TryRecvEmptyError(_) | CommError::TryRecvDisconnectedError(_) |
-                        CommError::TryRecvErrorEmptyUnspecified | CommError::TryRecvErrorDisconnectedUnspecified=> {
+                        CommError::RecvEmptyBufferError(_) | CommError::RecvPeerDisconnectedError(_) |
+                        CommError::RecvEmptyBufferErrorUnspecified | CommError::RecvPeerDisconnectedErrorUnspecified => {
                             //debug!("Empty channel");
                         },
                         err => {
@@ -347,8 +347,8 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                     Ok(None) => {},
                     Err(e) => match e{
 
-                        CommError::TryRecvEmptyError(_) | CommError::TryRecvDisconnectedError(_) |
-                        CommError::TryRecvErrorEmptyUnspecified | CommError::TryRecvErrorDisconnectedUnspecified=> {
+                        CommError::RecvEmptyBufferError(_) | CommError::RecvPeerDisconnectedError(_) |
+                        CommError::RecvEmptyBufferErrorUnspecified | CommError::RecvPeerDisconnectedErrorUnspecified => {
                             //debug!("Empty channel");
                         },
                         err => {

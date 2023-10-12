@@ -7,34 +7,30 @@ use crate::domain::DomainParameters;
 #[derive(Debug, Clone, PartialEq, Eq, Error)]
 #[cfg_attr(feature = "speedy", derive(speedy::Writable, speedy::Readable))]
 pub enum CommError<DP: DomainParameters>{
-    #[error("Send Error to {0}")]
-    SendError(DP::AgentId),
-    #[error("Send Error")]
-    SendErrorUnspecified,
+    #[error("Send Error to {0}, text: {1}")]
+    SendError(DP::AgentId, String),
+    #[error("Send Error, text: {0}")]
+    SendErrorUnspecified(String),
     #[error("Broadcast Send Error (on {0})")]
     BroadcastSendError(DP::AgentId),
     #[error("Broadcast Send Error")]
     BroadcastSendErrorUnspecified,
-    #[error("TrySend Error to {0}")]
-    TrySendError(DP::AgentId),
-    #[error("TrySend Error")]
-    TrySendErrorUnspecified,
-    #[error("Recv Error from {0}")]
-    RecvError(DP::AgentId),
-    #[error("Recv Error")]
-    RecvErrorUnspecified,
+    #[error("Recv Error from {0}, text: {1}")]
+    RecvError(DP::AgentId, String),
+    #[error("Recv Error, text: {0}")]
+    RecvErrorUnspecified(String),
     #[error("TryRecv Error (empty) from {0}")]
-    TryRecvEmptyError(DP::AgentId),
+    RecvEmptyBufferError(DP::AgentId),
     #[error("TryRecv Error (empty")]
-    TryRecvErrorEmptyUnspecified,
+    RecvEmptyBufferErrorUnspecified,
     #[error("TryRecv Error (disconnected")]
-    TryRecvErrorDisconnectedUnspecified,
+    RecvPeerDisconnectedErrorUnspecified,
     #[error("TryRecv Error (disconnected) from {0}")]
-    TryRecvDisconnectedError(DP::AgentId),
-    #[error("Serialize Error")]
-    SerializeError,
-    #[error("Deserialize Error")]
-    DeserializeError,
+    RecvPeerDisconnectedError(DP::AgentId),
+    #[error("Serialize Error, text: {0}")]
+    SerializeError(String),
+    #[error("Deserialize Error, text: {0}")]
+    DeserializeError(String),
     #[error("No such connection")]
     NoSuchConnection,
 
@@ -44,12 +40,11 @@ impl<Spec: DomainParameters> CommError<Spec>{
 
     pub fn specify_id(self, id: Spec::AgentId) -> Self{
         match self{
-            CommError::SendErrorUnspecified => Self::SendError(id),
+            CommError::SendErrorUnspecified(s) => Self::SendError(id, s),
             CommError::BroadcastSendErrorUnspecified => Self::BroadcastSendError(id),
-            CommError::TrySendErrorUnspecified => Self::TrySendError(id),
-            CommError::RecvErrorUnspecified => Self::RecvError(id),
-            CommError::TryRecvErrorEmptyUnspecified => Self::TryRecvEmptyError(id),
-            CommError::TryRecvErrorDisconnectedUnspecified => Self::TryRecvDisconnectedError(id),
+            CommError::RecvErrorUnspecified(s) => Self::RecvError(id,s),
+            CommError::RecvEmptyBufferErrorUnspecified => Self::RecvEmptyBufferError(id),
+            CommError::RecvPeerDisconnectedErrorUnspecified => Self::RecvPeerDisconnectedError(id),
             any => any
         }
     }
@@ -62,26 +57,27 @@ impl Display for CommError {
 }*/
 
 impl<Spec: DomainParameters> From<RecvError> for CommError<Spec>{
-    fn from(_: RecvError) -> Self {
-        Self::RecvErrorUnspecified
+    fn from(e: RecvError) -> Self {
+        Self::RecvErrorUnspecified(format!("{e:}"))
     }
 }
 impl<Spec: DomainParameters, T> From<SendError<T>> for CommError<Spec>{
-    fn from(_: SendError<T>) -> Self {
-        Self::SendErrorUnspecified
+    fn from(e: SendError<T>) -> Self {
+        Self::SendErrorUnspecified(format!("{e:}"))
     }
 }
 impl<Spec: DomainParameters> From<TryRecvError> for CommError<Spec>{
     fn from(e: TryRecvError) -> Self {
         match e{
-            TryRecvError::Empty => Self::TryRecvErrorEmptyUnspecified,
-            TryRecvError::Disconnected => Self::TryRecvErrorDisconnectedUnspecified
+            TryRecvError::Empty => Self::RecvEmptyBufferErrorUnspecified,
+            TryRecvError::Disconnected => Self::RecvPeerDisconnectedErrorUnspecified
         }
     }
 }
+
 impl<Spec: DomainParameters, T> From<TrySendError<T>> for CommError<Spec>{
-    fn from(_: TrySendError<T>) -> Self {
-        Self::TrySendErrorUnspecified
+    fn from(e: TrySendError<T>) -> Self {
+        Self::SendErrorUnspecified(format!("{e:}"))
     }
 }
 
