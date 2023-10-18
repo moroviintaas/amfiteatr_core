@@ -4,7 +4,7 @@
 use crate::domain::{Construct, DomainParameters};
 use crate::error::SztormError;
 
-pub trait EnvironmentState<DP: DomainParameters>: Send{
+pub trait EnvStateSequential<DP: DomainParameters>: Send{
     type Updates: IntoIterator<Item = (DP::AgentId, DP::UpdateType)>;
 
     fn current_player(&self) -> Option<DP::AgentId>;
@@ -17,7 +17,10 @@ pub trait EnvironmentState<DP: DomainParameters>: Send{
 
 }
 
-impl<DP: DomainParameters, T: EnvironmentState<DP>> EnvironmentState<DP> for Box<T>{
+//pub trait EnvStateSimultaneous{}
+
+
+impl<DP: DomainParameters, T: EnvStateSequential<DP>> EnvStateSequential<DP> for Box<T>{
     type Updates = T::Updates;
 
     fn current_player(&self) -> Option<DP::AgentId> {
@@ -34,15 +37,15 @@ impl<DP: DomainParameters, T: EnvironmentState<DP>> EnvironmentState<DP> for Box
 }
 
 
-pub trait ConstructedEnvState<DP: DomainParameters, B>: EnvironmentState<DP> + Construct<B>{}
-impl<DP: DomainParameters, B, T: EnvironmentState<DP> + Construct<B>> ConstructedEnvState<DP, B> for T{}
+pub trait ConstructedEnvState<DP: DomainParameters, B>: EnvStateSequential<DP> + Construct<B>{}
+impl<DP: DomainParameters, B, T: EnvStateSequential<DP> + Construct<B>> ConstructedEnvState<DP, B> for T{}
 
 
 //impl<DP: DomainParameters, B, T: ConstructedEnvState<DP, B>> ConstructedEnvState<DP, B> for Box<T>{}
 
 
 
-pub trait EnvironmentStateUniScore<DP: DomainParameters>: EnvironmentState<DP>{
+pub trait EnvironmentStateUniScore<DP: DomainParameters>: EnvStateSequential<DP>{
 
     fn state_score_of_player(&self, agent: &DP::AgentId) -> DP::UniversalReward;
 

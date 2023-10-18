@@ -1,9 +1,9 @@
 use crate::domain::DomainParameters;
-use crate::env::EnvironmentState;
+use crate::env::EnvStateSequential;
 
 
 pub trait StatefulEnvironment<DP: DomainParameters>{
-    type State: EnvironmentState<DP>;
+    type State: EnvStateSequential<DP>;
 
     fn state(&self) -> &Self::State;
 
@@ -14,6 +14,6 @@ pub trait StatefulEnvironment<DP: DomainParameters>{
     }
 
     fn process_action(&mut self, agent: &DP::AgentId, action: &DP::ActionType) 
-        -> Result<<Self::State as EnvironmentState<DP>>::Updates, DP::GameErrorType>;
+        -> Result<<Self::State as EnvStateSequential<DP>>::Updates, DP::GameErrorType>;
 
 }

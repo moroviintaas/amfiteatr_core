@@ -4,7 +4,7 @@ use rand::distributions::Uniform;
 use crate::agent::{AgentIdentifier, Policy, PresentPossibleActions};
 use crate::demo::DemoAgentID::{Blue, Red};
 use crate::domain::{Action, DomainParameters};
-use crate::env::{EnvironmentState, EnvironmentStateUniScore};
+use crate::env::{EnvStateSequential, EnvironmentStateUniScore};
 use rand::distributions::Distribution;
 use crate::agent::{InformationSet, ScoringInformationSet};
 
@@ -66,7 +66,7 @@ impl DemoState{
         Self{ceilings, max_rounds, rewards_red: Vec::default(), rewards_blue: Vec::default()}
     }
 }
-impl EnvironmentState<DemoParams> for DemoState{
+impl EnvStateSequential<DemoParams> for DemoState{
     type Updates = Vec<(DemoAgentID, (DemoAgentID, DemoAction, f32))>;
 
     fn current_player(&self) -> Option<DemoAgentID> {

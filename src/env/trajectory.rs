@@ -1,5 +1,5 @@
 use std::fmt::{Display, Formatter};
-use crate::env::EnvironmentState;
+use crate::env::EnvStateSequential;
 use crate::domain::DomainParameters;
 
 #[derive(Clone, Debug)]
@@ -43,13 +43,13 @@ impl<DP: DomainParameters> CheckedAction<DP>{
 
 
 #[derive(Debug, Clone)]
-pub struct EnvTrace<DP: DomainParameters, S: EnvironmentState<DP>>{
+pub struct EnvTrace<DP: DomainParameters, S: EnvStateSequential<DP>>{
     state_before: S,
     agent: DP::AgentId,
     performed_action: CheckedAction<DP>,
 }
 
-impl<DP: DomainParameters, S: EnvironmentState<DP>> Display for EnvTrace<DP, S>
+impl<DP: DomainParameters, S: EnvStateSequential<DP>> Display for EnvTrace<DP, S>
 where S: Display, <DP as DomainParameters>::AgentId: Display,
       <DP as DomainParameters>::ActionType: Display{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -58,7 +58,7 @@ where S: Display, <DP as DomainParameters>::AgentId: Display,
 }
 
 
-impl<DP: DomainParameters, S: EnvironmentState<DP>> EnvTrace<DP, S>{
+impl<DP: DomainParameters, S: EnvStateSequential<DP>> EnvTrace<DP, S>{
 
     pub fn new(state_before: S, agent: DP::AgentId,
                action: DP::ActionType, is_valid: bool) -> Self{
@@ -88,12 +88,12 @@ impl<DP: DomainParameters, S: EnvironmentState<DP>> EnvTrace<DP, S>{
 }
 
 #[derive(Debug, Clone)]
-pub struct EnvTrajectory<DP: DomainParameters, S: EnvironmentState<DP>>{
+pub struct EnvTrajectory<DP: DomainParameters, S: EnvStateSequential<DP>>{
     history: Vec<EnvTrace<DP, S>>,
 
 }
 
-impl<DP: DomainParameters, S: EnvironmentState<DP>> EnvTrajectory<DP, S>{
+impl<DP: DomainParameters, S: EnvStateSequential<DP>> EnvTrajectory<DP, S>{
     pub fn new() -> Self{
         Self{history: Vec::new()}
     }
@@ -111,7 +111,7 @@ impl<DP: DomainParameters, S: EnvironmentState<DP>> EnvTrajectory<DP, S>{
     }
 }
 
-impl<DP: DomainParameters, S: EnvironmentState<DP>> Default for EnvTrajectory<DP, S>{
+impl<DP: DomainParameters, S: EnvStateSequential<DP>> Default for EnvTrajectory<DP, S>{
     fn default() -> Self {
         Self{history: Default::default()}
     }

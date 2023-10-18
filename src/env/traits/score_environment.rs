@@ -1,4 +1,4 @@
-use crate::env::{EnvironmentState, StatefulEnvironment};
+use crate::env::{EnvStateSequential, StatefulEnvironment};
 use crate::domain::DomainParameters;
 
 pub trait ScoreEnvironment<DP: DomainParameters>: StatefulEnvironment<DP>{
@@ -8,7 +8,7 @@ pub trait ScoreEnvironment<DP: DomainParameters>: StatefulEnvironment<DP>{
         agent: &DP::AgentId,
         action: &DP::ActionType,
         penalty_reward: DP::UniversalReward)
-        -> Result<<Self::State as EnvironmentState<DP>>::Updates, DP::GameErrorType>;
+        -> Result<<Self::State as EnvStateSequential<DP>>::Updates, DP::GameErrorType>;
 
     fn actual_state_score_of_player(&self, agent: &DP::AgentId) -> DP::UniversalReward;
     fn actual_penalty_score_of_player(&self, agent: &DP::AgentId) -> DP::UniversalReward;

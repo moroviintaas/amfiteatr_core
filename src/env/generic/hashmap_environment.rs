@@ -1,7 +1,7 @@
 use std::collections::{HashMap};
 
 use log::debug;
-use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentBuilderTrait, EnvironmentState, EnvironmentStateUniScore, EnvironmentWithAgents, ResetEnvironment, ScoreEnvironment, StatefulEnvironment};
+use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentBuilderTrait, EnvStateSequential, EnvironmentStateUniScore, EnvironmentWithAgents, ResetEnvironment, ScoreEnvironment, StatefulEnvironment};
 use crate::{comm::EnvCommEndpoint};
 use crate::error::{CommError, WorldError};
 use crate::domain::{AgentMessage, DomainParameters, EnvMessage, Reward};
@@ -9,7 +9,7 @@ use crate::domain::{AgentMessage, DomainParameters, EnvMessage, Reward};
 
 pub struct HashMapEnv<
     DP: DomainParameters,
-    S: EnvironmentState<DP>,
+    S: EnvStateSequential<DP>,
     C: EnvCommEndpoint<DP>>{
 
     comm_endpoints: HashMap<DP::AgentId, C>,
@@ -19,7 +19,7 @@ pub struct HashMapEnv<
 
 impl <
     DP: DomainParameters,
-    S: EnvironmentState<DP>,
+    S: EnvStateSequential<DP>,
     C: EnvCommEndpoint<DP>>
 HashMapEnv<DP, S, C>{
 
@@ -45,7 +45,7 @@ HashMapEnv<DP, S, C>{
 
 impl<
     DP: DomainParameters,
-    S: EnvironmentState<DP>,
+    S: EnvStateSequential<DP>,
     C: EnvCommEndpoint<DP>>
 StatefulEnvironment<DP> for HashMapEnv<DP, S, C>{
 
@@ -57,7 +57,7 @@ StatefulEnvironment<DP> for HashMapEnv<DP, S, C>{
     }
 
     fn process_action(&mut self, agent: &DP::AgentId, action: &DP::ActionType) 
-        -> Result<<Self::State as EnvironmentState<DP>>::Updates, DP::GameErrorType> {
+        -> Result<<Self::State as EnvStateSequential<DP>>::Updates, DP::GameErrorType> {
         //let updates = self.action_processor.process_action(&mut self.game_state, agent, action)?;
         self.game_state.forward(*agent, action.clone())
         //Ok(updates)
@@ -80,7 +80,7 @@ ScoreEnvironment<DP> for HashMapEnv<DP, S, C>{
         agent: &DP::AgentId,
         action: &DP::ActionType,
         penalty_reward: DP::UniversalReward)
-        -> Result<<Self::State as EnvironmentState<DP>>::Updates, DP::GameErrorType> {
+        -> Result<<Self::State as EnvStateSequential<DP>>::Updates, DP::GameErrorType> {
 
 
         self.game_state.forward(*agent, action.clone()).map_err(|e|{
@@ -106,7 +106,7 @@ ScoreEnvironment<DP> for HashMapEnv<DP, S, C>{
 
 impl<
     DP: DomainParameters,
-    S: EnvironmentState<DP>,
+    S: EnvStateSequential<DP>,
     C: EnvCommEndpoint<DP>>
 CommunicatingEnv<DP> for HashMapEnv<DP, S, C> {
     type CommunicationError = CommError<DP>;
@@ -135,7 +135,7 @@ CommunicatingEnv<DP> for HashMapEnv<DP, S, C> {
 
 impl<
     DP: DomainParameters,
-    S: EnvironmentState<DP>,
+    S: EnvStateSequential<DP>,
     C: EnvCommEndpoint<DP>>
 BroadcastingEnv<DP> for HashMapEnv<DP, S, C>{
     fn send_to_all(&mut self, message: EnvMessage<DP>) -> Result<(), Self::CommunicationError> {
@@ -155,7 +155,7 @@ BroadcastingEnv<DP> for HashMapEnv<DP, S, C>{
 }
 
 impl<'a, DP: DomainParameters + 'a,
-    S: EnvironmentState<DP>,
+    S: EnvStateSequential<DP>,
     C: EnvCommEndpoint<DP>>
  EnvironmentWithAgents<DP> for HashMapEnv<DP, S, C>{
     type PlayerIterator = Vec<DP::AgentId>;
@@ -170,7 +170,7 @@ impl<'a, DP: DomainParameters + 'a,
 
 pub struct GenericEnvironmentBuilder<
     DP: DomainParameters,
-    S:EnvironmentState<DP>,
+    S: EnvStateSequential<DP>,
     C: EnvCommEndpoint<DP> >{
     state_opt: Option<S>,
     comm_endpoints: HashMap<DP::AgentId,  C>,
@@ -178,7 +178,7 @@ pub struct GenericEnvironmentBuilder<
 
 }
 
-impl <DP: DomainParameters, S:EnvironmentState<DP>, C: EnvCommEndpoint<DP>>
+impl <DP: DomainParameters, S: EnvStateSequential<DP>, C: EnvCommEndpoint<DP>>
 GenericEnvironmentBuilder<DP, S, C>{
 
 
@@ -192,7 +192,7 @@ GenericEnvironmentBuilder<DP, S, C>{
 
 impl<
     DP: DomainParameters,
-    S: EnvironmentState<DP>,
+    S: EnvStateSequential<DP>,
     C: EnvCommEndpoint<DP>>
 Default for GenericEnvironmentBuilder<DP, S, C> {
 
@@ -206,7 +206,7 @@ Default for GenericEnvironmentBuilder<DP, S, C> {
 
 impl<
     DP: DomainParameters,
-    S:EnvironmentState<DP>,
+    S: EnvStateSequential<DP>,
     C: EnvCommEndpoint<DP>>
 EnvironmentBuilderTrait<DP, HashMapEnv<DP, S, C>> for GenericEnvironmentBuilder<DP, S, C>{
     type Comm = C;
@@ -234,7 +234,7 @@ EnvironmentBuilderTrait<DP, HashMapEnv<DP, S, C>> for GenericEnvironmentBuilder<
 
 impl<
 DP: DomainParameters,
-    S:EnvironmentState<DP>,
+    S: EnvStateSequential<DP>,
     C: EnvCommEndpoint<DP>>
 ResetEnvironment<DP> for HashMapEnv<DP, S, C>{
     fn reset(&mut self, initial_state: <Self as StatefulEnvironment<DP>>::State) {
