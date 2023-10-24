@@ -64,9 +64,9 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
     /// New agent has now provided policy. Previous policy is dropped.
     /// # Example:
     /// ```
-    /// use sztorm::agent::{AgentGenT, RandomPolicy};
-    /// use sztorm::comm::SyncCommEnv;
-    /// use sztorm::demo::{DemoAgentID, DemoInfoSet, DemoPolicySelectFirst};
+    /// use amfi::agent::{AgentGenT, RandomPolicy};
+    /// use amfi::comm::SyncCommEnv;
+    /// use amfi::demo::{DemoAgentID, DemoInfoSet, DemoPolicySelectFirst};
     /// let (_, comm) = SyncCommEnv::new_pair();
     /// let agent = AgentGenT::new(DemoAgentID::Red, DemoInfoSet::new(10), comm, RandomPolicy::new());
     /// let agent_2 = agent.transform_replace_policy(DemoPolicySelectFirst{});
@@ -93,9 +93,9 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
     /// New agent has now provided policy. Previous policy is returned as second element in tuple.
     /// # Example:
     /// ```
-    /// use sztorm::agent::{AgentGenT, RandomPolicy};
-    /// use sztorm::comm::SyncCommEnv;
-    /// use sztorm::demo::{DemoAgentID, DemoInfoSet, DemoPolicySelectFirst};
+    /// use amfi::agent::{AgentGenT, RandomPolicy};
+    /// use amfi::comm::SyncCommEnv;
+    /// use amfi::demo::{DemoAgentID, DemoInfoSet, DemoPolicySelectFirst};
     /// let (_, comm) = SyncCommEnv::new_pair();
     /// let agent = AgentGenT::new(DemoAgentID::Red, DemoInfoSet::new(10), comm, RandomPolicy::new());
     /// let (agent_2, old_policy) = agent.transform_replace_policy_ret(DemoPolicySelectFirst{});

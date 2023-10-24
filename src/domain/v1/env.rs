@@ -1,5 +1,5 @@
 use crate::agent::AgentActionPair;
-use crate::error::SztormError;
+use crate::error::AmfiError;
 use crate::domain::v1::domain_parameters::DomainParameters;
 
 #[derive(Debug, Clone)]
@@ -13,6 +13,6 @@ pub enum EnvMessage<Spec: DomainParameters>{
     UpdateState(Spec::UpdateType),
     ActionNotify(AgentActionPair<Spec::AgentId, Spec::ActionType>),
     RewardFragment(Spec::UniversalReward),
-    ErrorNotify(SztormError<Spec>),
+    ErrorNotify(AmfiError<Spec>),
 
 }

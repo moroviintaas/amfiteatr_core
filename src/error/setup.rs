@@ -1,5 +1,5 @@
 
-use crate::error::SztormError;
+use crate::error::AmfiError;
 use crate::domain::DomainParameters;
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
@@ -17,8 +17,8 @@ pub enum SetupError<Spec: DomainParameters>{
     AgentMutexLock,
 
 }
-impl<Spec: DomainParameters> From<SetupError<Spec>> for SztormError<Spec>{
+impl<Spec: DomainParameters> From<SetupError<Spec>> for AmfiError<Spec>{
     fn from(value: SetupError<Spec>) -> Self {
-        SztormError::Setup(value)
+        AmfiError::Setup(value)
     }
 }

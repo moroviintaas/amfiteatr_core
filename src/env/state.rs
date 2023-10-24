@@ -2,7 +2,7 @@
 
 
 use crate::domain::{Construct, DomainParameters};
-use crate::error::SztormError;
+use crate::error::AmfiError;
 
 pub trait EnvStateSequential<DP: DomainParameters>: Send{
     type Updates: IntoIterator<Item = (DP::AgentId, DP::UpdateType)>;
@@ -53,6 +53,6 @@ pub trait EnvironmentStateUniScore<DP: DomainParameters>: EnvStateSequential<DP>
 
 pub trait ExpandingState<DP: DomainParameters>{
 
-    fn register_agent(&mut self, agent_id: DP::AgentId) -> Result<(), SztormError<DP>>;
+    fn register_agent(&mut self, agent_id: DP::AgentId) -> Result<(), AmfiError<DP>>;
 
 }

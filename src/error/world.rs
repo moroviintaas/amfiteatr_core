@@ -1,5 +1,5 @@
 use thiserror::Error;
-use crate::error::SztormError;
+use crate::error::AmfiError;
 use crate::domain::DomainParameters;
 
 #[derive(Debug, Clone, Error)]
@@ -20,7 +20,7 @@ pub enum WorldError<DP: DomainParameters>{
     AgentMutexLock,
 }
 
-impl<DP: DomainParameters> From<WorldError<DP>> for SztormError<DP>{
+impl<DP: DomainParameters> From<WorldError<DP>> for AmfiError<DP>{
     fn from(value: WorldError<DP>) -> Self {
         Self::World(value)
     }

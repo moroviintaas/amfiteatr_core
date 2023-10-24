@@ -1,4 +1,4 @@
-//! # Sztorm
+//! # amfi
 //!
 //! __Licence:__ MIT
 //!
@@ -10,10 +10,10 @@
 //! ```
 //! use std::collections::HashMap;
 //! use std::thread;
-//! use sztorm::agent::{AgentGen, AgentGenT, AutomaticAgent, AutomaticAgentRewarded, EnvRewardedAgent, RandomPolicy};
-//! use sztorm::comm::SyncCommEnv;
-//! use sztorm::demo::{DemoInfoSet, DemoParams, DemoState, DemoAgentID, DemoPolicySelectFirst};
-//! use sztorm::env::{*, generic::*};
+//! use amfi::agent::{AgentGen, AgentGenT, AutomaticAgent, AutomaticAgentRewarded, EnvRewardedAgent, RandomPolicy};
+//! use amfi::comm::SyncCommEnv;
+//! use amfi::demo::{DemoInfoSet, DemoParams, DemoState, DemoAgentID, DemoPolicySelectFirst};
+//! use amfi::env::{*, generic::*};
 //!
 //!
 //! let bandits = vec![5.0, 11.5, 6.0];

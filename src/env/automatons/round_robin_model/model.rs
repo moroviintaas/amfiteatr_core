@@ -8,7 +8,7 @@ use crate::env::{EnvironmentStateUniScore};
 use crate::env::automatons::rr::RoundRobinUniversalEnvironment;
 use crate::comm::EnvCommEndpoint;
 use crate::env::generic::{HashMapEnv};
-use crate::error::{SztormError, WorldError};
+use crate::error::{AmfiError, WorldError};
 
 pub struct RoundRobinModel<
     DP: DomainParameters + 'static,
@@ -30,7 +30,7 @@ RoundRobinModel<DP, EnvState, Comm>{
 
 
 
-    pub fn play(&mut self) -> Result<(), SztormError<DP>>{
+    pub fn play(&mut self) -> Result<(), AmfiError<DP>>{
 
 
 

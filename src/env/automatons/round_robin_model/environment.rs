@@ -1,29 +1,29 @@
 use std::collections::HashMap;
 use log::{debug, error, info, warn};
 use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvStateSequential, EnvironmentWithAgents, ScoreEnvironment, StatefulEnvironment};
-use crate::error::{CommError, SztormError};
+use crate::error::{CommError, AmfiError};
 use crate::error::ProtocolError::PlayerExited;
 use crate::domain::{AgentMessage, EnvMessage, DomainParameters, Reward};
 use crate::domain::EnvMessage::ErrorNotify;
-use crate::error::SztormError::GameA;
+use crate::error::AmfiError::GameA;
 
 
 pub trait RoundRobinEnvironment<DP: DomainParameters>{
-    fn run_round_robin(&mut self) -> Result<(), SztormError<DP>>;
+    fn run_round_robin(&mut self) -> Result<(), AmfiError<DP>>;
 }
 pub trait RoundRobinUniversalEnvironment<DP: DomainParameters> : RoundRobinEnvironment<DP>{
-    fn run_round_robin_uni_rewards(&mut self) -> Result<(), SztormError<DP>>;
+    fn run_round_robin_uni_rewards(&mut self) -> Result<(), AmfiError<DP>>;
 }
 pub trait RoundRobinPenalisingUniversalEnvironment<DP: DomainParameters>: RoundRobinUniversalEnvironment<DP>{
-    fn run_round_robin_uni_rewards_penalise(&mut self, penalty: DP::UniversalReward) -> Result<(), SztormError<DP>>;
+    fn run_round_robin_uni_rewards_penalise(&mut self, penalty: DP::UniversalReward) -> Result<(), AmfiError<DP>>;
 }
 
 
 
 pub(crate) trait EnvironmentRRInternal<DP: DomainParameters>{
-    fn notify_error(&mut self, error: SztormError<DP>) -> Result<(), CommError<DP>>;
+    fn notify_error(&mut self, error: AmfiError<DP>) -> Result<(), CommError<DP>>;
     fn send_message(&mut self, agent: &DP::AgentId, message: EnvMessage<DP>) -> Result<(), CommError<DP>>;
-    fn process_action_and_inform(&mut self, player: DP::AgentId, action: &DP::ActionType) -> Result<(), SztormError<DP>>;
+    fn process_action_and_inform(&mut self, player: DP::AgentId, action: &DP::ActionType) -> Result<(), AmfiError<DP>>;
 
     //fn broadcast_message(&mut self ,message: EnvMessage<Spec>) -> Result<(), CommError>;
 }
@@ -36,7 +36,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
 
 DP: DomainParameters
 {
-    fn notify_error(&mut self, error: SztormError<DP>) -> Result<(), CommError<DP>> {
+    fn notify_error(&mut self, error: AmfiError<DP>) -> Result<(), CommError<DP>> {
         self.send_to_all(ErrorNotify(error))
     }
 
@@ -49,7 +49,7 @@ DP: DomainParameters
             })
     }
 
-    fn process_action_and_inform(&mut self, player: DP::AgentId, action: &DP::ActionType) -> Result<(), SztormError<DP>> {
+    fn process_action_and_inform(&mut self, player: DP::AgentId, action: &DP::ActionType) -> Result<(), AmfiError<DP>> {
         match self.process_action(&player, action){
             Ok(iter) => {
                 //let mut n=0;
@@ -61,7 +61,7 @@ DP: DomainParameters
                 }
                 Ok(())
             }
-            Err(e) => {Err(SztormError::Game(e))}
+            Err(e) => {Err(AmfiError::Game(e))}
         }
     }
 
@@ -74,7 +74,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
  + StatefulEnvironment<DP> + 'a
  + EnvironmentWithAgents<DP>
  + BroadcastingEnv<DP>, DP: DomainParameters {
-    fn run_round_robin(&mut self) -> Result<(), SztormError<DP>> {
+    fn run_round_robin(&mut self) -> Result<(), AmfiError<DP>> {
         let first_player = match self.current_player(){
             None => {
                 warn!("No first player, stopping environment.");
@@ -134,8 +134,8 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                         }
                         AgentMessage::Quit => {
                             error!("Player {} exited game.", player);
-                            self.notify_error(SztormError::Protocol(PlayerExited(player)))?;
-                            return Err(SztormError::Protocol(PlayerExited(player)))
+                            self.notify_error(AmfiError::Protocol(PlayerExited(player)))?;
+                            return Err(AmfiError::Protocol(PlayerExited(player)))
                         }
                     },
                     Ok(None) => {},
@@ -148,7 +148,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                         err => {
                             error!("Failed trying to receive from {}", player);
                             self.send_to_all(EnvMessage::ErrorNotify(err.clone().into()))?;
-                            return Err(SztormError::Comm(err));
+                            return Err(AmfiError::Comm(err));
                         }
 
 
@@ -164,7 +164,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
  + ScoreEnvironment<DP> + 'a
  + EnvironmentWithAgents<DP>
  + BroadcastingEnv<DP>, DP: DomainParameters {
-    fn run_round_robin_uni_rewards(&mut self) -> Result<(), SztormError<DP>> {
+    fn run_round_robin_uni_rewards(&mut self) -> Result<(), AmfiError<DP>> {
         let mut actual_universal_scores: HashMap<DP::AgentId, DP::UniversalReward> = self.players().into_iter()
             .map(|id|{
                 (id, DP::UniversalReward::neutral())
@@ -236,8 +236,8 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                         }
                         AgentMessage::Quit => {
                             error!("Player {} exited game.", player);
-                            self.notify_error(SztormError::Protocol(PlayerExited(player)))?;
-                            return Err(SztormError::Protocol(PlayerExited(player)))
+                            self.notify_error(AmfiError::Protocol(PlayerExited(player)))?;
+                            return Err(AmfiError::Protocol(PlayerExited(player)))
                         }
                     },
                     Ok(None) => {},
@@ -250,7 +250,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                         err => {
                             error!("Failed trying to receive from {}", player);
                             self.send_to_all(EnvMessage::ErrorNotify(err.clone().into()))?;
-                            return Err(SztormError::Comm(err));
+                            return Err(AmfiError::Comm(err));
                         }
 
 
@@ -266,7 +266,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
  + ScoreEnvironment<DP> + 'a
  + EnvironmentWithAgents<DP>
  + BroadcastingEnv<DP>, DP: DomainParameters{
-    fn run_round_robin_uni_rewards_penalise(&mut self, penalty: DP::UniversalReward) -> Result<(), SztormError<DP>> {
+    fn run_round_robin_uni_rewards_penalise(&mut self, penalty: DP::UniversalReward) -> Result<(), AmfiError<DP>> {
         let mut actual_universal_scores: HashMap<DP::AgentId, DP::UniversalReward> = self.players().into_iter()
             .map(|id|{
                 (id, DP::UniversalReward::neutral())
@@ -340,8 +340,8 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                         }
                         AgentMessage::Quit => {
                             error!("Player {} exited game.", player);
-                            self.notify_error(SztormError::Protocol(PlayerExited(player)))?;
-                            return Err(SztormError::Protocol(PlayerExited(player)))
+                            self.notify_error(AmfiError::Protocol(PlayerExited(player)))?;
+                            return Err(AmfiError::Protocol(PlayerExited(player)))
                         }
                     },
                     Ok(None) => {},
@@ -354,7 +354,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                         err => {
                             error!("Failed trying to receive from {}", player);
                             self.send_to_all(EnvMessage::ErrorNotify(err.clone().into()))?;
-                            return Err(SztormError::Comm(err));
+                            return Err(AmfiError::Comm(err));
                         }
 
 
