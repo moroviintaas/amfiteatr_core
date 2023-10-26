@@ -107,7 +107,7 @@ RoundRobinModel<DP, EnvState, Comm>{
                 let handler = s.spawn( move ||{
                     debug!("Spawning thread for agent {}", id);
                     let mut guard = arc_agent.lock().or_else(|_|Err(WorldError::<DP>::AgentMutexLock)).unwrap();
-                    let id = guard.id();
+                    let id = guard.id().clone();
                     guard.run().map_err(|e|{
                         error!("Agent {id:} encountered error: {e:}")
                     }).unwrap();

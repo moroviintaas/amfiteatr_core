@@ -27,11 +27,11 @@ HashMapEnv<DP, S, C>{
         game_state: S,
         comm_endpoints:  HashMap<DP::AgentId, C>) -> Self{
 
-        let k:Vec<DP::AgentId> = comm_endpoints.keys().copied().collect();
+        let k:Vec<DP::AgentId> = comm_endpoints.keys().cloned().collect();
         debug!("Creating environment with:{k:?}");
 
         let penalties: HashMap<DP::AgentId, DP::UniversalReward> = comm_endpoints.keys()
-            .map(|agent| (*agent, DP::UniversalReward::neutral()))
+            .map(|agent| (agent.clone(), DP::UniversalReward::neutral()))
             .collect();
 
         Self{comm_endpoints, game_state, penalties}
@@ -59,7 +59,7 @@ StatefulEnvironment<DP> for HashMapEnv<DP, S, C>{
     fn process_action(&mut self, agent: &DP::AgentId, action: &DP::ActionType) 
         -> Result<<Self::State as EnvStateSequential<DP>>::Updates, DP::GameErrorType> {
         //let updates = self.action_processor.process_action(&mut self.game_state, agent, action)?;
-        self.game_state.forward(*agent, action.clone())
+        self.game_state.forward(agent.clone(), action.clone())
         //Ok(updates)
 
     }
@@ -83,8 +83,8 @@ ScoreEnvironment<DP> for HashMapEnv<DP, S, C>{
         -> Result<<Self::State as EnvStateSequential<DP>>::Updates, DP::GameErrorType> {
 
 
-        self.game_state.forward(*agent, action.clone()).map_err(|e|{
-            self.penalties.insert(*agent, penalty_reward + &self.penalties[agent]);
+        self.game_state.forward(agent.clone(), action.clone()).map_err(|e|{
+            self.penalties.insert(agent.clone(), penalty_reward + &self.penalties[agent]);
             e
         })
     }
@@ -161,7 +161,7 @@ impl<'a, DP: DomainParameters + 'a,
     type PlayerIterator = Vec<DP::AgentId>;
 
     fn players(&self) -> Self::PlayerIterator {
-        self.comm_endpoints.keys().copied().collect()
+        self.comm_endpoints.keys().cloned().collect()
     }
 
 
@@ -222,7 +222,7 @@ EnvironmentBuilderTrait<DP, HashMapEnv<DP, S, C>> for GenericEnvironmentBuilder<
 
     fn add_comm(mut self, agent_id: &DP::AgentId, comm: C) -> Result<Self, WorldError<DP>>{
 
-        let _ = &mut self.comm_endpoints.insert(*agent_id, comm);
+        let _ = &mut self.comm_endpoints.insert(agent_id.clone(), comm);
         Ok(self)
     }
 

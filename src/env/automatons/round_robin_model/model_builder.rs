@@ -36,7 +36,7 @@ RoundRobinModelBuilder<DP, EnvState,  SyncCommEnv<DP>>
         let (comm_env, comm_agent) = SyncCommEnv::new_pair();
         let agent = AgentGen::new(id, initial_state, comm_agent, policy);
         self.env_builder = self.env_builder.add_comm(&agent.id(), comm_env)?;
-        self.local_agents.insert(agent.id(), Arc::new(Mutex::new(agent)));
+        self.local_agents.insert(agent.id().clone(), Arc::new(Mutex::new(agent)));
         Ok(self)
 
     }
@@ -75,10 +75,10 @@ RoundRobinModelBuilder<DP, EnvState,  Comm>{
                            -> Result<Self, WorldError<DP>>{
 
         let agent_guard = agent.as_ref().lock().unwrap();
-        let id = agent_guard.id();
+        let id = agent_guard.id().clone();
         std::mem::drop(agent_guard);
         self.env_builder = self.env_builder.add_comm(&id, env_comm)?;
-        self.local_agents.insert(id, agent);
+        self.local_agents.insert(id.clone(), agent);
 
         Ok(self)
     }

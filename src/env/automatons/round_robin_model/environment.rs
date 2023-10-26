@@ -105,7 +105,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                                 Err(e) => {
                                     error!("Action was refused or caused error in updating state: {e:}");
                                     let _ = self.send_to(&player, EnvMessage::MoveRefused);
-                                    let _ = self.send_to_all(EnvMessage::GameFinishedWithIllegalAction(player));
+                                    let _ = self.send_to_all(EnvMessage::GameFinishedWithIllegalAction(player.clone()));
                                     return Err(GameA(e, player));
                                 }
                             }
@@ -134,7 +134,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                         }
                         AgentMessage::Quit => {
                             error!("Player {} exited game.", player);
-                            self.notify_error(AmfiError::Protocol(PlayerExited(player)))?;
+                            self.notify_error(AmfiError::Protocol(PlayerExited(player.clone())))?;
                             return Err(AmfiError::Protocol(PlayerExited(player)))
                         }
                     },
@@ -206,7 +206,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                                     error!("Action was refused or caused error in updating state: {e:}");
                                     let _ = self.send_to(&player, EnvMessage::MoveRefused);
 
-                                    let _ = self.send_to_all(EnvMessage::GameFinishedWithIllegalAction(player));
+                                    let _ = self.send_to_all(EnvMessage::GameFinishedWithIllegalAction(player.clone()));
                                     return Err(GameA(e, player));
                                 }
                             }
@@ -236,7 +236,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                         }
                         AgentMessage::Quit => {
                             error!("Player {} exited game.", player);
-                            self.notify_error(AmfiError::Protocol(PlayerExited(player)))?;
+                            self.notify_error(AmfiError::Protocol(PlayerExited(player.clone())))?;
                             return Err(AmfiError::Protocol(PlayerExited(player)))
                         }
                     },
@@ -312,7 +312,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                                         *score = self.actual_score_of_player(player);
                                         let _ = self.send_to(player, EnvMessage::RewardFragment(reward));
                                     }
-                                    let _ = self.send_to_all(EnvMessage::GameFinishedWithIllegalAction(player));
+                                    let _ = self.send_to_all(EnvMessage::GameFinishedWithIllegalAction(player.clone()));
                                     return Err(GameA(e, player));
                                 }
                             }
@@ -340,7 +340,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                         }
                         AgentMessage::Quit => {
                             error!("Player {} exited game.", player);
-                            self.notify_error(AmfiError::Protocol(PlayerExited(player)))?;
+                            self.notify_error(AmfiError::Protocol(PlayerExited(player.clone())))?;
                             return Err(AmfiError::Protocol(PlayerExited(player)))
                         }
                     },

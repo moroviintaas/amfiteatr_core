@@ -23,6 +23,6 @@ use crate::domain::DomainParameters;
 /// communicate with just this meant agent not any other.
 /// Id's of agents should be unique in the game world.
 pub trait Agent<DP: DomainParameters>{
-    fn id(&self) -> DP::AgentId;
+    fn id(&self) -> &DP::AgentId;
     fn change_id(&mut self, new_id: DP::AgentId);
 }

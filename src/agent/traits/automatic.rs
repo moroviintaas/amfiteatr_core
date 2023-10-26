@@ -61,7 +61,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                         match self.take_action(){
                             None => {
                                 error!("Agent {} has no possible action", self.id());
-                                self.send(NotifyError(NoPossibleAction(self.id()).into()))?;
+                                self.send(NotifyError(NoPossibleAction(self.id().clone()).into()))?;
                             }
 
                             Some(a) => {
@@ -89,7 +89,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                     }
                     EnvMessage::Kill => {
                         info!("Agent {:?} received kill signal.", self.id());
-                        return Err(Protocol(ReceivedKill(self.id())))
+                        return Err(Protocol(ReceivedKill(self.id().clone())))
                     }
                     EnvMessage::UpdateState(su) => {
                         debug!("Agent {} received state update {:?}", self.id(), &su);
@@ -99,8 +99,8 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                             }
                             Err(err) => {
                                 error!("Agent {:?} error on updating state: {}", self.id(), &err);
-                                self.send(AgentMessage::NotifyError(AmfiError::GameA(err.clone(), self.id())))?;
-                                return Err(AmfiError::GameA(err.clone(), self.id()));
+                                self.send(AgentMessage::NotifyError(AmfiError::GameA(err.clone(), self.id().clone())))?;
+                                return Err(AmfiError::GameA(err.clone(), self.id().clone()));
                             }
                         }
                     }
@@ -145,7 +145,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                         match self.take_action(){
                             None => {
                                 error!("Agent {} has no possible action", self.id());
-                                self.send(NotifyError(NoPossibleAction(self.id()).into()))?;
+                                self.send(NotifyError(NoPossibleAction(self.id().clone()).into()))?;
                             }
 
                             Some(a) => {
@@ -173,7 +173,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                     }
                     EnvMessage::Kill => {
                         info!("Agent {:?} received kill signal.", self.id());
-                        return Err(Protocol(ReceivedKill(self.id())))
+                        return Err(Protocol(ReceivedKill(self.id().clone())))
                     }
                     EnvMessage::UpdateState(su) => {
                         debug!("Agent {} received state update {:?}", self.id(), &su);

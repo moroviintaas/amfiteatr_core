@@ -259,8 +259,8 @@ impl<
 Agent<DP> for AgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
-    fn id(&self) -> DP::AgentId {
-        self.id
+    fn id(&self) -> &DP::AgentId {
+        &self.id
     }
 
     fn change_id(&mut self, new_id: DP::AgentId) {

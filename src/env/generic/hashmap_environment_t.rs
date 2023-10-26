@@ -80,11 +80,11 @@ StatefulEnvironment<DP> for HashMapEnvT<DP, S,C>{
          */
         match self.base_environment.process_action(agent, action){
             Ok(updates) => {
-                self.history.push(EnvTrace::new(state_clone, *agent, action.clone(), true));
+                self.history.push(EnvTrace::new(state_clone, agent.clone(), action.clone(), true));
                 Ok(updates)
             }
             Err(e) => {
-                self.history.push(EnvTrace::new(state_clone, *agent, action.clone(), false));
+                self.history.push(EnvTrace::new(state_clone, agent.clone(), action.clone(), false));
                 Err(e)
             }
         }
@@ -103,11 +103,11 @@ ScoreEnvironment<DP> for HashMapEnvT<DP, S, C>{
         let state_clone = self.state().clone();
         match self.base_environment.process_action_penalise_illegal(agent, action, penalty_reward){
             Ok(updates) => {
-                self.history.push(EnvTrace::new(state_clone, *agent, action.clone(), true));
+                self.history.push(EnvTrace::new(state_clone, agent.clone(), action.clone(), true));
                 Ok(updates)
             }
             Err(e) => {
-                self.history.push(EnvTrace::new(state_clone, *agent, action.clone(), false));
+                self.history.push(EnvTrace::new(state_clone, agent.clone(), action.clone(), false));
                 Err(e)
             }
         }
