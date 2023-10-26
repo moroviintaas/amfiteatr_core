@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fmt::Debug;
 use std::marker::PhantomData;
-use std::sync::mpsc::{sync_channel, Receiver, RecvError, SyncSender, SendError, TryRecvError};
+use std::sync::mpsc::{channel, Receiver, RecvError, Sender, SendError, TryRecvError};
 use crate::comm::endpoint::CommEndpoint;
 use crate::error::CommError;
 use crate::domain::{AgentMessage, EnvMessage};
@@ -24,7 +24,7 @@ use crate::domain::{AgentMessage, EnvMessage};
 
  */
 pub struct SyncComm<OT, IT, E: Error>{
-    sender: SyncSender<OT>,
+    sender: Sender<OT>,
     receiver: Receiver<IT>,
     _phantom: PhantomData<E>
 }
@@ -35,17 +35,17 @@ pub type SyncCommAgent<Spec> = SyncComm<AgentMessage<Spec>, EnvMessage<Spec>,  C
 
 impl<OT, IT, E: Error> SyncComm<OT, IT, E>
 where SyncComm<OT, IT, E> :  CommEndpoint<OutwardType = OT, InwardType = IT, Error = E>{
-    pub fn new(sender: SyncSender<OT>, receiver: Receiver<IT>) -> Self{
+    pub fn new(sender: Sender<OT>, receiver: Receiver<IT>) -> Self{
         Self{sender, receiver, _phantom: PhantomData::default()}
     }
     pub fn new_pair() -> (Self, SyncComm<IT, OT, E>) {
-        let (tx_1, rx_1) = sync_channel(1);
-        let (tx_2, rx_2) = sync_channel(1);
+        let (tx_1, rx_1) = channel();
+        let (tx_2, rx_2) = channel();
 
         (Self{sender: tx_1, receiver: rx_2, _phantom: PhantomData::default()},
         SyncComm{sender: tx_2, receiver: rx_1, _phantom: PhantomData::default()})
     }
-    pub fn _decompose(self) -> (SyncSender<OT>, Receiver<IT>){
+    pub fn _decompose(self) -> (Sender<OT>, Receiver<IT>){
         (self.sender, self.receiver)
     }
 }
