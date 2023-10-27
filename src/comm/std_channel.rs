@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::sync::mpsc::{channel, Receiver, RecvError, Sender, SendError, TryRecvError};
-use crate::comm::endpoint::CommEndpoint;
+use crate::comm::endpoint::CommPort;
 use crate::error::CommunicationError;
 use crate::domain::{AgentMessage, EnvMessage};
 
@@ -34,7 +34,7 @@ pub type SyncCommEnv<Spec> = SyncComm<EnvMessage<Spec>, AgentMessage<Spec>, Comm
 pub type SyncCommAgent<Spec> = SyncComm<AgentMessage<Spec>, EnvMessage<Spec>,  CommunicationError<Spec>>;
 
 impl<OT, IT, E: Error> SyncComm<OT, IT, E>
-where SyncComm<OT, IT, E> :  CommEndpoint<OutwardType = OT, InwardType = IT, Error = E>{
+where SyncComm<OT, IT, E> :  CommPort<OutwardType = OT, InwardType = IT, Error = E>{
     pub fn new(sender: Sender<OT>, receiver: Receiver<IT>) -> Self{
         Self{sender, receiver, _phantom: PhantomData::default()}
     }
@@ -50,7 +50,7 @@ where SyncComm<OT, IT, E> :  CommEndpoint<OutwardType = OT, InwardType = IT, Err
     }
 }
 
-impl<OT, IT, E> CommEndpoint for SyncComm<OT, IT, E>
+impl<OT, IT, E> CommPort for SyncComm<OT, IT, E>
 where E: Debug + Error + From<RecvError> + From<SendError<OT>> + From<TryRecvError> + From<SendError<IT>>,
 OT: Debug, IT:Debug{
     type OutwardType = OT;
@@ -84,10 +84,10 @@ OT: Debug, IT:Debug{
 
 pub enum DynComm<OT, IT, E: Error>{
     Std(SyncComm<OT, IT, E>),
-    Dynamic(Box<dyn CommEndpoint<OutwardType = OT, InwardType = IT, Error = E>>)
+    Dynamic(Box<dyn CommPort<OutwardType = OT, InwardType = IT, Error = E>>)
 }
 
-impl <OT: Debug, IT: Debug, E: Error> CommEndpoint for DynComm<OT, IT, E>
+impl <OT: Debug, IT: Debug, E: Error> CommPort for DynComm<OT, IT, E>
 where E: From<RecvError> + From<SendError<OT>> + From<TryRecvError> + From<SendError<IT>>{
     type OutwardType = OT;
     type InwardType = IT;

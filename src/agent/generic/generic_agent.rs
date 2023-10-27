@@ -11,7 +11,7 @@ use crate::agent::{
 };
 use crate::agent::info_set::{InformationSet, ScoringInformationSet};
 use crate::agent::policy::Policy;
-use crate::comm::CommEndpoint;
+use crate::comm::CommPort;
 use crate::error::CommunicationError;
 use crate::domain::{AgentMessage, EnvMessage, DomainParameters, Reward};
 
@@ -22,7 +22,7 @@ use crate::domain::{AgentMessage, EnvMessage, DomainParameters, Reward};
 pub struct AgentGen<
     DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommEndpoint<
+    Comm: CommPort<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>>>
@@ -44,7 +44,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 impl<
     DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommEndpoint<
+    Comm: CommPort<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>
@@ -162,7 +162,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>
 impl<
     DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommEndpoint<
+    Comm: CommPort<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>
@@ -187,7 +187,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>
 impl<
     DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommEndpoint<
+    Comm: CommPort<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>
@@ -209,7 +209,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 impl<
     DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommEndpoint<
+    Comm: CommPort<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>>>
@@ -232,7 +232,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 impl<
     DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommEndpoint<
+    Comm: CommPort<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>>>
@@ -252,7 +252,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 impl<
     DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommEndpoint<
+    Comm: CommPort<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>>>
@@ -270,7 +270,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
 impl<DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommEndpoint<
+    Comm: CommPort<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>>> EnvRewardedAgent<DP> for AgentGen<DP, P, Comm>
@@ -297,7 +297,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 impl<
     DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommEndpoint<
+    Comm: CommPort<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>>>
@@ -314,7 +314,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 impl<
     DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommEndpoint<
+    Comm: CommPort<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>>>

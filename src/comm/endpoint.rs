@@ -3,7 +3,7 @@ use std::fmt::Debug;
 
 use crate::{domain::{EnvMessage, DomainParameters, AgentMessage}, error::CommunicationError};
 /// Trait for structures using to communicate in synchronous mode between two objects.
-pub trait CommEndpoint{
+pub trait CommPort {
     /// The type that is sent via this endpoint.
     /// In scope of this crate, for environment it will be usually
     /// [`EnvMessage`](crate::domain::EnvMessage) or [`AgentMessage`](crate::domain::AgentMessage)
@@ -14,7 +14,7 @@ pub trait CommEndpoint{
     type InwardType: Debug;
     /// The error type that can be caused during communication.
     /// In scope of this crate, for environment it will be usually
-    /// [`CommError`](crate::error::CommunicationError)
+    /// [`CommunicationError`](crate::error::CommunicationError)
     type Error: Debug + Error;
 
     /// Method used to send message. Message can be queued on the side of receiver.
@@ -26,8 +26,8 @@ pub trait CommEndpoint{
     fn receive_non_blocking(&mut self) -> Result<Option<Self::InwardType>, Self::Error>;
 }
 
-impl<T: ?Sized> CommEndpoint for Box<T>
-where T: CommEndpoint{
+impl<T: ?Sized> CommPort for Box<T>
+where T: CommPort {
     type OutwardType = T::OutwardType;
     type InwardType = T::InwardType;
 
@@ -46,12 +46,12 @@ where T: CommEndpoint{
     }
 }
 
-pub trait EnvCommEndpoint<Spec: DomainParameters>: CommEndpoint<OutwardType = EnvMessage<Spec>, InwardType = AgentMessage<Spec>, Error = CommunicationError<Spec>>{}
+pub trait EnvCommEndpoint<Spec: DomainParameters>: CommPort<OutwardType = EnvMessage<Spec>, InwardType = AgentMessage<Spec>, Error = CommunicationError<Spec>>{}
 
 impl<Spec: DomainParameters, T> EnvCommEndpoint<Spec> for T
-where T: CommEndpoint<OutwardType = EnvMessage<Spec>, InwardType = AgentMessage<Spec>, Error = CommunicationError<Spec>>{}
+where T: CommPort<OutwardType = EnvMessage<Spec>, InwardType = AgentMessage<Spec>, Error = CommunicationError<Spec>>{}
 
-pub trait AgentCommEndpoint<Spec: DomainParameters>: CommEndpoint<OutwardType = AgentMessage<Spec>, InwardType = EnvMessage<Spec>, Error = CommunicationError<Spec>>{}
+pub trait AgentCommEndpoint<Spec: DomainParameters>: CommPort<OutwardType = AgentMessage<Spec>, InwardType = EnvMessage<Spec>, Error = CommunicationError<Spec>>{}
 
 impl<Spec: DomainParameters, T> AgentCommEndpoint<Spec> for T
-where T: CommEndpoint<OutwardType = AgentMessage<Spec>, InwardType = EnvMessage<Spec>, Error = CommunicationError<Spec>>{}
+where T: CommPort<OutwardType = AgentMessage<Spec>, InwardType = EnvMessage<Spec>, Error = CommunicationError<Spec>>{}
