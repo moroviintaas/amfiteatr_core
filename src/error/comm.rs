@@ -6,7 +6,7 @@ use crate::domain::DomainParameters;
 
 #[derive(Debug, Clone, PartialEq, Eq, Error)]
 #[cfg_attr(feature = "speedy", derive(speedy::Writable, speedy::Readable))]
-pub enum CommError<DP: DomainParameters>{
+pub enum CommunicationError<DP: DomainParameters>{
     #[error("Send Error to {0}, text: {1}")]
     SendError(DP::AgentId, String),
     #[error("Send Error, text: {0}")]
@@ -36,15 +36,15 @@ pub enum CommError<DP: DomainParameters>{
 
 }
 
-impl<Spec: DomainParameters> CommError<Spec>{
+impl<Spec: DomainParameters> CommunicationError<Spec>{
 
     pub fn specify_id(self, id: Spec::AgentId) -> Self{
         match self{
-            CommError::SendErrorUnspecified(s) => Self::SendError(id, s),
-            CommError::BroadcastSendErrorUnspecified => Self::BroadcastSendError(id),
-            CommError::RecvErrorUnspecified(s) => Self::RecvError(id,s),
-            CommError::RecvEmptyBufferErrorUnspecified => Self::RecvEmptyBufferError(id),
-            CommError::RecvPeerDisconnectedErrorUnspecified => Self::RecvPeerDisconnectedError(id),
+            CommunicationError::SendErrorUnspecified(s) => Self::SendError(id, s),
+            CommunicationError::BroadcastSendErrorUnspecified => Self::BroadcastSendError(id),
+            CommunicationError::RecvErrorUnspecified(s) => Self::RecvError(id, s),
+            CommunicationError::RecvEmptyBufferErrorUnspecified => Self::RecvEmptyBufferError(id),
+            CommunicationError::RecvPeerDisconnectedErrorUnspecified => Self::RecvPeerDisconnectedError(id),
             any => any
         }
     }
@@ -56,17 +56,17 @@ impl Display for CommError {
     }
 }*/
 
-impl<Spec: DomainParameters> From<RecvError> for CommError<Spec>{
+impl<Spec: DomainParameters> From<RecvError> for CommunicationError<Spec>{
     fn from(e: RecvError) -> Self {
         Self::RecvErrorUnspecified(format!("{e:}"))
     }
 }
-impl<Spec: DomainParameters, T> From<SendError<T>> for CommError<Spec>{
+impl<Spec: DomainParameters, T> From<SendError<T>> for CommunicationError<Spec>{
     fn from(e: SendError<T>) -> Self {
         Self::SendErrorUnspecified(format!("{e:}"))
     }
 }
-impl<Spec: DomainParameters> From<TryRecvError> for CommError<Spec>{
+impl<Spec: DomainParameters> From<TryRecvError> for CommunicationError<Spec>{
     fn from(e: TryRecvError) -> Self {
         match e{
             TryRecvError::Empty => Self::RecvEmptyBufferErrorUnspecified,
@@ -75,14 +75,14 @@ impl<Spec: DomainParameters> From<TryRecvError> for CommError<Spec>{
     }
 }
 
-impl<Spec: DomainParameters, T> From<TrySendError<T>> for CommError<Spec>{
+impl<Spec: DomainParameters, T> From<TrySendError<T>> for CommunicationError<Spec>{
     fn from(e: TrySendError<T>) -> Self {
         Self::SendErrorUnspecified(format!("{e:}"))
     }
 }
 
-impl <Spec: DomainParameters> From<CommError<Spec>> for AmfiError<Spec>{
-    fn from(value: CommError<Spec>) -> Self {
-        Self::Comm(value)
+impl <Spec: DomainParameters> From<CommunicationError<Spec>> for AmfiError<Spec>{
+    fn from(value: CommunicationError<Spec>) -> Self {
+        Self::Communication(value)
     }
 }

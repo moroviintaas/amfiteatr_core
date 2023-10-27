@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use log::{debug, error, info, warn};
 use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvStateSequential, EnvironmentWithAgents, ScoreEnvironment, StatefulEnvironment};
-use crate::error::{CommError, AmfiError};
+use crate::error::{CommunicationError, AmfiError};
 use crate::error::ProtocolError::PlayerExited;
 use crate::domain::{AgentMessage, EnvMessage, DomainParameters, Reward};
 use crate::domain::EnvMessage::ErrorNotify;
@@ -21,26 +21,26 @@ pub trait RoundRobinPenalisingUniversalEnvironment<DP: DomainParameters>: RoundR
 
 
 pub(crate) trait EnvironmentRRInternal<DP: DomainParameters>{
-    fn notify_error(&mut self, error: AmfiError<DP>) -> Result<(), CommError<DP>>;
-    fn send_message(&mut self, agent: &DP::AgentId, message: EnvMessage<DP>) -> Result<(), CommError<DP>>;
+    fn notify_error(&mut self, error: AmfiError<DP>) -> Result<(), CommunicationError<DP>>;
+    fn send_message(&mut self, agent: &DP::AgentId, message: EnvMessage<DP>) -> Result<(), CommunicationError<DP>>;
     fn process_action_and_inform(&mut self, player: DP::AgentId, action: &DP::ActionType) -> Result<(), AmfiError<DP>>;
 
     //fn broadcast_message(&mut self ,message: EnvMessage<Spec>) -> Result<(), CommError>;
 }
 
 impl<'a, Env, DP: DomainParameters + 'a> EnvironmentRRInternal<DP> for Env
-where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
+where Env: CommunicatingEnv<DP, CommunicationError=CommunicationError<DP>>
  + StatefulEnvironment<DP> + 'a
  + EnvironmentWithAgents<DP>
  + BroadcastingEnv<DP>,
 
 DP: DomainParameters
 {
-    fn notify_error(&mut self, error: AmfiError<DP>) -> Result<(), CommError<DP>> {
+    fn notify_error(&mut self, error: AmfiError<DP>) -> Result<(), CommunicationError<DP>> {
         self.send_to_all(ErrorNotify(error))
     }
 
-    fn send_message(&mut self, agent: &DP::AgentId, message: EnvMessage<DP>) -> Result<(), CommError<DP>>{
+    fn send_message(&mut self, agent: &DP::AgentId, message: EnvMessage<DP>) -> Result<(), CommunicationError<DP>>{
         self.send_to(agent, message)
             .map_err(|e| {
                 self.notify_error(e.clone().into())
@@ -70,7 +70,7 @@ DP: DomainParameters
 
 
 impl<'a, Env, DP: DomainParameters + 'a> RoundRobinEnvironment<DP> for Env
-where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
+where Env: CommunicatingEnv<DP, CommunicationError=CommunicationError<DP>>
  + StatefulEnvironment<DP> + 'a
  + EnvironmentWithAgents<DP>
  + BroadcastingEnv<DP>, DP: DomainParameters {
@@ -141,14 +141,14 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                     Ok(None) => {},
                     Err(e) => match e{
 
-                        CommError::RecvEmptyBufferError(_) | CommError::RecvPeerDisconnectedError(_) |
-                        CommError::RecvEmptyBufferErrorUnspecified | CommError::RecvPeerDisconnectedErrorUnspecified => {
+                        CommunicationError::RecvEmptyBufferError(_) | CommunicationError::RecvPeerDisconnectedError(_) |
+                        CommunicationError::RecvEmptyBufferErrorUnspecified | CommunicationError::RecvPeerDisconnectedErrorUnspecified => {
                             //debug!("Empty channel");
                         },
                         err => {
                             error!("Failed trying to receive from {}", player);
                             self.send_to_all(EnvMessage::ErrorNotify(err.clone().into()))?;
-                            return Err(AmfiError::Comm(err));
+                            return Err(AmfiError::Communication(err));
                         }
 
 
@@ -160,7 +160,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
 }
 
 impl<'a, Env, DP: DomainParameters + 'a> RoundRobinUniversalEnvironment<DP> for Env
-where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
+where Env: CommunicatingEnv<DP, CommunicationError=CommunicationError<DP>>
  + ScoreEnvironment<DP> + 'a
  + EnvironmentWithAgents<DP>
  + BroadcastingEnv<DP>, DP: DomainParameters {
@@ -243,14 +243,14 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                     Ok(None) => {},
                     Err(e) => match e{
 
-                        CommError::RecvEmptyBufferError(_) | CommError::RecvPeerDisconnectedError(_) |
-                        CommError::RecvEmptyBufferErrorUnspecified | CommError::RecvPeerDisconnectedErrorUnspecified => {
+                        CommunicationError::RecvEmptyBufferError(_) | CommunicationError::RecvPeerDisconnectedError(_) |
+                        CommunicationError::RecvEmptyBufferErrorUnspecified | CommunicationError::RecvPeerDisconnectedErrorUnspecified => {
                             //debug!("Empty channel");
                         },
                         err => {
                             error!("Failed trying to receive from {}", player);
                             self.send_to_all(EnvMessage::ErrorNotify(err.clone().into()))?;
-                            return Err(AmfiError::Comm(err));
+                            return Err(AmfiError::Communication(err));
                         }
 
 
@@ -262,7 +262,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
 }
 
 impl<'a, Env, DP: DomainParameters + 'a> RoundRobinPenalisingUniversalEnvironment<DP> for Env
-where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
+where Env: CommunicatingEnv<DP, CommunicationError=CommunicationError<DP>>
  + ScoreEnvironment<DP> + 'a
  + EnvironmentWithAgents<DP>
  + BroadcastingEnv<DP>, DP: DomainParameters{
@@ -347,14 +347,14 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommError<DP>>
                     Ok(None) => {},
                     Err(e) => match e{
 
-                        CommError::RecvEmptyBufferError(_) | CommError::RecvPeerDisconnectedError(_) |
-                        CommError::RecvEmptyBufferErrorUnspecified | CommError::RecvPeerDisconnectedErrorUnspecified => {
+                        CommunicationError::RecvEmptyBufferError(_) | CommunicationError::RecvPeerDisconnectedError(_) |
+                        CommunicationError::RecvEmptyBufferErrorUnspecified | CommunicationError::RecvPeerDisconnectedErrorUnspecified => {
                             //debug!("Empty channel");
                         },
                         err => {
                             error!("Failed trying to receive from {}", player);
                             self.send_to_all(EnvMessage::ErrorNotify(err.clone().into()))?;
-                            return Err(AmfiError::Comm(err));
+                            return Err(AmfiError::Communication(err));
                         }
 
 

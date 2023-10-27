@@ -1,5 +1,5 @@
 use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, EnvRewardedAgent, Agent, InternalRewardedAgent, ScoringInformationSet, PresentPossibleActions};
-use crate::error::{CommError, AmfiError};
+use crate::error::{CommunicationError, AmfiError};
 use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
 use crate::error::AmfiError::Protocol;
 use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
@@ -38,7 +38,7 @@ pub trait AutomaticAgentRewarded<Spec: DomainParameters>: AutomaticAgent<Spec>{
 /// in the future to avoid conflicts with custom implementations.
 impl<Agnt, DP> AutomaticAgent<DP> for Agnt
 where Agnt: StatefulAgent<DP> + ActingAgent<DP>
-    + CommunicatingAgent<DP, CommunicationError=CommError<DP>>
+    + CommunicatingAgent<DP, CommunicationError=CommunicationError<DP>>
     + PolicyAgent<DP> + Agent<DP>
     + InternalRewardedAgent<DP>,
       DP: DomainParameters,
@@ -121,7 +121,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
 
 impl<Agnt, DP> AutomaticAgentRewarded<DP> for Agnt
 where Agnt: StatefulAgent<DP> + ActingAgent<DP>
-    + CommunicatingAgent<DP, CommunicationError=CommError<DP>>
+    + CommunicatingAgent<DP, CommunicationError=CommunicationError<DP>>
     + PolicyAgent<DP> + Agent<DP>
     + EnvRewardedAgent<DP>
     + InternalRewardedAgent<DP>,

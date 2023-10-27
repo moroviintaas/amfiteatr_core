@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use crate::comm::EnvCommEndpoint;
 use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvStateSequential, EnvironmentStateUniScore, EnvironmentWithAgents, EnvTrajectory, EnvTrace, ScoreEnvironment, StatefulEnvironment, TracingEnv, ResetEnvironment};
 use crate::env::generic::{HashMapEnv};
-use crate::error::CommError;
+use crate::error::CommunicationError;
 use crate::domain::{AgentMessage, DomainParameters, EnvMessage};
 
 pub struct HashMapEnvT<
@@ -128,7 +128,7 @@ impl<
     S: EnvStateSequential<DP>,
     C: EnvCommEndpoint<DP>>
 CommunicatingEnv<DP> for HashMapEnvT<DP, S, C>{
-    type CommunicationError = CommError<DP>;
+    type CommunicationError = CommunicationError<DP>;
 
     fn send_to(&mut self, agent_id: &DP::AgentId, message: EnvMessage<DP>)
         -> Result<(), Self::CommunicationError> {

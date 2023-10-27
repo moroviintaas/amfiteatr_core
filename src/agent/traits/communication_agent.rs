@@ -7,7 +7,7 @@ use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
 ///
 pub trait CommunicatingAgent<DP: DomainParameters>: Agent<DP>{
     /// An error which is returned in case of communication failure.
-    /// In this crate usually [`CommError`](crate::error::CommError) is used in
+    /// In this crate usually [`CommError`](crate::error::CommunicationError) is used in
     /// this context.
     type CommunicationError: Error;
 

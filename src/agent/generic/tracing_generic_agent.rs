@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use crate::agent::{ActingAgent, Agent, CommunicatingAgent, AgentTrajectory, AgentTraceStep, Policy, PolicyAgent, ResetAgent, EnvRewardedAgent, StatefulAgent, TracingAgent, InternalRewardedAgent, AgentGen, InformationSet};
 use crate::agent::info_set::ScoringInformationSet;
 use crate::comm::CommEndpoint;
-use crate::error::CommError;
+use crate::error::CommunicationError;
 use crate::domain::{AgentMessage, DomainParameters, EnvMessage, Reward};
 
 
@@ -17,7 +17,7 @@ pub struct AgentGenT<
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>>>
+        Error=CommunicationError<DP>>>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
 
@@ -41,7 +41,7 @@ impl <DP: DomainParameters,
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>>>
+        Error=CommunicationError<DP>>>
 AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
@@ -153,7 +153,7 @@ impl<
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>>>
+        Error=CommunicationError<DP>>>
 Agent<DP> for AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
@@ -172,11 +172,11 @@ impl<
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>>>
+        Error=CommunicationError<DP>>>
     CommunicatingAgent<DP> for AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> + Clone{
 
-    type CommunicationError = CommError<DP>;
+    type CommunicationError = CommunicationError<DP>;
 
     fn send(&mut self, message: AgentMessage<DP>) -> Result<(), Self::CommunicationError> {
         self.comm.send(message)
@@ -193,7 +193,7 @@ impl<
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>>>
+        Error=CommunicationError<DP>>>
 StatefulAgent<DP> for AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
@@ -214,7 +214,7 @@ impl<
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>>>
+        Error=CommunicationError<DP>>>
 ActingAgent<DP> for AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> + Clone{
 
@@ -240,7 +240,7 @@ impl<
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>>>
+        Error=CommunicationError<DP>>>
 TracingAgent<DP, <P as Policy<DP>>::InfoSetType> for AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> ,
 //for <'a> &'a<DP as DomainParameters>::UniversalReward: Sub<&'a <DP as DomainParameters>::UniversalReward, Output=<DP as DomainParameters>::UniversalReward>,
@@ -301,7 +301,7 @@ impl<
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>>>
+        Error=CommunicationError<DP>>>
 PolicyAgent<DP> for AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
     type Policy = P;
@@ -321,7 +321,7 @@ impl<
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>>>
+        Error=CommunicationError<DP>>>
 EnvRewardedAgent<DP> for AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
@@ -349,7 +349,7 @@ impl<
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>>>
+        Error=CommunicationError<DP>>>
 ResetAgent<DP> for AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
@@ -370,7 +370,7 @@ impl<
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>>>
+        Error=CommunicationError<DP>>>
 InternalRewardedAgent<DP> for AgentGenT<DP, P, Comm>
 where <Self as StatefulAgent<DP>>::InfoSetType: ScoringInformationSet<DP>,
 <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{

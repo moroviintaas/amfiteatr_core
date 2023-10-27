@@ -12,7 +12,7 @@ use crate::agent::{
 use crate::agent::info_set::{InformationSet, ScoringInformationSet};
 use crate::agent::policy::Policy;
 use crate::comm::CommEndpoint;
-use crate::error::CommError;
+use crate::error::CommunicationError;
 use crate::domain::{AgentMessage, EnvMessage, DomainParameters, Reward};
 
 /// Generic agent implementing traits proposed in this crate.
@@ -25,7 +25,7 @@ pub struct AgentGen<
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>>>
+        Error=CommunicationError<DP>>>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
     /// Information Set (State as viewed by agent)
     information_set: <P as Policy<DP>>::InfoSetType,
@@ -47,7 +47,7 @@ impl<
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>
+        Error=CommunicationError<DP>
     >
 >
     AgentGen<DP, P, Comm>
@@ -165,14 +165,14 @@ impl<
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>
+        Error=CommunicationError<DP>
     >
 >
     CommunicatingAgent<DP> for AgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>
 {
 
-    type CommunicationError = CommError<DP>;
+    type CommunicationError = CommunicationError<DP>;
 
 
     fn send(&mut self, message: AgentMessage<DP>) -> Result<(), Self::CommunicationError> {
@@ -190,7 +190,7 @@ impl<
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>
+        Error=CommunicationError<DP>
     >
 >
 StatefulAgent<DP> for AgentGen<DP, P, Comm>
@@ -212,7 +212,7 @@ impl<
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>>>
+        Error=CommunicationError<DP>>>
 ActingAgent<DP> for AgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
@@ -235,7 +235,7 @@ impl<
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>>>
+        Error=CommunicationError<DP>>>
 PolicyAgent<DP> for AgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
     type Policy = P;
@@ -255,7 +255,7 @@ impl<
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>>>
+        Error=CommunicationError<DP>>>
 Agent<DP> for AgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
@@ -273,7 +273,7 @@ impl<DP: DomainParameters,
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>>> EnvRewardedAgent<DP> for AgentGen<DP, P, Comm>
+        Error=CommunicationError<DP>>> EnvRewardedAgent<DP> for AgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
     fn current_universal_reward(&self) -> DP::UniversalReward {
         self.constructed_universal_reward.clone()
@@ -300,7 +300,7 @@ impl<
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>>>
+        Error=CommunicationError<DP>>>
 ResetAgent<DP> for AgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
@@ -317,7 +317,7 @@ impl<
     Comm: CommEndpoint<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommError<DP>>>
+        Error=CommunicationError<DP>>>
 InternalRewardedAgent<DP> for AgentGen<DP, P, Comm>
 where <Self as StatefulAgent<DP>>::InfoSetType: ScoringInformationSet<DP>,
       <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{

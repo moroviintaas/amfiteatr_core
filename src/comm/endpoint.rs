@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fmt::Debug;
 
-use crate::{domain::{EnvMessage, DomainParameters, AgentMessage}, error::CommError};
+use crate::{domain::{EnvMessage, DomainParameters, AgentMessage}, error::CommunicationError};
 /// Trait for structures using to communicate in synchronous mode between two objects.
 pub trait CommEndpoint{
     /// The type that is sent via this endpoint.
@@ -14,7 +14,7 @@ pub trait CommEndpoint{
     type InwardType: Debug;
     /// The error type that can be caused during communication.
     /// In scope of this crate, for environment it will be usually
-    /// [`CommError`](crate::error::CommError)
+    /// [`CommError`](crate::error::CommunicationError)
     type Error: Debug + Error;
 
     /// Method used to send message. Message can be queued on the side of receiver.
@@ -46,12 +46,12 @@ where T: CommEndpoint{
     }
 }
 
-pub trait EnvCommEndpoint<Spec: DomainParameters>: CommEndpoint<OutwardType = EnvMessage<Spec>, InwardType = AgentMessage<Spec>, Error = CommError<Spec>>{}
+pub trait EnvCommEndpoint<Spec: DomainParameters>: CommEndpoint<OutwardType = EnvMessage<Spec>, InwardType = AgentMessage<Spec>, Error = CommunicationError<Spec>>{}
 
 impl<Spec: DomainParameters, T> EnvCommEndpoint<Spec> for T
-where T: CommEndpoint<OutwardType = EnvMessage<Spec>, InwardType = AgentMessage<Spec>, Error = CommError<Spec>>{}
+where T: CommEndpoint<OutwardType = EnvMessage<Spec>, InwardType = AgentMessage<Spec>, Error = CommunicationError<Spec>>{}
 
-pub trait AgentCommEndpoint<Spec: DomainParameters>: CommEndpoint<OutwardType = AgentMessage<Spec>, InwardType = EnvMessage<Spec>, Error = CommError<Spec>>{}
+pub trait AgentCommEndpoint<Spec: DomainParameters>: CommEndpoint<OutwardType = AgentMessage<Spec>, InwardType = EnvMessage<Spec>, Error = CommunicationError<Spec>>{}
 
 impl<Spec: DomainParameters, T> AgentCommEndpoint<Spec> for T
-where T: CommEndpoint<OutwardType = AgentMessage<Spec>, InwardType = EnvMessage<Spec>, Error = CommError<Spec>>{}
+where T: CommEndpoint<OutwardType = AgentMessage<Spec>, InwardType = EnvMessage<Spec>, Error = CommunicationError<Spec>>{}

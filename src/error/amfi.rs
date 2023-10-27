@@ -1,5 +1,5 @@
 use thiserror::Error;
-use crate::error::{CommError, ProtocolError,  WorldError};
+use crate::error::{CommunicationError, ProtocolError, WorldError};
 use crate::domain::{DomainParameters};
 
 #[derive(Debug, Clone, Error)]
@@ -10,7 +10,7 @@ pub enum AmfiError<DP: DomainParameters>{
     #[error("Agent {1} caused game error: {0}")]
     GameA(DP::GameErrorType, DP::AgentId),
     #[error("Communication error: {0}")]
-    Comm(CommError<DP>),
+    Communication(CommunicationError<DP>),
     #[error("Protocol error: {0}")]
     Protocol(ProtocolError<DP>),
 

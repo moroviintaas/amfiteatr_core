@@ -3,7 +3,7 @@ use std::collections::{HashMap};
 use log::debug;
 use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentBuilderTrait, EnvStateSequential, EnvironmentStateUniScore, EnvironmentWithAgents, ResetEnvironment, ScoreEnvironment, StatefulEnvironment};
 use crate::{comm::EnvCommEndpoint};
-use crate::error::{CommError, WorldError};
+use crate::error::{CommunicationError, WorldError};
 use crate::domain::{AgentMessage, DomainParameters, EnvMessage, Reward};
 
 
@@ -109,26 +109,26 @@ impl<
     S: EnvStateSequential<DP>,
     C: EnvCommEndpoint<DP>>
 CommunicatingEnv<DP> for HashMapEnv<DP, S, C> {
-    type CommunicationError = CommError<DP>;
+    type CommunicationError = CommunicationError<DP>;
 
     fn send_to(&mut self, agent_id: &DP::AgentId, message: EnvMessage<DP>)
         -> Result<(), Self::CommunicationError> {
 
-        self.comm_endpoints.get_mut(agent_id).ok_or(CommError::NoSuchConnection)
+        self.comm_endpoints.get_mut(agent_id).ok_or(CommunicationError::NoSuchConnection)
             .map(|v| v.send(message))?
     }
 
     fn recv_from(&mut self, agent_id: &DP::AgentId)
         -> Result<AgentMessage<DP>, Self::CommunicationError> {
 
-        self.comm_endpoints.get_mut(agent_id).ok_or(CommError::NoSuchConnection)
+        self.comm_endpoints.get_mut(agent_id).ok_or(CommunicationError::NoSuchConnection)
             .map(|v| v.receive_blocking())?
     }
 
     fn try_recv_from(&mut self, agent_id: &DP::AgentId)
         -> Result<Option<AgentMessage<DP>>, Self::CommunicationError> {
 
-        self.comm_endpoints.get_mut(agent_id).ok_or(CommError::NoSuchConnection)
+        self.comm_endpoints.get_mut(agent_id).ok_or(CommunicationError::NoSuchConnection)
             .map(|v| v.receive_non_blocking())?
     }
 }
