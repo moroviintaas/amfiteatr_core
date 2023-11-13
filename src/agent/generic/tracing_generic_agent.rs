@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::agent::{ActingAgent, Agent, CommunicatingAgent, AgentTrajectory, AgentTraceStep, Policy, PolicyAgent, ResetAgent, EnvRewardedAgent, StatefulAgent, TracingAgent, InternalRewardedAgent, AgentGen, InformationSet};
+use crate::agent::{ActingAgent, Agent, CommunicatingAgent, AgentTrajectory, AgentTraceStep, Policy, PolicyAgent, ReinitAgent, EnvRewardedAgent, StatefulAgent, TracingAgent, InternalRewardedAgent, AgentGen, InformationSet};
 use crate::agent::info_set::ScoringInformationSet;
 use crate::comm::CommPort;
 use crate::error::CommunicationError;
@@ -350,10 +350,10 @@ impl<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>>>
-ResetAgent<DP> for AgentGenT<DP, P, Comm>
+ReinitAgent<DP> for AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
-    fn reset(&mut self, initial_state: <Self as StatefulAgent<DP>>::InfoSetType) {
+    fn reinit(&mut self, initial_state: <Self as StatefulAgent<DP>>::InfoSetType) {
         self.state = initial_state;
         self.game_trajectory.clear();
         self.constructed_universal_reward = DP::UniversalReward::neutral();

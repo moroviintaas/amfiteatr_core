@@ -60,6 +60,8 @@ pub mod error;
 /// Traits and generic implementations for game controlling environment.
 pub mod env;
 pub mod demo;
+pub mod world;
+
 //mod map;
 
 

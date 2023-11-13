@@ -16,4 +16,5 @@ pub trait StatefulEnvironment<DP: DomainParameters>{
     fn process_action(&mut self, agent: &DP::AgentId, action: &DP::ActionType) 
         -> Result<<Self::State as EnvStateSequential<DP>>::Updates, DP::GameErrorType>;
 
+
 }

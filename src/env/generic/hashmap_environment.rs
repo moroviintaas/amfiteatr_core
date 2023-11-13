@@ -1,7 +1,7 @@
 use std::collections::{HashMap};
 
 use log::debug;
-use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentBuilderTrait, EnvStateSequential, EnvironmentStateUniScore, EnvironmentWithAgents, ResetEnvironment, ScoreEnvironment, StatefulEnvironment};
+use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentBuilderTrait, EnvStateSequential, EnvironmentStateUniScore, EnvironmentWithAgents, ReinitEnvironment, ScoreEnvironment, StatefulEnvironment};
 use crate::{comm::EnvCommEndpoint};
 use crate::error::{CommunicationError, WorldError};
 use crate::domain::{AgentMessage, DomainParameters, EnvMessage, Reward};
@@ -236,8 +236,8 @@ impl<
 DP: DomainParameters,
     S: EnvStateSequential<DP>,
     C: EnvCommEndpoint<DP>>
-ResetEnvironment<DP> for HashMapEnv<DP, S, C>{
-    fn reset(&mut self, initial_state: <Self as StatefulEnvironment<DP>>::State) {
+ReinitEnvironment<DP> for HashMapEnv<DP, S, C>{
+    fn reinit(&mut self, initial_state: <Self as StatefulEnvironment<DP>>::State) {
         self.game_state = initial_state;
         for vals in self.penalties.values_mut(){
             *vals = DP::UniversalReward::neutral();

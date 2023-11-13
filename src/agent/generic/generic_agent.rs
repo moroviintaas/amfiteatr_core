@@ -5,7 +5,7 @@ use crate::agent::{
     StatefulAgent,
     PolicyAgent,
     EnvRewardedAgent,
-    Agent, ResetAgent,
+    Agent, ReinitAgent,
     InternalRewardedAgent,
     AgentGenT
 };
@@ -301,10 +301,10 @@ impl<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>>>
-ResetAgent<DP> for AgentGen<DP, P, Comm>
+ReinitAgent<DP> for AgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
-    fn reset(&mut self, initial_state: <Self as StatefulAgent<DP>>::InfoSetType) {
+    fn reinit(&mut self, initial_state: <Self as StatefulAgent<DP>>::InfoSetType) {
         self.information_set = initial_state;
         self.constructed_universal_reward = DP::UniversalReward::neutral();
         self.actual_universal_score = DP::UniversalReward::neutral();

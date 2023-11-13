@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use crate::comm::EnvCommEndpoint;
-use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvStateSequential, EnvironmentStateUniScore, EnvironmentWithAgents, EnvTrajectory, EnvTrace, ScoreEnvironment, StatefulEnvironment, TracingEnv, ResetEnvironment};
+use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvStateSequential, EnvironmentStateUniScore, EnvironmentWithAgents, EnvTrajectory, EnvTrace, ScoreEnvironment, StatefulEnvironment, TracingEnv, ReinitEnvironment};
 use crate::env::generic::{HashMapEnv};
 use crate::error::CommunicationError;
 use crate::domain::{AgentMessage, DomainParameters, EnvMessage};
@@ -184,9 +184,9 @@ impl<
 DP: DomainParameters,
     S: EnvStateSequential<DP> + Clone,
     C: EnvCommEndpoint<DP>>
-ResetEnvironment<DP> for HashMapEnvT<DP, S, C>{
-    fn reset(&mut self, initial_state: <Self as StatefulEnvironment<DP>>::State) {
-        self.base_environment.reset(initial_state);
+ReinitEnvironment<DP> for HashMapEnvT<DP, S, C>{
+    fn reinit(&mut self, initial_state: <Self as StatefulEnvironment<DP>>::State) {
+        self.base_environment.reinit(initial_state);
         self.history.clear();
     }
 }
