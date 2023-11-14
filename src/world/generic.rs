@@ -4,8 +4,8 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use log::{debug, error};
 use crate::domain::{DomainParameters};
-use crate::agent::AutomaticAgent;
-use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentStateUniScore, EnvironmentWithAgents, RoundRobinUniversalEnvironment, ScoreEnvironment};
+use crate::agent::{AutomaticAgent, ReinitAgent, StatefulAgent};
+use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentStateUniScore, EnvironmentWithAgents, ReinitEnvironment, RoundRobinUniversalEnvironment, ScoreEnvironment, StatefulEnvironment};
 use crate::comm::EnvCommEndpoint;
 use crate::env::generic::{HashMapEnv};
 use crate::error::{AmfiError, CommunicationError, WorldError};
@@ -14,19 +14,24 @@ pub struct GenericModel<
     DP: DomainParameters + 'static,
     Env: EnvironmentWithAgents<DP>
         + BroadcastingEnv<DP>
-        + CommunicatingEnv<DP, CommunicationError=CommunicationError<DP>>
+        + CommunicatingEnv<DP, CommunicationError=CommunicationError<DP>>,
+    A: AutomaticAgent<DP> + Send
+
 >{
     environment: Env,
-    local_agents: HashMap<DP::AgentId, Arc<Mutex<dyn AutomaticAgent<DP> + Send>>>,
+    local_agents: HashMap<DP::AgentId, Arc<Mutex<Box<A>>>>,
 }
 
 impl<
     DP: DomainParameters + 'static,
     Env: EnvironmentWithAgents<DP>
         + BroadcastingEnv<DP>
-        + CommunicatingEnv<DP, CommunicationError=CommunicationError<DP>>
->GenericModel<DP, Env>{
-    pub fn new(environment: Env, local_agents: HashMap<DP::AgentId, Arc<Mutex<dyn AutomaticAgent<DP>  + Send >>>) -> Self{
+        + CommunicatingEnv<DP, CommunicationError=CommunicationError<DP>>,
+    A: AutomaticAgent<DP> + Send
+>GenericModel<DP, Env, A>{
+
+
+    pub fn new(environment: Env, local_agents: HashMap<DP::AgentId, Arc<Mutex<Box<A>>>>) -> Self{
         Self{environment, local_agents}
     }
 
@@ -67,12 +72,25 @@ impl<
         self.play(| env| env.run_round_robin_uni_rewards())
     }
 
+    pub fn reinit_agent(&mut self, agent: &DP::AgentId, new_info_set: <A as StatefulAgent<DP>>::InfoSetType)
+    where A: StatefulAgent<DP> + ReinitAgent<DP>{
+        if let Some(n) = self.local_agents.get(agent){
+            let mut guard  = n.lock().unwrap();
+            guard.as_mut().reinit(new_info_set)
+        }
+    }
+
+    pub fn reinit_environment(&mut self, new_state: <Env as StatefulEnvironment<DP>>::State)
+    where Env: ReinitEnvironment<DP> + StatefulEnvironment<DP>{
+        self.environment.reinit(new_state)
+    }
+
 
 
     pub fn env(&self) -> &Env{
         &self.environment
     }
-    pub fn local_agents(&self) -> &HashMap<DP::AgentId, Arc<Mutex<dyn AutomaticAgent<DP> + Send>>>{
+    pub fn local_agents(&self) -> &HashMap<DP::AgentId, Arc<Mutex<Box<A>>>>{
         &self.local_agents
     }
 }

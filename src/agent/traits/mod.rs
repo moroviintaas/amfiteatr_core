@@ -7,6 +7,7 @@ mod policy_agent;
 mod reset_agent;
 mod internal_rewarded_agent;
 
+use std::sync::Mutex;
 pub use communication_agent::*;
 pub use stateful_agent::*;
 pub use automatic::*;
@@ -25,4 +26,28 @@ use crate::domain::DomainParameters;
 pub trait Agent<DP: DomainParameters>{
     fn id(&self) -> &DP::AgentId;
     fn change_id(&mut self, new_id: DP::AgentId);
+}
+
+impl<DP: DomainParameters, A: Agent<DP>> Agent<DP> for Mutex<A>{
+    fn id(&self) -> &DP::AgentId {
+        self.id()
+    }
+
+    fn change_id(&mut self, new_id: DP::AgentId) {
+        let mut guard = self.lock().unwrap();
+        guard.change_id(new_id);
+        std::mem::drop(guard);
+    }
+
+}
+
+impl<DP: DomainParameters, A: Agent<DP>> Agent<DP> for Box<A>{
+    fn id(&self) -> &DP::AgentId {
+        self.id()
+    }
+
+    fn change_id(&mut self, new_id: DP::AgentId) {
+        self.change_id(new_id)
+    }
+
 }

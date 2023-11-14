@@ -1,5 +1,6 @@
+use std::sync::Mutex;
 use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, EnvRewardedAgent, Agent, InternalRewardedAgent, ScoringInformationSet, PresentPossibleActions};
-use crate::error::{CommunicationError, AmfiError};
+use crate::error::{CommunicationError, AmfiError, WorldError};
 use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
 use crate::error::AmfiError::Protocol;
 use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
@@ -206,3 +207,23 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
         }
     }
 }
+/*
+impl<DP: DomainParameters, A: AutomaticAgent<DP>> AutomaticAgent<DP> for Mutex<A>{
+    fn run(&mut self) -> Result<(), AmfiError<DP>> {
+        let mut guard = self.lock().or_else(|_|Err(WorldError::<DP>::AgentMutexLock))?;
+        let id = guard.id().clone();
+        guard.run().map_err(|e|{
+            error!("Agent {id:} encountered error: {e:}");
+            e
+        })
+    }
+}
+*/
+/*
+impl<DP: DomainParameters, A: AutomaticAgent<DP>> AutomaticAgent<DP> for Box<A>{
+    fn run(&mut self) -> Result<(), AmfiError<DP>> {
+        self.run()
+    }
+}
+
+ */
