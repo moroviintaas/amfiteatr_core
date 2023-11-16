@@ -2,7 +2,7 @@ use std::fmt::{Debug, Display};
 use std::hash::Hash;
 
 /// Marker trait for values identifying agent. This simplifies all required traits.
-pub trait AgentIdentifier: Debug + Send + Sync + Clone + Hash + Display + PartialEq + Eq{
+pub trait AgentIdentifier: Debug + Send + Sync + Clone + Hash + Display + PartialEq + Eq + 'static{
 
 }
 

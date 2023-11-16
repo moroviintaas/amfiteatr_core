@@ -18,7 +18,7 @@ pub enum AmfiError<DP: DomainParameters>{
     //Setup(SetupError<DP>),
     #[error("Data convert")]
     DataConvert(),
-    #[error("Internal")]
+    #[error("World maintenance error: {0}")]
     World(WorldError<DP>),
     #[error("Custom: {0}")]
     Custom(String)
