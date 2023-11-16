@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::agent::{ActingAgent, Agent, CommunicatingAgent, AgentTrajectory, AgentTraceStep, Policy, PolicyAgent, ReinitAgent, EnvRewardedAgent, StatefulAgent, TracingAgent, InternalRewardedAgent, AgentGen, InformationSet};
+use crate::agent::{ActingAgent, CommunicatingAgent, AgentTrajectory, AgentTraceStep, Policy, PolicyAgent, ReinitAgent, EnvRewardedAgent, StatefulAgent, TracingAgent, InternalRewardedAgent, AgentGen, InformationSet};
 use crate::agent::info_set::ScoringInformationSet;
 use crate::comm::CommPort;
 use crate::error::CommunicationError;
@@ -26,7 +26,6 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
     policy: P,
     _phantom: PhantomData<DP>,
 
-    id: DP::AgentId,
     constructed_universal_reward: <DP as DomainParameters>::UniversalReward,
     committed_universal_score: <DP as DomainParameters>::UniversalReward,
 
@@ -45,12 +44,11 @@ impl <DP: DomainParameters,
 AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
-    pub fn new(id: DP::AgentId, state: <P as Policy<DP>>::InfoSetType, comm: Comm, policy: P) -> Self{
+    pub fn new(state: <P as Policy<DP>>::InfoSetType, comm: Comm, policy: P) -> Self{
         Self{state,
             comm,
             policy,
             _phantom:PhantomData::default(),
-            id,
             constructed_universal_reward: Reward::neutral(),
             committed_universal_score: Reward::neutral(),
             game_trajectory: AgentTrajectory::new(),
@@ -68,7 +66,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
     /// use amfi::comm::SyncCommEnv;
     /// use amfi::demo::{DemoAgentID, DemoInfoSet, DemoPolicySelectFirst};
     /// let (_, comm) = SyncCommEnv::new_pair();
-    /// let agent = AgentGenT::new(DemoAgentID::Red, DemoInfoSet::new(10), comm, RandomPolicy::new());
+    /// let agent = AgentGenT::new(DemoInfoSet::new(DemoAgentID::Red, 10), comm, RandomPolicy::new());
     /// let agent_2 = agent.transform_replace_policy(DemoPolicySelectFirst{});
     /// ```
     pub fn transform_replace_policy<P2: Policy<DP, InfoSetType=P::InfoSetType>>(self, new_policy: P2) -> AgentGenT<DP, P2, Comm>
@@ -77,7 +75,6 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
             state: self.state,
             policy: new_policy,
             _phantom: Default::default(),
-            id: self.id,
             constructed_universal_reward: self.constructed_universal_reward,
             committed_universal_score: self.committed_universal_score,
             comm: self.comm,
@@ -97,7 +94,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
     /// use amfi::comm::SyncCommEnv;
     /// use amfi::demo::{DemoAgentID, DemoInfoSet, DemoPolicySelectFirst};
     /// let (_, comm) = SyncCommEnv::new_pair();
-    /// let agent = AgentGenT::new(DemoAgentID::Red, DemoInfoSet::new(10), comm, RandomPolicy::new());
+    /// let agent = AgentGenT::new(DemoInfoSet::new(DemoAgentID::Red, 10), comm, RandomPolicy::new());
     /// let (agent_2, old_policy) = agent.transform_replace_policy_ret(DemoPolicySelectFirst{});
     /// ```
     pub fn transform_replace_policy_ret<P2: Policy<DP, InfoSetType=P::InfoSetType>>(self, new_policy: P2) -> (AgentGenT<DP, P2, Comm>, P)
@@ -107,7 +104,6 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
             state: self.state,
             policy: new_policy,
             _phantom: Default::default(),
-            id: self.id,
             constructed_universal_reward: self.constructed_universal_reward,
             comm: self.comm,
             explicit_subjective_reward_component: self.explicit_subjective_reward_component,
@@ -139,32 +135,9 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
         &mut self.comm
     }
 
-    /// Changes agent's id.
-    /// __Warning:__ id of agent should correspond with paired communication endpoint on the environment's side.
-    pub fn change_id(&mut self, id: DP::AgentId){
-        self.id = id
-    }
-
 }
 
-impl<
-    DP: DomainParameters,
-    P: Policy<DP>,
-    Comm: CommPort<
-        OutwardType=AgentMessage<DP>,
-        InwardType=EnvMessage<DP>,
-        Error=CommunicationError<DP>>>
-Agent<DP> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
-    fn id(&self) -> &DP::AgentId {
-        &self.id
-    }
-
-    fn change_id(&mut self, new_id: DP::AgentId) {
-        self.id = new_id;
-    }
-}
 
 impl<
     DP: DomainParameters,

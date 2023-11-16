@@ -1,5 +1,5 @@
 use std::sync::Mutex;
-use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, EnvRewardedAgent, Agent, InternalRewardedAgent, ScoringInformationSet, PresentPossibleActions};
+use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, EnvRewardedAgent, InternalRewardedAgent, ScoringInformationSet, PresentPossibleActions, AgentWithId};
 use crate::error::{CommunicationError, AmfiError, WorldError};
 use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
 use crate::error::AmfiError::Protocol;
@@ -14,13 +14,13 @@ use crate::domain::AgentMessage::{NotifyError, TakeAction};
 /// Implementations are perfectly fine to skip messages about rewards coming
 /// from environment. As trait suited for running game regarding collected rewards
 /// refer to [`AutomaticAgentRewarded`](crate::agent::AutomaticAgentRewarded)
-pub trait AutomaticAgent<Spec: DomainParameters>: Agent<Spec>{
+pub trait AutomaticAgent<DP: DomainParameters>: AgentWithId<DP>{
     /// Runs agent beginning in it's current state (information set)
     /// and returns when game is finished.
     /// > __Note__ It is not specified how agent should react when encountering error.
     /// > One conception is to inform environment about error, which then should broadcast
     /// > error message to every agent and end game.
-    fn run(&mut self) -> Result<(), AmfiError<Spec>>;
+    fn run(&mut self) -> Result<(), AmfiError<DP>>;
 }
 
 /// Trait for agents that perform their interactions with environment automatically,
@@ -40,7 +40,7 @@ pub trait AutomaticAgentRewarded<Spec: DomainParameters>: AutomaticAgent<Spec>{
 impl<Agnt, DP> AutomaticAgent<DP> for Agnt
 where Agnt: StatefulAgent<DP> + ActingAgent<DP>
     + CommunicatingAgent<DP, CommunicationError=CommunicationError<DP>>
-    + PolicyAgent<DP> + Agent<DP>
+    + PolicyAgent<DP>
     + InternalRewardedAgent<DP>,
       DP: DomainParameters,
       <Agnt as StatefulAgent<DP>>::InfoSetType: ScoringInformationSet<DP> + PresentPossibleActions<DP>
@@ -123,7 +123,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
 impl<Agnt, DP> AutomaticAgentRewarded<DP> for Agnt
 where Agnt: StatefulAgent<DP> + ActingAgent<DP>
     + CommunicatingAgent<DP, CommunicationError=CommunicationError<DP>>
-    + PolicyAgent<DP> + Agent<DP>
+    + PolicyAgent<DP>
     + EnvRewardedAgent<DP>
     + InternalRewardedAgent<DP>,
       DP: DomainParameters,

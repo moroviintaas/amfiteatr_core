@@ -1,11 +1,10 @@
 use std::error::Error;
-use crate::agent::Agent;
 use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
 
 /// Trait for agents able to communicate with environment.
 /// This trait is meant to work synchronously.
 ///
-pub trait CommunicatingAgent<DP: DomainParameters>: Agent<DP>{
+pub trait CommunicatingAgent<DP: DomainParameters>{
     /// An error which is returned in case of communication failure.
     /// In this crate usually [`CommError`](crate::error::CommunicationError) is used in
     /// this context.

@@ -10,7 +10,7 @@ use crate::domain::{Construct, DomainParameters, Reward};
 pub trait InformationSet<DP: DomainParameters>: Send + Debug{
 
 
-
+    fn agent_id(&self) -> &DP::AgentId;
     fn is_action_valid(&self, action: &DP::ActionType) -> bool;
     fn update(&mut self, update: DP::UpdateType) -> Result<(), DP::GameErrorType>;
 }
@@ -24,8 +24,9 @@ pub trait PresentPossibleActions<DP: DomainParameters>: InformationSet<DP>{
 }
 
 impl<DP: DomainParameters, T: InformationSet<DP>> InformationSet<DP> for Box<T>{
-
-
+    fn agent_id(&self) -> &DP::AgentId {
+        self.as_ref().agent_id()
+    }
 
 
     fn is_action_valid(&self, action: &DP::ActionType) -> bool {

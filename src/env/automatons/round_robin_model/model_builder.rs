@@ -1,7 +1,7 @@
 
 use std::collections::{HashMap};
 use std::sync::{Arc, Mutex};
-use crate::agent::{Agent, AgentGen, AutomaticAgent, Policy, PresentPossibleActions, ScoringInformationSet};
+use crate::agent::{AgentGen, AgentWithId, AutomaticAgent, Policy, PresentPossibleActions, ScoringInformationSet, StatefulAgent};
 use crate::env::{EnvironmentBuilderTrait, EnvironmentStateUniScore};
 use crate::env::automatons::rr::RoundRobinModel;
 use crate::comm::{EnvCommEndpoint, SyncCommEnv};
@@ -34,7 +34,7 @@ RoundRobinModelBuilder<DP, EnvState,  SyncCommEnv<DP>>
         where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> + PresentPossibleActions<DP>{
 
         let (comm_env, comm_agent) = SyncCommEnv::new_pair();
-        let agent = AgentGen::new(id, initial_state, comm_agent, policy);
+        let agent = AgentGen::new( initial_state, comm_agent, policy);
         self.env_builder = self.env_builder.add_comm(&agent.id(), comm_env)?;
         self.local_agents.insert(agent.id().clone(), Arc::new(Mutex::new(agent)));
         Ok(self)
@@ -70,7 +70,7 @@ RoundRobinModelBuilder<DP, EnvState,  Comm>{
     }
 
     pub fn add_local_agent(mut self,
-                           agent: Arc<Mutex<dyn AutomaticAgent<DP> + Send>>,
+                           agent: Arc<Mutex<dyn AutomaticAgent<DP>+ Send>>,
                            env_comm: Comm)
                            -> Result<Self, WorldError<DP>>{
 

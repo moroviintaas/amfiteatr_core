@@ -1,11 +1,11 @@
-use crate::agent::{Agent, AgentTrajectory};
+use crate::agent::{AgentTrajectory};
 use crate::agent::info_set::ScoringInformationSet;
 use crate::domain::DomainParameters;
 
 
 /// Agent that collects game trajectory, which contains recorded information sets
 /// in the moment of making decisions and collected rewards on the way to the end game.
-pub trait TracingAgent<DP: DomainParameters, S: ScoringInformationSet<DP>>: Agent<DP>{
+pub trait TracingAgent<DP: DomainParameters, S: ScoringInformationSet<DP>>{
     /// Resets recorded trajectory
     fn reset_trajectory(&mut self);
     /// Moves out recorded trajectory leaving new initialized in place

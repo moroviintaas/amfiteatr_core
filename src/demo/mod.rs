@@ -112,13 +112,15 @@ impl EnvStateSequential<DemoParams> for DemoState{
 
 #[derive(Clone, Debug)]
 pub struct DemoInfoSet{
+    player_id: DemoAgentID,
     pub number_of_bandits: usize,
     rewards: Vec<f32>
 }
 
 impl DemoInfoSet{
-    pub fn new(number_of_bandits: usize) -> Self{
+    pub fn new(player_id: DemoAgentID, number_of_bandits: usize) -> Self{
         Self{
+            player_id,
             number_of_bandits,
             rewards: Vec::new()
         }
@@ -126,6 +128,9 @@ impl DemoInfoSet{
 }
 
 impl InformationSet<DemoParams> for DemoInfoSet{
+    fn agent_id(&self) -> &DemoAgentID {
+        &self.player_id
+    }
 
 
     fn is_action_valid(&self, action: &DemoAction) -> bool {

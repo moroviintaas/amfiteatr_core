@@ -1,9 +1,9 @@
-use crate::agent::{Agent, Policy, StatefulAgent};
+use crate::agent::{Policy, StatefulAgent};
 use crate::domain::DomainParameters;
 
 /// Trait for agents that performs actions, possibly mutating some attributes of agent.
 ///
-pub trait ActingAgent<DP: DomainParameters>: Agent<DP> {
+pub trait ActingAgent<DP: DomainParameters>{
 
     /// Agent selects action and performs optional changing operations.
     /// It has ability to mutate agent when he/she selects action.

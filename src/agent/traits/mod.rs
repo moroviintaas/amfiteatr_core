@@ -6,6 +6,7 @@ mod tracing_agent;
 mod policy_agent;
 mod reset_agent;
 mod internal_rewarded_agent;
+mod agent_with_id;
 
 use std::sync::Mutex;
 pub use communication_agent::*;
@@ -16,8 +17,9 @@ pub use tracing_agent::*;
 pub use reset_agent::*;
 pub use policy_agent::*;
 pub use internal_rewarded_agent::*;
+pub use agent_with_id::*;
 use crate::domain::DomainParameters;
-
+/*
 /// Basic Agent trait, basic agent constrains require it to have id.
 /// Although agent may somehow change it, it is important to keep environment updated.
 /// When environment uses communication endpoint to /send to/recv from/ agent it should
@@ -51,3 +53,5 @@ impl<DP: DomainParameters, A: Agent<DP>> Agent<DP> for Box<A>{
     }
 
 }
+
+ */

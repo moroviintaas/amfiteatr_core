@@ -25,10 +25,10 @@
 //! env_comms.insert(DemoAgentID::Blue, comm_env_b);
 //! env_comms.insert(DemoAgentID::Red, comm_env_r);
 //! let mut environment = HashMapEnvT::new(state, env_comms);
-//! let blue_info_set = DemoInfoSet::new(number_of_bandits);
-//! let red_info_set = DemoInfoSet::new(number_of_bandits);
-//! let mut agent_blue = AgentGenT::new(DemoAgentID::Blue, blue_info_set, comm_agent_b, RandomPolicy::<DemoParams, DemoInfoSet>::new());
-//! let mut agent_red = AgentGen::new(DemoAgentID::Red, red_info_set, comm_agent_r, DemoPolicySelectFirst{});
+//! let blue_info_set = DemoInfoSet::new(DemoAgentID::Blue, number_of_bandits);
+//! let red_info_set = DemoInfoSet::new(DemoAgentID::Red, number_of_bandits);
+//! let mut agent_blue = AgentGenT::new(blue_info_set, comm_agent_b, RandomPolicy::<DemoParams, DemoInfoSet>::new());
+//! let mut agent_red = AgentGen::new(red_info_set, comm_agent_r, DemoPolicySelectFirst{});
 //!
 //! thread::scope(|s|{
 //!     s.spawn(||{
