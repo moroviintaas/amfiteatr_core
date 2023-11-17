@@ -1,5 +1,5 @@
 use std::sync::Mutex;
-use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, EnvRewardedAgent, InternalRewardedAgent, ScoringInformationSet, PresentPossibleActions, AgentWithId};
+use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, EnvRewardedAgent, InternalRewardedAgent, ScoringInformationSet, PresentPossibleActions, AgentWithId, TracingAgent};
 use crate::error::{CommunicationError, AmfiError, WorldError};
 use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
 use crate::error::AmfiError::Protocol;
@@ -27,13 +27,18 @@ pub trait AutomaticAgent<DP: DomainParameters>: AgentWithId<DP>{
 /// without waiting for interrupting interaction from anyone but environment.
 /// Difference between [`AutomaticAgent`](crate::agent::AutomaticAgent) is that
 /// this method should collect rewards and somehow store rewards sent by environment.
-pub trait AutomaticAgentRewarded<Spec: DomainParameters>: AutomaticAgent<Spec>{
+pub trait AutomaticAgentRewarded<DP: DomainParameters>: AutomaticAgent<DP> + EnvRewardedAgent<DP>{
     /// Runs agent beginning in it's current state (information set)
     /// and returns when game is finished.
-    fn run_rewarded(&mut self) -> Result<(), AmfiError<Spec>>;
+    fn run_rewarded(&mut self) -> Result<(), AmfiError<DP>>;
 }
 
+pub trait AutomaticAgentBothPayoffs<DP: DomainParameters>: AutomaticAgentRewarded<DP> + InternalRewardedAgent<DP>{
 
+}
+impl<DP: DomainParameters, T: AutomaticAgentRewarded<DP> + InternalRewardedAgent<DP>> AutomaticAgentBothPayoffs<DP> for T{}
+
+//pub trait TracingAutomaticAgent<DP: DomainParameters>: AutomaticAgentBothPayoffs<DP> + TracingAgent<DP, S>
 
 /// Generic implementation of AutomaticAgent - probably will be done via macro
 /// in the future to avoid conflicts with custom implementations.
@@ -72,9 +77,11 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                         }
                     }
                     EnvMessage::MoveRefused => {
-                        self.add_explicit_subjective_score(
-                            &<<Self as StatefulAgent<DP>>::InfoSetType as ScoringInformationSet<DP>>
+                        self.add_explicit_subjective_score(&self.penalty_for_illegal_action())
+                            /*&<Self as InternalRewardedAgent<DP>>::InternalReward
                             ::penalty_for_illegal())
+
+                             */
                     }
                     EnvMessage::GameFinished => {
                         info!("Agent {} received information that game is finished.", self.id());
@@ -127,7 +134,8 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
     + EnvRewardedAgent<DP>
     + InternalRewardedAgent<DP>,
       DP: DomainParameters,
-    <Agnt as StatefulAgent<DP>>::InfoSetType: ScoringInformationSet<DP> + PresentPossibleActions<DP>{
+    <Agnt as StatefulAgent<DP>>::InfoSetType: ScoringInformationSet<DP>
+    + PresentPossibleActions<DP>{
     fn run_rewarded(&mut self) -> Result<(), AmfiError<DP>>
     {
         info!("Agent {} starts", self.id());
@@ -137,12 +145,8 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                 Ok(message) => match message{
                     EnvMessage::YourMove => {
                         debug!("Agent {} received 'YourMove' signal.", self.id());
-                        //current_score = Default::default();
-
-                        //debug!("Agent's {:?} possible actions: {:?}", self.id(), Vec::from_iter(self.state().available_actions().into_iter()));
                         debug!("Agent's {:?} possible actions: {}]", self.id(), self.info_set().available_actions().into_iter()
                             .fold(String::from("["), |a, b| a + &format!("{b:#}") + ", ").trim_end());
-                        //match self.policy_select_action(){
                         match self.take_action(){
                             None => {
                                 error!("Agent {} has no possible action", self.id());
@@ -156,9 +160,12 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                         }
                     }
                     EnvMessage::MoveRefused => {
-                        self.add_explicit_subjective_score(
+                        self.add_explicit_subjective_score(&self.penalty_for_illegal_action())
+                        /*(
                             &<<Self as StatefulAgent<DP>>::InfoSetType as ScoringInformationSet<DP>>
                             ::penalty_for_illegal())
+
+                         */
                     }
                     EnvMessage::GameFinished => {
                         info!("Agent {} received information that game is finished.", self.id());

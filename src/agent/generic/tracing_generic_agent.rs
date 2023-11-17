@@ -347,11 +347,15 @@ impl<
 InternalRewardedAgent<DP> for AgentGenT<DP, P, Comm>
 where <Self as StatefulAgent<DP>>::InfoSetType: ScoringInformationSet<DP>,
 <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
-    fn current_subjective_score(&self) ->  <<Self as StatefulAgent<DP>>::InfoSetType as ScoringInformationSet<DP>>::RewardType{
+    type InternalReward = <<Self as StatefulAgent<DP>>::InfoSetType as ScoringInformationSet<DP>>::RewardType;
+    fn current_subjective_score(&self) ->  Self::InternalReward{
         self.state.current_subjective_score() + &self.explicit_subjective_reward_component
     }
 
-    fn add_explicit_subjective_score(&mut self, explicit_reward: &<<Self as StatefulAgent<DP>>::InfoSetType as ScoringInformationSet<DP>>::RewardType) {
+    fn add_explicit_subjective_score(&mut self, explicit_reward: &Self::InternalReward) {
         self.explicit_subjective_reward_component += explicit_reward
+    }
+    fn penalty_for_illegal_action(&self) -> Self::InternalReward {
+        <<Self as StatefulAgent<DP>>::InfoSetType as ScoringInformationSet<DP>>::penalty_for_illegal()
     }
 }
