@@ -162,7 +162,7 @@ impl ScoringInformationSet<DemoParams> for DemoInfoSet{
         self.rewards.iter().sum()
     }
 
-    fn penalty_for_illegal() -> Self::RewardType {
+    fn penalty_for_illegal(&self) -> Self::RewardType {
         -100.0
     }
 }

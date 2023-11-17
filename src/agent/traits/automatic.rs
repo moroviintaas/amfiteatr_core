@@ -38,7 +38,11 @@ pub trait AutomaticAgentBothPayoffs<DP: DomainParameters>: AutomaticAgentRewarde
 }
 impl<DP: DomainParameters, T: AutomaticAgentRewarded<DP> + InternalRewardedAgent<DP>> AutomaticAgentBothPayoffs<DP> for T{}
 
-//pub trait TracingAutomaticAgent<DP: DomainParameters>: AutomaticAgentBothPayoffs<DP> + TracingAgent<DP, S>
+pub trait TracingAutomaticAgent<DP: DomainParameters, IS: ScoringInformationSet<DP>>: AutomaticAgentBothPayoffs<DP> + TracingAgent<DP, IS>{}
+
+impl<DP: DomainParameters, IS: ScoringInformationSet<DP>, T: AutomaticAgentBothPayoffs<DP> + TracingAgent<DP, IS>> TracingAutomaticAgent<DP, IS> for T{
+
+}
 
 /// Generic implementation of AutomaticAgent - probably will be done via macro
 /// in the future to avoid conflicts with custom implementations.

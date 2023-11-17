@@ -21,7 +21,7 @@ pub struct AgentGenT<
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
 
-    state: <P as Policy<DP>>::InfoSetType,
+    information_set: <P as Policy<DP>>::InfoSetType,
     comm: Comm,
     policy: P,
     _phantom: PhantomData<DP>,
@@ -45,7 +45,8 @@ AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
     pub fn new(state: <P as Policy<DP>>::InfoSetType, comm: Comm, policy: P) -> Self{
-        Self{state,
+        Self{
+            information_set: state,
             comm,
             policy,
             _phantom:PhantomData::default(),
@@ -72,7 +73,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
     pub fn transform_replace_policy<P2: Policy<DP, InfoSetType=P::InfoSetType>>(self, new_policy: P2) -> AgentGenT<DP, P2, Comm>
     {
         AgentGenT::<DP, P2, Comm>{
-            state: self.state,
+            information_set: self.information_set,
             policy: new_policy,
             _phantom: Default::default(),
             constructed_universal_reward: self.constructed_universal_reward,
@@ -101,7 +102,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
     {
         let p = self.policy;
         (AgentGenT::<DP, P2, Comm>{
-            state: self.state,
+            information_set: self.information_set,
             policy: new_policy,
             _phantom: Default::default(),
             constructed_universal_reward: self.constructed_universal_reward,
@@ -173,11 +174,11 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
     type InfoSetType = <P as Policy<DP>>::InfoSetType;
 
     fn update(&mut self, state_update: DP::UpdateType) -> Result<(), DP::GameErrorType> {
-        self.state.update(state_update)
+        self.information_set.update(state_update)
     }
 
     fn info_set(&self) -> &Self::InfoSetType {
-        &self.state
+        &self.information_set
     }
 }
 
@@ -195,15 +196,15 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> + Clone{
     fn take_action(&mut self) -> Option<DP::ActionType> {
         self.commit_trace();
 
-        let action = self.policy.select_action(&self.state);
+        let action = self.policy.select_action(&self.information_set);
         self.last_action = action.clone();
-        self.state_before_last_action = Some(self.state.clone());
+        self.state_before_last_action = Some(self.information_set.clone());
         action
     }
 
     fn finalize(&mut self) {
         self.commit_trace();
-        self.state_before_last_action = Some(self.state.clone())
+        self.state_before_last_action = Some(self.information_set.clone())
     }
 }
 
@@ -247,7 +248,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> ,
             let universal_score_after_update = self.committed_universal_score.clone();
             let initial_state = self.state_before_last_action.take().unwrap();
             let subjective_score_before_update = initial_state.current_subjective_score();
-            let subjective_score_after_update = self.state.current_subjective_score() + &self.explicit_subjective_reward_component;
+            let subjective_score_after_update = self.information_set.current_subjective_score() + &self.explicit_subjective_reward_component;
 
 
             self.game_trajectory.push_trace_step(
@@ -327,7 +328,7 @@ ReinitAgent<DP> for AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
     fn reinit(&mut self, initial_state: <Self as StatefulAgent<DP>>::InfoSetType) {
-        self.state = initial_state;
+        self.information_set = initial_state;
         self.game_trajectory.clear();
         self.constructed_universal_reward = DP::UniversalReward::neutral();
         self.committed_universal_score = DP::UniversalReward::neutral();
@@ -349,13 +350,13 @@ where <Self as StatefulAgent<DP>>::InfoSetType: ScoringInformationSet<DP>,
 <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
     type InternalReward = <<Self as StatefulAgent<DP>>::InfoSetType as ScoringInformationSet<DP>>::RewardType;
     fn current_subjective_score(&self) ->  Self::InternalReward{
-        self.state.current_subjective_score() + &self.explicit_subjective_reward_component
+        self.information_set.current_subjective_score() + &self.explicit_subjective_reward_component
     }
 
     fn add_explicit_subjective_score(&mut self, explicit_reward: &Self::InternalReward) {
         self.explicit_subjective_reward_component += explicit_reward
     }
     fn penalty_for_illegal_action(&self) -> Self::InternalReward {
-        <<Self as StatefulAgent<DP>>::InfoSetType as ScoringInformationSet<DP>>::penalty_for_illegal()
+        self.information_set.penalty_for_illegal()
     }
 }

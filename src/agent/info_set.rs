@@ -55,7 +55,7 @@ impl<DP: DomainParameters, T: PresentPossibleActions<DP>> PresentPossibleActions
 pub trait ScoringInformationSet<DP: DomainParameters>: InformationSet<DP>{
     type RewardType: Reward;
     fn current_subjective_score(&self) -> Self::RewardType;
-    fn penalty_for_illegal() -> Self::RewardType;
+    fn penalty_for_illegal(&self) -> Self::RewardType;
 }
 
 impl<T: ScoringInformationSet<Spec>, Spec: DomainParameters> ScoringInformationSet<Spec> for Box<T> {
@@ -65,8 +65,8 @@ impl<T: ScoringInformationSet<Spec>, Spec: DomainParameters> ScoringInformationS
         self.as_ref().current_subjective_score()
     }
 
-    fn penalty_for_illegal() -> T::RewardType {
-        T::penalty_for_illegal()
+    fn penalty_for_illegal(&self) -> T::RewardType {
+        self.as_ref().penalty_for_illegal()
     }
 }
 

@@ -304,6 +304,6 @@ where <Self as StatefulAgent<DP>>::InfoSetType: ScoringInformationSet<DP>,
     }
 
     fn penalty_for_illegal_action(&self) -> Self::InternalReward {
-        <<Self as StatefulAgent<DP>>::InfoSetType as ScoringInformationSet<DP>>::penalty_for_illegal()
+        self.info_set().penalty_for_illegal()
     }
 }
