@@ -3,11 +3,12 @@ use std::error::Error;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::sync::mpsc::{channel, Receiver, RecvError, Sender, SendError, TryRecvError};
+use crate::agent::ListPlayers;
 use crate::comm::endpoint::CommPort;
 use crate::error::CommunicationError;
 use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
 
-use super::{AgentAdapter, EnvironmentAdapter, AgentCommEndpoint, EnvCommEndpoint};
+use super::{AgentAdapter, EnvironmentAdapter, EnvCommEndpoint, BroadcastingEnvironmentAdapter};
 
 
 #[derive(Debug)]
@@ -201,6 +202,32 @@ impl<DP: DomainParameters> EnvironmentAdapter<DP> for EnvMpscPort<DP>{
     }
 }
 
+impl<DP: DomainParameters> BroadcastingEnvironmentAdapter<DP> for EnvMpscPort<DP>{
+    fn send_all(&mut self, message: EnvMessage<DP>) ->  Result<(), CommunicationError<DP>> {
+        let mut result = Ok(());
+        for (_agent, tx) in self.senders.iter_mut(){
+            let r = tx.send(message.clone());
+            if let Err(e) = r{
+                if result.is_ok(){
+                    result = Err(CommunicationError::from(e));
+                }
+            }
+               
+        }
+        result
+    }
+}
+
+impl<DP: DomainParameters> ListPlayers<DP> for EnvMpscPort<DP>{
+    type IterType = <Vec<DP::AgentId> as IntoIterator>::IntoIter;
+
+    fn players(&self) -> Self::IterType {
+        self.senders.keys().map(|r| r.to_owned())
+        .collect::<Vec<DP::AgentId>>().into_iter()
+    }
+}
+
+//impl 
 
 pub struct EnvRRAdapter<DP: DomainParameters, T: EnvCommEndpoint<DP>>{
     endpoints: HashMap<DP::AgentId, T>,
@@ -257,9 +284,6 @@ impl<DP: DomainParameters> EnvRRAdapter<DP, Box<dyn EnvCommEndpoint<DP>>>{
 impl <DP: DomainParameters, T: EnvCommEndpoint<DP>> EnvironmentAdapter<DP> for EnvRRAdapter<DP, T>{
     fn send(&mut self, agent: &<DP as DomainParameters>::AgentId, message: EnvMessage<DP>) 
     -> Result<(), CommunicationError<DP>> {
-        /*self.endpoints.get_mut(agent)
-            .ok_or_else(|| CommunicationError::ConnectionToAgentNotFound(agent.to_owned()))?
-            .send(message)*/
         if let Some(s) = self.endpoints.get_mut(agent){
             s.send(message)
         } else {
@@ -302,5 +326,21 @@ impl <DP: DomainParameters, T: EnvCommEndpoint<DP>> EnvironmentAdapter<DP> for E
 
     fn is_agent_connected(&self, agent_id: &<DP as DomainParameters>::AgentId) -> bool {
         self.endpoints.contains_key(agent_id)
+    }
+}
+
+impl <DP: DomainParameters, T: EnvCommEndpoint<DP>> BroadcastingEnvironmentAdapter<DP> for EnvRRAdapter<DP, T>{
+    fn send_all(&mut self, message: EnvMessage<DP>) ->  Result<(), CommunicationError<DP>> {
+        let mut result = Ok(());
+        for (_agent, endpoint) in self.endpoints.iter_mut(){
+            let r = endpoint.send(message.clone());
+            if let Err(e) = r{
+                if result.is_ok(){
+                    result = Err(CommunicationError::from(e));
+                }
+            }
+               
+        }
+        result
     }
 }

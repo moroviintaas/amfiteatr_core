@@ -1,6 +1,6 @@
-use std::sync::Mutex;
+
 use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, EnvRewardedAgent, InternalRewardedAgent, ScoringInformationSet, PresentPossibleActions, AgentWithId, TracingAgent};
-use crate::error::{CommunicationError, AmfiError, WorldError};
+use crate::error::{CommunicationError, AmfiError};
 use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
 use crate::error::AmfiError::Protocol;
 use crate::domain::{AgentMessage, EnvMessage, DomainParameters};

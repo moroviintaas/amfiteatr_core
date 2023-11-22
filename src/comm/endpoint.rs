@@ -72,3 +72,7 @@ pub trait AgentAdapter<DP: DomainParameters>{
     fn send(&mut self, message: AgentMessage<DP>) -> Result<(), CommunicationError<DP>>;
     fn receive(&mut self) -> Result<EnvMessage<DP>, CommunicationError<DP>>;
 }
+
+pub trait BroadcastingEnvironmentAdapter<DP: DomainParameters>: EnvironmentAdapter<DP>{
+    fn send_all(&mut self, message: EnvMessage<DP>) ->  Result<(), CommunicationError<DP>>;
+}

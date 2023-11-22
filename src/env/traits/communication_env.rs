@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
+use crate::{domain::{AgentMessage, EnvMessage, DomainParameters}, error::CommunicationError};
 
 pub trait CommunicatingEnv<Spec: DomainParameters>{
     //type Outward;
@@ -19,4 +19,19 @@ pub trait BroadcastingEnv<Spec: DomainParameters>: CommunicatingEnv<Spec>{
 
     fn send_to_all(&mut self,  message: EnvMessage<Spec>) -> Result<(), Self::CommunicationError>;
 
+}
+
+pub trait ConnectedEnvironment<DP: DomainParameters>{
+    
+    fn send(&mut self, agent_id: &DP::AgentId,  message: EnvMessage<DP>)
+        -> Result<(), CommunicationError<DP>>;
+    fn receive_blocking(&mut self)
+        -> Result<(DP::AgentId, AgentMessage<DP>), CommunicationError<DP>>;
+    fn receive_nonblocking(&mut self)
+        -> Result<Option<(DP::AgentId, AgentMessage<DP>)>, CommunicationError<DP>>;
+        
+}
+
+pub trait BroadConnectedEnvironment<DP: DomainParameters>{
+    fn send_all(&mut self, message: EnvMessage<DP>) -> Result<(), CommunicationError<DP>>;
 }

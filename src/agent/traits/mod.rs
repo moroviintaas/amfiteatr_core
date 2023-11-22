@@ -7,8 +7,8 @@ mod policy_agent;
 mod reset_agent;
 mod internal_rewarded_agent;
 mod agent_with_id;
+mod list_players;
 
-use std::sync::Mutex;
 pub use communication_agent::*;
 pub use stateful_agent::*;
 pub use automatic::*;
@@ -18,7 +18,7 @@ pub use reset_agent::*;
 pub use policy_agent::*;
 pub use internal_rewarded_agent::*;
 pub use agent_with_id::*;
-use crate::domain::DomainParameters;
+pub use list_players::*;
 /*
 /// Basic Agent trait, basic agent constrains require it to have id.
 /// Although agent may somehow change it, it is important to keep environment updated.
