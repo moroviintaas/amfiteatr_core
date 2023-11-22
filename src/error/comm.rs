@@ -33,6 +33,11 @@ pub enum CommunicationError<DP: DomainParameters>{
     DeserializeError(String),
     #[error("No such connection")]
     NoSuchConnection,
+    #[error("Connection to agent {0} not found")]
+    ConnectionToAgentNotFound(DP::AgentId),
+    #[error("Duplicateed Agent: {0}")]
+    DuplicatedAgent(DP::AgentId),
+
 
 }
 

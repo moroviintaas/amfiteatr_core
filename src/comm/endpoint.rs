@@ -55,3 +55,20 @@ pub trait AgentCommEndpoint<Spec: DomainParameters>: CommPort<OutwardType = Agen
 
 impl<Spec: DomainParameters, T> AgentCommEndpoint<Spec> for T
 where T: CommPort<OutwardType = AgentMessage<Spec>, InwardType = EnvMessage<Spec>, Error = CommunicationError<Spec>>{}
+
+
+pub trait EnvironmentAdapter<DP: DomainParameters>{
+
+    fn send(&mut self, agent: &DP::AgentId, message: EnvMessage<DP>) 
+    -> Result<(), CommunicationError<DP>>;
+
+    fn receive_blocking(&mut self) -> Result<(DP::AgentId, AgentMessage<DP>), CommunicationError<DP>>;
+    fn receive_non_blocking(&mut self) -> Result<Option<(DP::AgentId, AgentMessage<DP>)>, CommunicationError<DP>>;
+
+    fn is_agent_connected(&self, agent_id: &DP::AgentId) -> bool;
+}
+
+pub trait AgentAdapter<DP: DomainParameters>{
+    fn send(&mut self, message: AgentMessage<DP>) -> Result<(), CommunicationError<DP>>;
+    fn receive(&mut self) -> Result<EnvMessage<DP>, CommunicationError<DP>>;
+}
