@@ -2,8 +2,10 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Debug;
 use std::marker::PhantomData;
+use std::sync::mpsc;
 use std::sync::mpsc::{channel, Receiver, RecvError, Sender, SendError, TryRecvError};
 use crate::agent::ListPlayers;
+use crate::comm::AgentCommEndpoint;
 use crate::comm::endpoint::CommPort;
 use crate::error::CommunicationError;
 use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
@@ -145,6 +147,29 @@ impl<DP: DomainParameters> AgentAdapter<DP> for AgentMpscPort<DP>{
         self.receiver.recv().map_err(|e| e.into())
     }
 }
+
+impl<DP: DomainParameters> CommPort for AgentMpscPort<DP> {
+    type OutwardType = AgentMessage<DP>;
+    type InwardType = EnvMessage<DP>;
+    type Error = CommunicationError<DP>;
+
+    fn send(&mut self, message: Self::OutwardType) -> Result<(), Self::Error> {
+        self.sender.send((self.id.clone(), message)).map_err(|e|e.into())
+    }
+
+    fn receive_blocking(&mut self) -> Result<Self::InwardType, Self::Error> {
+        self.receiver.recv().map_err(|e|e.into())
+    }
+
+    fn receive_non_blocking(&mut self) -> Result<Option<Self::InwardType>, Self::Error> {
+        match self.receiver.try_recv(){
+            Ok(message) => Ok(Some(message)),
+            Err(TryRecvError::Empty) => Ok(None),
+            Err(e) => Err(e.into())
+        }
+    }
+}
+
 
 pub struct EnvMpscPort<DP: DomainParameters>{
     sender_template: Sender<(DP::AgentId, AgentMessage<DP>)>,

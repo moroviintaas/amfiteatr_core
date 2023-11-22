@@ -5,7 +5,7 @@ use crate::{
     domain::{DomainParameters, Reward}, 
     comm::{EnvironmentAdapter, BroadcastingEnvironmentAdapter}
 };
-
+use crate::agent::ListPlayers;
 
 
 #[derive(Debug, Clone)]
@@ -36,6 +36,18 @@ impl <
     }
     pub fn set_penalty_template(&mut self, agent: DP::AgentId, penalty: DP::UniversalReward){
         self.penalties.insert(agent, penalty);
+    }
+}
+
+impl<
+    DP: DomainParameters,
+    S: EnvStateSequential<DP>,
+    CP: EnvironmentAdapter<DP> + ListPlayers<DP>
+> ListPlayers<DP> for BasicEnvironment<DP, S, CP>{
+    type IterType = <Vec<DP::AgentId> as IntoIterator>::IntoIter;
+
+    fn players(&self) -> Self::IterType {
+        self.adapter.players().collect::<Vec<DP::AgentId>>().into_iter()
     }
 }
 
