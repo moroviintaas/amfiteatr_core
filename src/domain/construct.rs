@@ -8,6 +8,14 @@ pub trait Construct<S>{
 
 }
 
+pub trait Renew<S>{
+
+    fn renew_from(&mut self, base: S);
+
+
+
+}
+
 impl<S, T: Construct<S>> Construct<S> for Box<T>{
 
     fn construct_from(base: S) -> Self {

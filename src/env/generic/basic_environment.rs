@@ -6,6 +6,7 @@ use crate::{
     comm::{EnvironmentAdapter, BroadcastingEnvironmentAdapter}
 };
 use crate::agent::ListPlayers;
+use crate::domain::{Construct, Renew};
 
 
 #[derive(Debug, Clone)]
@@ -65,6 +66,18 @@ impl <
     fn process_action(&mut self, agent: &<DP as DomainParameters>::AgentId, action: &<DP as DomainParameters>::ActionType) 
         -> Result<<Self::State as EnvStateSequential<DP>>::Updates, <DP as DomainParameters>::GameErrorType> {
         self.game_state.forward(agent.clone(), action.clone())
+    }
+}
+
+impl <
+    DP: DomainParameters,
+    S: EnvStateSequential<DP> + Clone,
+    CP: BroadcastingEnvironmentAdapter<DP>,
+    Seed
+> ReseedEnvironment<DP, Seed> for BasicEnvironment<DP, S, CP>
+where <Self as StatefulEnvironment<DP>>::State: Renew<Seed>{
+    fn reseed(&mut self, seed: Seed) {
+        self.game_state.renew_from(seed);
     }
 }
 

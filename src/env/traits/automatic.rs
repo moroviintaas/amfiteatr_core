@@ -16,6 +16,10 @@ pub trait AutoEnvironment<DP: DomainParameters>{
 
 pub trait AutoEnvironmentWithScores<DP: DomainParameters>{
     fn run_with_scores(&mut self) -> Result<(), AmfiError<DP>>;
+    //fn run_with_scores_and_penalties<P: Fn(&DP::AgentId) -> DP::UniversalReward>(&mut self, penalty: P) -> Result<(), AmfiError<DP>>;
+}
+
+pub trait AutoEnvironmentWithScoresAndPenalties<DP: DomainParameters>{
     fn run_with_scores_and_penalties<P: Fn(&DP::AgentId) -> DP::UniversalReward>(&mut self, penalty: P) -> Result<(), AmfiError<DP>>;
 }
 
@@ -254,6 +258,16 @@ impl <
         }
     }
 
+
+}
+
+impl <
+    DP: DomainParameters,
+    E: ScoreEnvironment<DP>
+        + ConnectedEnvironment<DP>
+        + BroadConnectedEnvironment<DP>
+        + ListPlayers<DP>
+> AutoEnvironmentWithScoresAndPenalties<DP> for E{
     fn run_with_scores_and_penalties<P: Fn(&DP::AgentId) -> DP::UniversalReward>(&mut self, penalty: P) -> Result<(), AmfiError<DP>> {
         let mut actual_universal_scores: HashMap<DP::AgentId, DP::UniversalReward> = self.players().into_iter()
             .map(|id|{
@@ -355,4 +369,5 @@ impl <
 
         }
     }
+
 }

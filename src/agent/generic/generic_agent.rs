@@ -1,19 +1,10 @@
 use std::marker::PhantomData;
-use crate::agent::{
-    CommunicatingAgent,
-    ActingAgent,
-    StatefulAgent,
-    PolicyAgent,
-    EnvRewardedAgent,
-    ReinitAgent,
-    InternalRewardedAgent,
-    AgentGenT
-};
+use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, EnvRewardedAgent, ReinitAgent, InternalRewardedAgent, AgentGenT, ReseedAgent, ConstructedInfoSet};
 use crate::agent::info_set::{InformationSet, ScoringInformationSet};
 use crate::agent::policy::Policy;
 use crate::comm::CommPort;
 use crate::error::CommunicationError;
-use crate::domain::{AgentMessage, EnvMessage, DomainParameters, Reward};
+use crate::domain::{AgentMessage, EnvMessage, DomainParameters, Reward, Construct, Renew};
 
 /// Generic agent implementing traits proposed in this crate.
 /// This agent implements minimal functionality to work automatically with environment.
@@ -202,6 +193,22 @@ impl<
     Comm: CommPort<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
+        Error=CommunicationError<DP>>,
+    Seed> ReseedAgent<DP, Seed> for AgentGen<DP, P, Comm>
+where <P as Policy<DP>>::InfoSetType: ConstructedInfoSet<DP, Seed>
+    + ScoringInformationSet<DP>,
+<Self as StatefulAgent<DP>>::InfoSetType: Renew<Seed>{
+    fn reseed(&mut self, seed: Seed) {
+        self.information_set.renew_from(seed);
+    }
+}
+
+impl<
+    DP: DomainParameters,
+    P: Policy<DP>,
+    Comm: CommPort<
+        OutwardType=AgentMessage<DP>,
+        InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>>>
 ActingAgent<DP> for AgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
@@ -307,3 +314,5 @@ where <Self as StatefulAgent<DP>>::InfoSetType: ScoringInformationSet<DP>,
         self.info_set().penalty_for_illegal()
     }
 }
+
+

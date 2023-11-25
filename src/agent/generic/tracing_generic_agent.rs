@@ -1,10 +1,10 @@
 use std::marker::PhantomData;
 
-use crate::agent::{ActingAgent, CommunicatingAgent, AgentTrajectory, AgentTraceStep, Policy, PolicyAgent, ReinitAgent, EnvRewardedAgent, StatefulAgent, TracingAgent, InternalRewardedAgent, AgentGen, InformationSet};
+use crate::agent::{ActingAgent, CommunicatingAgent, AgentTrajectory, AgentTraceStep, Policy, PolicyAgent, ReinitAgent, EnvRewardedAgent, StatefulAgent, TracingAgent, InternalRewardedAgent, AgentGen, InformationSet, ReseedAgent, ConstructedInfoSet};
 use crate::agent::info_set::ScoringInformationSet;
 use crate::comm::CommPort;
 use crate::error::CommunicationError;
-use crate::domain::{AgentMessage, DomainParameters, EnvMessage, Reward};
+use crate::domain::{AgentMessage, Construct, DomainParameters, EnvMessage, Renew, Reward};
 
 
 /// Generic agent implementing traits proposed in this crate.
@@ -179,6 +179,23 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
     fn info_set(&self) -> &Self::InfoSetType {
         &self.information_set
+    }
+}
+
+impl<
+    DP: DomainParameters,
+    P: Policy<DP>,
+    Comm: CommPort<
+        OutwardType=AgentMessage<DP>,
+        InwardType=EnvMessage<DP>,
+        Error=CommunicationError<DP>>,
+    Seed> ReseedAgent<DP, Seed> for AgentGenT<DP, P, Comm>
+where <P as Policy<DP>>::InfoSetType: ConstructedInfoSet<DP, Seed>
+    + ScoringInformationSet<DP>,
+<Self as StatefulAgent<DP>>::InfoSetType: Renew<Seed>{
+    fn reseed(&mut self, seed: Seed) {
+        self.information_set.renew_from(seed);
+        self.game_trajectory.clear()
     }
 }
 
