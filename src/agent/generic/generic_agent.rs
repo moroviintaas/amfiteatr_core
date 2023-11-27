@@ -195,7 +195,7 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>>,
     Seed> ReseedAgent<DP, Seed> for AgentGen<DP, P, Comm>
-where <P as Policy<DP>>::InfoSetType: ConstructedInfoSet<DP, Seed>
+where <P as Policy<DP>>::InfoSetType: Renew<Seed>
     + ScoringInformationSet<DP>,
 <Self as StatefulAgent<DP>>::InfoSetType: Renew<Seed>{
     fn reseed(&mut self, seed: Seed) {

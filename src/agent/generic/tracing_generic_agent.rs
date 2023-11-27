@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::agent::{ActingAgent, CommunicatingAgent, AgentTrajectory, AgentTraceStep, Policy, PolicyAgent, ReinitAgent, EnvRewardedAgent, StatefulAgent, TracingAgent, InternalRewardedAgent, AgentGen, InformationSet, ReseedAgent, ConstructedInfoSet};
+use crate::agent::{ActingAgent, CommunicatingAgent, AgentTrajectory, AgentTraceStep, Policy, PolicyAgent, ReinitAgent, EnvRewardedAgent, StatefulAgent, TracingAgent, InternalRewardedAgent, AgentGen, InformationSet, ReseedAgent, ConstructedInfoSet, MultiEpisodeAgent};
 use crate::agent::info_set::ScoringInformationSet;
 use crate::comm::CommPort;
 use crate::error::CommunicationError;
@@ -33,6 +33,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
     last_action: Option<DP::ActionType>,
     state_before_last_action: Option<<P as Policy<DP>>::InfoSetType>,
     explicit_subjective_reward_component: <P::InfoSetType as ScoringInformationSet<DP>>::RewardType,
+    episodes: Vec<AgentTrajectory<DP, P::InfoSetType>>,
 }
 
 impl <DP: DomainParameters,
@@ -55,7 +56,8 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
             game_trajectory: AgentTrajectory::new(),
             state_before_last_action: None,
             last_action: None,
-            explicit_subjective_reward_component: <P::InfoSetType as ScoringInformationSet<DP>>::RewardType::neutral()
+            explicit_subjective_reward_component: <P::InfoSetType as ScoringInformationSet<DP>>::RewardType::neutral(),
+            episodes: vec![],
         }
     }
 
@@ -82,7 +84,8 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
             last_action: self.last_action,
             state_before_last_action: self.state_before_last_action,
             game_trajectory: self.game_trajectory,
-            explicit_subjective_reward_component: self.explicit_subjective_reward_component
+            explicit_subjective_reward_component: self.explicit_subjective_reward_component,
+            episodes: vec![],
         }
     }
 
@@ -112,6 +115,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
             state_before_last_action: self.state_before_last_action,
             game_trajectory: self.game_trajectory,
             committed_universal_score: self.committed_universal_score,
+            episodes: vec![],
         }, p)
     }
 
@@ -190,7 +194,7 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>>,
     Seed> ReseedAgent<DP, Seed> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::InfoSetType: ConstructedInfoSet<DP, Seed>
+where <P as Policy<DP>>::InfoSetType: Renew<Seed>
     + ScoringInformationSet<DP>,
 <Self as StatefulAgent<DP>>::InfoSetType: Renew<Seed>{
     fn reseed(&mut self, seed: Seed) {
@@ -375,5 +379,26 @@ where <Self as StatefulAgent<DP>>::InfoSetType: ScoringInformationSet<DP>,
     }
     fn penalty_for_illegal_action(&self) -> Self::InternalReward {
         self.information_set.penalty_for_illegal()
+    }
+}
+
+impl<
+    DP: DomainParameters,
+    P: Policy<DP>,
+    Comm: CommPort<
+        OutwardType=AgentMessage<DP>,
+        InwardType=EnvMessage<DP>,
+        Error=CommunicationError<DP>>>
+MultiEpisodeAgent <DP> for AgentGenT<DP, P, Comm>
+where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
+    fn store_episode(&mut self) {
+        let mut new_trajectory = AgentTrajectory::new();
+        std::mem::swap(&mut new_trajectory, &mut self.game_trajectory);
+        self.episodes.push(new_trajectory);
+
+    }
+
+    fn clear_episodes(&mut self) {
+        self.episodes.clear();
     }
 }
