@@ -140,6 +140,12 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
         &mut self.comm
     }
 
+    pub fn take_episodes(&mut self) -> Vec<AgentTrajectory<DP, P::InfoSetType>>{
+        let mut episodes = Vec::with_capacity(self.episodes.len());
+        std::mem::swap(&mut episodes, &mut self.episodes);
+        episodes
+    }
+
 }
 
 
@@ -199,7 +205,10 @@ where <P as Policy<DP>>::InfoSetType: Renew<Seed>
 <Self as StatefulAgent<DP>>::InfoSetType: Renew<Seed>{
     fn reseed(&mut self, seed: Seed) {
         self.information_set.renew_from(seed);
-        self.game_trajectory.clear()
+        self.game_trajectory.clear();
+        self.constructed_universal_reward = DP::UniversalReward::neutral();
+        self.committed_universal_score = DP::UniversalReward::neutral();
+
     }
 }
 
@@ -391,7 +400,7 @@ impl<
         Error=CommunicationError<DP>>>
 MultiEpisodeAgent <DP> for AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
-    fn store_episode(&mut self) {
+    fn store_episodes(&mut self) {
         let mut new_trajectory = AgentTrajectory::new();
         std::mem::swap(&mut new_trajectory, &mut self.game_trajectory);
         self.episodes.push(new_trajectory);

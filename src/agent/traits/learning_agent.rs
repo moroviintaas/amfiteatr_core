@@ -6,19 +6,19 @@ use crate::error::AmfiError;
 
 pub trait MultiEpisodeAgent<DP: DomainParameters>{
 
-    fn store_episode(&mut self);
+    fn store_episodes(&mut self);
     fn clear_episodes(&mut self);
 
     fn run_episode(&mut self) -> Result<(), AmfiError<DP>>
     where Self: AutomaticAgentRewarded<DP>{
         self.run()?;
-        self.store_episode();
+        self.store_episodes();
         Ok(())
     }
     fn run_episode_rewarded(&mut self) -> Result<(), AmfiError<DP>>
     where Self: AutomaticAgentRewarded<DP>{
-        self.run_episode()?;
-        self.store_episode();
+        self.run_rewarded()?;
+        self.store_episodes();
         Ok(())
     }
 

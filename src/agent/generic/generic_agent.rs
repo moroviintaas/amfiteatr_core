@@ -27,7 +27,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
     _phantom: PhantomData<DP>,
 
     constructed_universal_reward: <DP as DomainParameters>::UniversalReward,
-    actual_universal_score: <DP as DomainParameters>::UniversalReward,
+    committed_universal_score: <DP as DomainParameters>::UniversalReward,
     explicit_subjective_reward_component: <P::InfoSetType as ScoringInformationSet<DP>>::RewardType,
 }
 
@@ -52,7 +52,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>
             policy,
             _phantom:PhantomData::default(),
             constructed_universal_reward: Reward::neutral(),
-            actual_universal_score: Reward::neutral(),
+            committed_universal_score: Reward::neutral(),
             explicit_subjective_reward_component: <P::InfoSetType as ScoringInformationSet<DP>>::RewardType::neutral()
         }
     }
@@ -80,7 +80,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>
             policy: new_policy,
             _phantom: Default::default(),
             constructed_universal_reward: self.constructed_universal_reward,
-            actual_universal_score: self.actual_universal_score,
+            committed_universal_score: self.committed_universal_score,
             comm: self.comm,
             explicit_subjective_reward_component: self.explicit_subjective_reward_component
         }
@@ -104,7 +104,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>
             policy: new_policy,
             _phantom: Default::default(),
             constructed_universal_reward: self.constructed_universal_reward,
-            actual_universal_score: self.actual_universal_score,
+            committed_universal_score: self.committed_universal_score,
             comm: self.comm,
             explicit_subjective_reward_component: self.explicit_subjective_reward_component
         }, p)
@@ -199,7 +199,10 @@ where <P as Policy<DP>>::InfoSetType: Renew<Seed>
     + ScoringInformationSet<DP>,
 <Self as StatefulAgent<DP>>::InfoSetType: Renew<Seed>{
     fn reseed(&mut self, seed: Seed) {
+
         self.information_set.renew_from(seed);
+        self.constructed_universal_reward = DP::UniversalReward::neutral();
+        self.committed_universal_score = DP::UniversalReward::neutral();
     }
 }
 
@@ -265,11 +268,11 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
 
     fn current_universal_score(&self) -> DP::UniversalReward {
-        self.actual_universal_score.clone() + &self.constructed_universal_reward
+        self.committed_universal_score.clone() + &self.constructed_universal_reward
     }
 
     fn commit_partial_rewards(&mut self) {
-        self.actual_universal_score += &self.constructed_universal_reward;
+        self.committed_universal_score += &self.constructed_universal_reward;
         self.constructed_universal_reward = DP::UniversalReward::neutral();
     }
 }
@@ -287,7 +290,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
     fn reinit(&mut self, initial_state: <Self as StatefulAgent<DP>>::InfoSetType) {
         self.information_set = initial_state;
         self.constructed_universal_reward = DP::UniversalReward::neutral();
-        self.actual_universal_score = DP::UniversalReward::neutral();
+        self.committed_universal_score = DP::UniversalReward::neutral();
     }
 }
 
