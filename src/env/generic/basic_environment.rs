@@ -6,7 +6,7 @@ use crate::{
     comm::{EnvironmentAdapter, BroadcastingEnvironmentAdapter}
 };
 use crate::agent::ListPlayers;
-use crate::domain::{Construct, Renew};
+use crate::domain::Renew;
 
 
 #[derive(Debug, Clone)]

@@ -1,5 +1,3 @@
-use crate::agent::info_set::ScoringInformationSet;
-use crate::agent::StatefulAgent;
 use crate::domain::{DomainParameters, Reward};
 
 

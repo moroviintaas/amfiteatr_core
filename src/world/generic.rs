@@ -5,9 +5,7 @@ use std::thread;
 use log::{debug, error};
 use crate::domain::{DomainParameters};
 use crate::agent::{AutomaticAgent, ReinitAgent, StatefulAgent};
-use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentStateUniScore, EnvironmentWithAgents, ReinitEnvironment, RoundRobinUniversalEnvironment, ScoreEnvironment, StatefulEnvironment};
-use crate::comm::EnvCommEndpoint;
-use crate::env::generic::{HashMapEnv};
+use crate::env::*;
 use crate::error::{AmfiError, CommunicationError, WorldError};
 
 pub struct GenericModel<

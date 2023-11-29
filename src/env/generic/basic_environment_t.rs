@@ -2,11 +2,11 @@ use std::collections::HashMap;
 
 use crate::{
     env::*,
-    domain::{DomainParameters, Reward},
+    domain::*,
     comm::{EnvironmentAdapter, BroadcastingEnvironmentAdapter}
 };
 use crate::agent::ListPlayers;
-use crate::domain::{Construct, Renew};
+use crate::domain::Renew;
 use crate::env::generic::BasicEnvironment;
 
 #[derive(Debug, Clone)]

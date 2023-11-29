@@ -1,10 +1,10 @@
 use std::marker::PhantomData;
 
-use crate::agent::{ActingAgent, CommunicatingAgent, AgentTrajectory, AgentTraceStep, Policy, PolicyAgent, ReinitAgent, EnvRewardedAgent, StatefulAgent, TracingAgent, InternalRewardedAgent, AgentGen, InformationSet, ReseedAgent, ConstructedInfoSet, MultiEpisodeAgent};
+use crate::agent::*;
 use crate::agent::info_set::ScoringInformationSet;
 use crate::comm::CommPort;
 use crate::error::CommunicationError;
-use crate::domain::{AgentMessage, Construct, DomainParameters, EnvMessage, Renew, Reward};
+use crate::domain::{AgentMessage, DomainParameters, EnvMessage, Renew, Reward};
 
 
 /// Generic agent implementing traits proposed in this crate.

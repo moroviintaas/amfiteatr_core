@@ -1,7 +1,12 @@
 
 use std::collections::{HashMap};
 use std::sync::{Arc, Mutex};
-use crate::agent::{AgentGen, AgentWithId, AutomaticAgent, Policy, PresentPossibleActions, ScoringInformationSet, StatefulAgent};
+use crate::agent::{AgentGen,
+                   AgentWithId,
+                   AutomaticAgent,
+                   Policy,
+                   PresentPossibleActions,
+                   ScoringInformationSet};
 use crate::env::{EnvironmentBuilderTrait, EnvironmentStateUniScore};
 use crate::env::automatons::rr::RoundRobinModel;
 use crate::comm::{EnvCommEndpoint, SyncCommEnv};
@@ -27,7 +32,7 @@ RoundRobinModelBuilder<DP, EnvState,  SyncCommEnv<DP>>
 {
     pub fn with_local_generic_agent<P: Policy<DP> + 'static>(
         mut self,
-        id: DP::AgentId,
+        _id: DP::AgentId,
         initial_state: <P as Policy<DP>>::InfoSetType,
         policy: P)
         -> Result<Self, WorldError<DP>>

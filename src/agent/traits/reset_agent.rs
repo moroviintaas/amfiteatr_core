@@ -1,4 +1,4 @@
-use crate::agent::{ConstructedInfoSet, StatefulAgent};
+use crate::agent::{StatefulAgent};
 use crate::domain::DomainParameters;
 
 /// Trait for agent that can reset their attributes to some default values

@@ -1,4 +1,4 @@
-use crate::agent::{AutomaticAgent, AutomaticAgentRewarded};
+use crate::agent::AutomaticAgentRewarded;
 use crate::domain::DomainParameters;
 use crate::error::AmfiError;
 
