@@ -4,7 +4,7 @@ use crate::error::{CommunicationError, AmfiError};
 use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
 use crate::error::AmfiError::Protocol;
 use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
-use log::{info, debug, error, warn};
+use log::{info, debug, error, warn, trace};
 use crate::domain::AgentMessage::{NotifyError, TakeAction};
 
 /// Trait for agents that perform their interactions with environment automatically,
@@ -61,11 +61,11 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
             match self.recv(){
                 Ok(message) => match message{
                     EnvMessage::YourMove => {
-                        debug!("Agent {} received 'YourMove' signal.", self.id());
+                        trace!("Agent {} received 'YourMove' signal.", self.id());
                         //current_score = Default::default();
 
                         //debug!("Agent's {:?} possible actions: {:?}", self.id(), Vec::from_iter(self.state().available_actions().into_iter()));
-                        debug!("Agent's {} possible actions: {}]", self.id(), self.info_set().available_actions().into_iter()
+                        trace!("Agent's {} possible actions: {}]", self.id(), self.info_set().available_actions().into_iter()
                             .fold(String::from("["), |a, b| a + &format!("{b:#}") + ", ").trim_end());
                         //match self.policy_select_action(){
                         match self.take_action(){
@@ -75,7 +75,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                             }
 
                             Some(a) => {
-                                info!("Agent {} selects action {:#}", self.id(), &a);
+                                debug!("Agent {} selects action {:#}", self.id(), &a);
                                 self.send(TakeAction(a))?;
                             }
                         }
@@ -104,10 +104,10 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                         return Err(Protocol(ReceivedKill(self.id().clone())))
                     }
                     EnvMessage::UpdateState(su) => {
-                        debug!("Agent {} received state update {:?}", self.id(), &su);
+                        trace!("Agent {} received state update {:?}", self.id(), &su);
                         match self.update(su){
                             Ok(_) => {
-                                debug!("Agent {:?}: successful state update", self.id());
+                                trace!("Agent {:?}: successful state update", self.id());
                             }
                             Err(err) => {
                                 error!("Agent {:?} error on updating state: {}", self.id(), &err);
@@ -117,7 +117,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                         }
                     }
                     EnvMessage::ActionNotify(a) => {
-                        debug!("Agent {} received information that agent {} took action {:#}", self.id(), a.agent(), a.action());
+                        trace!("Agent {} received information that agent {} took action {:#}", self.id(), a.agent(), a.action());
                     }
                     EnvMessage::ErrorNotify(e) => {
                         error!("Agent {} received error notification {}", self.id(), &e)
