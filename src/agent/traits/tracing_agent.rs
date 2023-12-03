@@ -6,6 +6,7 @@ use crate::domain::DomainParameters;
 /// Agent that collects game trajectory, which contains recorded information sets
 /// in the moment of making decisions and collected rewards on the way to the end game.
 pub trait TracingAgent<DP: DomainParameters, S: ScoringInformationSet<DP>>{
+    //type TraceStep;
     /// Resets recorded trajectory
     fn reset_trajectory(&mut self);
     /// Moves out recorded trajectory leaving new initialized in place

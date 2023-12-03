@@ -1,3 +1,4 @@
+use std::sync::{Arc, Mutex};
 use crate::agent::AgentWithId;
 use crate::agent::info_set::InformationSet;
 use crate::domain::DomainParameters;
@@ -22,3 +23,17 @@ impl<DP:DomainParameters, T: StatefulAgent<DP>> AgentWithId<DP> for T{
         self.info_set().agent_id()
     }
 }
+/*
+impl<DP: DomainParameters, T: StatefulAgent<DP>> StatefulAgent<DP> for Arc<Mutex<T>> {
+    type InfoSetType = T::InfoSetType;
+
+    fn update(&mut self, info_set_update: DP::UpdateType) -> Result<(), DP::GameErrorType> {
+        let mut g = self.lock().unwrap();
+        g.update(info_set_update)
+    }
+
+    fn info_set(&self) -> &Self::InfoSetType {
+        let mut g = self.lock().unwrap();
+        g.info_set()
+    }
+}*/

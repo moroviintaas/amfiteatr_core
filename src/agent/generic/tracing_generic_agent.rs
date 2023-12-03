@@ -397,9 +397,11 @@ impl<
     Comm: CommPort<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommunicationError<DP>>>
-MultiEpisodeAgent <DP> for AgentGenT<DP, P, Comm>
-where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
+        Error=CommunicationError<DP>>,
+    Seed>
+MultiEpisodeAgent <DP, Seed> for AgentGenT<DP, P, Comm>
+where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>,
+      <Self as StatefulAgent<DP>>::InfoSetType: Renew<Seed>{
     fn store_episodes(&mut self) {
         let mut new_trajectory = AgentTrajectory::new();
         std::mem::swap(&mut new_trajectory, &mut self.game_trajectory);

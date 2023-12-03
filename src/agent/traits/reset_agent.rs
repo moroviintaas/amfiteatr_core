@@ -1,3 +1,4 @@
+use std::sync::{Arc, Mutex};
 use crate::agent::{StatefulAgent};
 use crate::domain::DomainParameters;
 
@@ -14,3 +15,14 @@ pub trait ReseedAgent<DP: DomainParameters, Seed>: StatefulAgent<DP>
 {
     fn reseed(&mut self, seed: Seed);
 }
+
+
+/*
+impl<DP: DomainParameters, Seed, T: ReseedAgent<DP, Seed>> ReseedAgent<DP, Seed> for Arc<Mutex<T>> {
+    fn reseed(&mut self, seed: Seed) {
+        let mut g = self.lock().unwrap();
+        g.reseed(seed)
+    }
+}
+
+ */

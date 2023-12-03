@@ -8,7 +8,7 @@ mod reset_agent;
 mod internal_rewarded_agent;
 mod agent_with_id;
 mod list_players;
-mod learning_agent;
+mod multi_episode_agent;
 
 pub use communication_agent::*;
 pub use stateful_agent::*;
@@ -20,7 +20,7 @@ pub use policy_agent::*;
 pub use internal_rewarded_agent::*;
 pub use agent_with_id::*;
 pub use list_players::*;
-pub use learning_agent::*;
+pub use multi_episode_agent::*;
 /*
 /// Basic Agent trait, basic agent constrains require it to have id.
 /// Although agent may somehow change it, it is important to keep environment updated.
