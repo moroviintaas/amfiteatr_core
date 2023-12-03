@@ -1,5 +1,4 @@
-use std::sync::{Arc, Mutex};
-use crate::agent::{AutomaticAgentRewarded, ReseedAgent, StatefulAgent};
+use crate::agent::{AutomaticAgent, AutomaticAgentRewarded, ReseedAgent};
 use crate::domain::DomainParameters;
 use crate::error::AmfiError;
 
@@ -7,26 +6,38 @@ use crate::error::AmfiError;
 
 pub trait MultiEpisodeAgent<DP: DomainParameters, Seed>: ReseedAgent<DP, Seed> {
 
-    fn store_episodes(&mut self);
+    fn store_episode(&mut self);
     fn clear_episodes(&mut self);
 
-    fn run_episode(&mut self, seed: Seed) -> Result<(), AmfiError<DP>>
-    where Self: AutomaticAgentRewarded<DP>{
-        self.reseed(seed);
-        self.run()?;
-        self.store_episodes();
-        Ok(())
-    }
-    fn run_episode_rewarded(&mut self, seed: Seed) -> Result<(), AmfiError<DP>>
-    where Self: AutomaticAgentRewarded<DP>{
-        self.reseed(seed);
-        self.run_rewarded()?;
-        self.store_episodes();
-        Ok(())
-    }
+
 
 }
 
+pub trait MultiEpisodeAutoAgent<DP: DomainParameters, Seed>: MultiEpisodeAgent<DP, Seed> + AutomaticAgent<DP>{
+    fn run_episode(&mut self, seed: Seed) -> Result<(), AmfiError<DP>> {
+        self.reseed(seed);
+        self.run()?;
+        self.store_episode();
+        Ok(())
+    }
+}
+impl <DP: DomainParameters, Seed, T: MultiEpisodeAgent<DP, Seed> + AutomaticAgent<DP>> MultiEpisodeAutoAgent<DP, Seed> for T{
+
+}
+
+pub trait MultiEpisodeAutoAgentRewarded<DP: DomainParameters, Seed>: MultiEpisodeAgent<DP, Seed> + AutomaticAgentRewarded<DP>{
+
+    fn run_episode_rewarded(&mut self, seed: Seed) -> Result<(), AmfiError<DP>> {
+        self.reseed(seed);
+        self.run_rewarded()?;
+        self.store_episode();
+        Ok(())
+    }
+}
+
+impl <DP: DomainParameters, Seed, T: MultiEpisodeAgent<DP, Seed> + AutomaticAgentRewarded<DP>> MultiEpisodeAutoAgentRewarded<DP, Seed> for T{
+
+}
 
 /*
 

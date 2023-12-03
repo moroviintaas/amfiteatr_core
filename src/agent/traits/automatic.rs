@@ -5,7 +5,6 @@ use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
 use crate::error::AmfiError::Protocol;
 use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
 use log::{info, debug, error, warn, trace};
-use crate::domain::AgentMessage::{NotifyError, TakeAction};
 
 /// Trait for agents that perform their interactions with environment automatically,
 /// without waiting for interrupting interaction from anyone but environment.
@@ -13,7 +12,7 @@ use crate::domain::AgentMessage::{NotifyError, TakeAction};
 /// collecting rewards from environment.
 /// Implementations are perfectly fine to skip messages about rewards coming
 /// from environment. As trait suited for running game regarding collected rewards
-/// refer to [`AutomaticAgentRewarded`](crate::agent::AutomaticAgentRewarded)
+/// refer to [`AutomaticAgentRewarded`](AutomaticAgentRewarded)
 pub trait AutomaticAgent<DP: DomainParameters>: AgentWithId<DP>{
     /// Runs agent beginning in it's current state (information set)
     /// and returns when game is finished.
@@ -25,7 +24,7 @@ pub trait AutomaticAgent<DP: DomainParameters>: AgentWithId<DP>{
 
 /// Trait for agents that perform their interactions with environment automatically,
 /// without waiting for interrupting interaction from anyone but environment.
-/// Difference between [`AutomaticAgent`](crate::agent::AutomaticAgent) is that
+/// Difference between [`AutomaticAgent`](AutomaticAgent) is that
 /// this method should collect rewards and somehow store rewards sent by environment.
 pub trait AutomaticAgentRewarded<DP: DomainParameters>: AutomaticAgent<DP> + EnvRewardedAgent<DP>{
     /// Runs agent beginning in it's current state (information set)
@@ -71,12 +70,12 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                         match self.take_action(){
                             None => {
                                 error!("Agent {} has no possible action", self.id());
-                                self.send(NotifyError(NoPossibleAction(self.id().clone()).into()))?;
+                                self.send(AgentMessage::NotifyError(NoPossibleAction(self.id().clone()).into()))?;
                             }
 
                             Some(a) => {
                                 debug!("Agent {} selects action {:#}", self.id(), &a);
-                                self.send(TakeAction(a))?;
+                                self.send(AgentMessage::TakeAction(a))?;
                             }
                         }
                     }
@@ -154,12 +153,12 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                         match self.take_action(){
                             None => {
                                 error!("Agent {} has no possible action", self.id());
-                                self.send(NotifyError(NoPossibleAction(self.id().clone()).into()))?;
+                                self.send(AgentMessage::NotifyError(NoPossibleAction(self.id().clone()).into()))?;
                             }
 
                             Some(a) => {
                                 info!("Agent {} selects action {:#}", self.id(), &a);
-                                self.send(TakeAction(a))?;
+                                self.send(AgentMessage::TakeAction(a))?;
                             }
                         }
                     }

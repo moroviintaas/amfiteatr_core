@@ -135,27 +135,25 @@ where
 
 
 /// Trajectory of game from the view of agent. Currently it is stack of independent
-/// [`AgentTraceStep`](crate::agent::AgentTraceStep) in struct of vector (wrapped around
+/// trace steps (usually [`AgentTraceStep`](crate::agent::AgentTraceStep)) in struct of vector (wrapped around
 /// for `Display` purpose).
 /// > However in the future it may be structure better optimised in memory -
 /// without redundancy of scores now most scores are stored doubled - once as score after action in step
-/// and second time in the initial info set for next step. Possible change in the future is
-/// to score this trajectory in one structure and make `AgentTraceStep` to be an abstract view for
-/// specific data in this structure rather than individual cell in vector.
-pub struct AgentTrajectory<DP: DomainParameters, S: ScoringInformationSet<DP>> {
+/// and second time in the initial info set for next step.
+pub struct AgentTrajectory<Tr> {
 
 
     //top_state: S,
-    trace: Vec<AgentTraceStep<DP, S>>
+    pub trace: Vec<Tr>
 
 }
-
-impl<DP: DomainParameters, S: ScoringInformationSet<DP>> Default for AgentTrajectory<DP, S>{
+pub type StdAgentTrajectory<DP, IS> = AgentTrajectory<AgentTraceStep<DP, IS>>;
+impl<Tr> Default for AgentTrajectory<Tr>{
     fn default() -> Self {
         Self{trace: Default::default()}
     }
 }
-impl<DP: DomainParameters, S: ScoringInformationSet<DP>> AgentTrajectory<DP, S>
+impl<Tr> AgentTrajectory<Tr>
 {
 
 
@@ -168,7 +166,7 @@ impl<DP: DomainParameters, S: ScoringInformationSet<DP>> AgentTrajectory<DP, S>
     }*/
 
     /// Pushes trace step on the end of trajectory.
-    pub fn push_trace_step(&mut self, trace_step: AgentTraceStep<DP, S>){
+    pub fn push_trace_step(&mut self, trace_step: Tr){
         self.trace.push(trace_step);
     }
     /// Clears trajectory using [`Vec::clear()`](std::vec::Vec::clear)
@@ -177,12 +175,12 @@ impl<DP: DomainParameters, S: ScoringInformationSet<DP>> AgentTrajectory<DP, S>
     }
 
     /// Returns reference to `Vec` inside the structure.
-    pub fn list(&self) -> &Vec<AgentTraceStep<DP, S>>{
+    pub fn list(&self) -> &Vec<Tr>{
         &self.trace
     }
 
     /// Pops step from trajectory using [`Vec::pop()`](std::vec::Vec::pop)
-    pub fn pop_step(&mut self) -> Option<AgentTraceStep<DP, S>>{
+    pub fn pop_step(&mut self) -> Option<Tr>{
         self.trace.pop()
     }
 
@@ -192,8 +190,8 @@ impl<DP: DomainParameters, S: ScoringInformationSet<DP>> AgentTrajectory<DP, S>
     }
 }
 
-impl<DP: DomainParameters, S: ScoringInformationSet<DP>> Index<usize> for AgentTrajectory<DP, S>{
-    type Output = AgentTraceStep<DP, S>;
+impl<Tr> Index<usize> for AgentTrajectory<Tr>{
+    type Output = Tr;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.trace[index]

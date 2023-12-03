@@ -29,11 +29,11 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
     constructed_universal_reward: <DP as DomainParameters>::UniversalReward,
     committed_universal_score: <DP as DomainParameters>::UniversalReward,
 
-    game_trajectory: AgentTrajectory<DP, P::InfoSetType>,
+    game_trajectory: AgentTrajectory<AgentTraceStep<DP, P::InfoSetType>>,
     last_action: Option<DP::ActionType>,
     state_before_last_action: Option<<P as Policy<DP>>::InfoSetType>,
     explicit_subjective_reward_component: <P::InfoSetType as ScoringInformationSet<DP>>::RewardType,
-    episodes: Vec<AgentTrajectory<DP, P::InfoSetType>>,
+    episodes: Vec< AgentTrajectory<AgentTraceStep<DP, P::InfoSetType>>>,
 }
 
 impl <DP: DomainParameters,
@@ -140,7 +140,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
         &mut self.comm
     }
 
-    pub fn take_episodes(&mut self) -> Vec<AgentTrajectory<DP, P::InfoSetType>>{
+    pub fn take_episodes(&mut self) -> Vec<AgentTrajectory<AgentTraceStep<DP, P::InfoSetType>>>{
         let mut episodes = Vec::with_capacity(self.episodes.len());
         std::mem::swap(&mut episodes, &mut self.episodes);
         episodes
@@ -245,7 +245,7 @@ impl<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>>>
-TracingAgent<DP, <P as Policy<DP>>::InfoSetType> for AgentGenT<DP, P, Comm>
+TracingAgent<DP, AgentTraceStep<DP, <P as Policy<DP>>::InfoSetType>> for AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> ,
 //for <'a> &'a<DP as DomainParameters>::UniversalReward: Sub<&'a <DP as DomainParameters>::UniversalReward, Output=<DP as DomainParameters>::UniversalReward>,
 //for<'a> &'a <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType: Sub<&'a  <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType, Output = <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType>
@@ -255,11 +255,11 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> ,
         self.last_action = None;
     }
 
-    fn take_trajectory(&mut self) -> AgentTrajectory<DP, <P as Policy<DP>>::InfoSetType> {
+    fn take_trajectory(&mut self) -> AgentTrajectory<AgentTraceStep<DP, <P as Policy<DP>>::InfoSetType>> {
         std::mem::take(&mut self.game_trajectory)
     }
 
-    fn game_trajectory(&self) -> &AgentTrajectory<DP, <P as Policy<DP>>::InfoSetType> {
+    fn game_trajectory(&self) -> &AgentTrajectory<AgentTraceStep<DP, <P as Policy<DP>>::InfoSetType>> {
         &self.game_trajectory
     }
 
@@ -294,9 +294,12 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> ,
         }
     }
 
+    /*
     fn explicit_add_subjective_reward(&mut self, explicit: <<P as Policy<DP>>::InfoSetType as ScoringInformationSet<DP>>::RewardType) {
         self.explicit_subjective_reward_component += &explicit
     }
+
+     */
 }
 
 impl<
@@ -402,7 +405,7 @@ impl<
 MultiEpisodeAgent <DP, Seed> for AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>,
       <Self as StatefulAgent<DP>>::InfoSetType: Renew<Seed>{
-    fn store_episodes(&mut self) {
+    fn store_episode(&mut self) {
         let mut new_trajectory = AgentTrajectory::new();
         std::mem::swap(&mut new_trajectory, &mut self.game_trajectory);
         self.episodes.push(new_trajectory);

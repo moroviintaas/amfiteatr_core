@@ -12,7 +12,7 @@
 //! use std::thread;
 //! use amfi::agent::{AgentGen, AgentGenT, AutomaticAgent, AutomaticAgentRewarded, EnvRewardedAgent, RandomPolicy};
 //! use amfi::comm::SyncCommEnv;
-//! use amfi::demo::{DemoInfoSet, DemoParams, DemoState, DemoAgentID, DemoPolicySelectFirst};
+//! use amfi::demo::{DemoInfoSet, DemoDomain, DemoState, DemoAgentID, DemoPolicySelectFirst};
 //! use amfi::env::{*, generic::*};
 //!
 //!
@@ -27,7 +27,7 @@
 //! let mut environment = HashMapEnvT::new(state, env_comms);
 //! let blue_info_set = DemoInfoSet::new(DemoAgentID::Blue, number_of_bandits);
 //! let red_info_set = DemoInfoSet::new(DemoAgentID::Red, number_of_bandits);
-//! let mut agent_blue = AgentGenT::new(blue_info_set, comm_agent_b, RandomPolicy::<DemoParams, DemoInfoSet>::new());
+//! let mut agent_blue = AgentGenT::new(blue_info_set, comm_agent_b, RandomPolicy::<DemoDomain, DemoInfoSet>::new());
 //! let mut agent_red = AgentGen::new(red_info_set, comm_agent_r, DemoPolicySelectFirst{});
 //!
 //! thread::scope(|s|{

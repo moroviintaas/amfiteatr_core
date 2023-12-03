@@ -3,7 +3,7 @@ use rand::{thread_rng};
 use rand::distributions::Uniform;
 use crate::agent::{AgentIdentifier, Policy, PresentPossibleActions};
 use crate::demo::DemoAgentID::{Blue, Red};
-use crate::domain::{Action, DomainParameters};
+use crate::domain::{Action, DomainParameters, Renew};
 use crate::env::{EnvStateSequential, EnvironmentStateUniScore};
 use rand::distributions::Distribution;
 use crate::agent::{InformationSet, ScoringInformationSet};
@@ -43,9 +43,9 @@ impl Display for DemoError{
 
 
 #[derive(Clone, Debug)]
-pub struct DemoParams{}
+pub struct DemoDomain {}
 
-impl DomainParameters for DemoParams{
+impl DomainParameters for DemoDomain {
     type ActionType = DemoAction;
     type GameErrorType = DemoError;
     type UpdateType = (DemoAgentID, DemoAction, f32);
@@ -66,7 +66,7 @@ impl DemoState{
         Self{ceilings, max_rounds, rewards_red: Vec::default(), rewards_blue: Vec::default()}
     }
 }
-impl EnvStateSequential<DemoParams> for DemoState{
+impl EnvStateSequential<DemoDomain> for DemoState{
     type Updates = Vec<(DemoAgentID, (DemoAgentID, DemoAction, f32))>;
 
     fn current_player(&self) -> Option<DemoAgentID> {
@@ -117,6 +117,9 @@ pub struct DemoInfoSet{
     rewards: Vec<f32>
 }
 
+
+
+
 impl DemoInfoSet{
     pub fn new(player_id: DemoAgentID, number_of_bandits: usize) -> Self{
         Self{
@@ -127,7 +130,13 @@ impl DemoInfoSet{
     }
 }
 
-impl InformationSet<DemoParams> for DemoInfoSet{
+impl Renew<()> for DemoInfoSet{
+    fn renew_from(&mut self, _base: ()) {
+        self.rewards.clear()
+    }
+}
+
+impl InformationSet<DemoDomain> for DemoInfoSet{
     fn agent_id(&self) -> &DemoAgentID {
         &self.player_id
     }
@@ -143,7 +152,7 @@ impl InformationSet<DemoParams> for DemoInfoSet{
     }
 }
 
-impl PresentPossibleActions<DemoParams> for DemoInfoSet{
+impl PresentPossibleActions<DemoDomain> for DemoInfoSet{
     type ActionIteratorType = Vec<DemoAction>;
 
     fn available_actions(&self) -> Self::ActionIteratorType {
@@ -155,7 +164,7 @@ impl PresentPossibleActions<DemoParams> for DemoInfoSet{
     }
 }
 
-impl ScoringInformationSet<DemoParams> for DemoInfoSet{
+impl ScoringInformationSet<DemoDomain> for DemoInfoSet{
     type RewardType = f32;
 
     fn current_subjective_score(&self) -> Self::RewardType {
@@ -167,7 +176,7 @@ impl ScoringInformationSet<DemoParams> for DemoInfoSet{
     }
 }
 
-impl EnvironmentStateUniScore<DemoParams> for DemoState{
+impl EnvironmentStateUniScore<DemoDomain> for DemoState{
     fn state_score_of_player(&self, agent: &DemoAgentID) -> f32 {
         match agent{
             Blue => {
@@ -185,7 +194,7 @@ pub struct DemoPolicySelectFirst{
 
 }
 
-impl Policy<DemoParams> for DemoPolicySelectFirst{
+impl Policy<DemoDomain> for DemoPolicySelectFirst{
     type InfoSetType = DemoInfoSet;
 
     fn select_action(&self, state: &Self::InfoSetType) -> Option<DemoAction> {
