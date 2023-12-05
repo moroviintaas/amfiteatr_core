@@ -318,4 +318,21 @@ where <Self as StatefulAgent<DP>>::InfoSetType: ScoringInformationSet<DP>,
     }
 }
 
+impl<
+    DP: DomainParameters,
+    P: Policy<DP>,
+    Comm: CommPort<
+        OutwardType=AgentMessage<DP>,
+        InwardType=EnvMessage<DP>,
+        Error=CommunicationError<DP>>,
+    Seed>
+MultiEpisodeAgent <DP, Seed> for AgentGen<DP, P, Comm>
+where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>,
+      <Self as StatefulAgent<DP>>::InfoSetType: Renew<Seed>{
+    fn store_episode(&mut self) {
+    }
+
+    fn clear_episodes(&mut self) {
+    }
+}
 
