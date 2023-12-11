@@ -1,4 +1,4 @@
-use std::fmt::{Display, Formatter};
+use std::fmt::{Debug, Display, Formatter};
 use std::ops::Index;
 use crate::agent::info_set::ScoringInformationSet;
 use crate::domain::DomainParameters;
@@ -8,6 +8,7 @@ use crate::domain::DomainParameters;
 /// __Note__ scores after taking action are __not__ measured in the moment just after taking action,
 /// but just before taking subsequent action i.e. this is _information set_ for __next__ step.
 ///
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug)]
 pub struct AgentTraceStep<DP: DomainParameters, S: ScoringInformationSet<DP>> {
     initial_info_set: S,
@@ -140,7 +141,9 @@ where
 /// > However in the future it may be structure better optimised in memory -
 /// without redundancy of scores now most scores are stored doubled - once as score after action in step
 /// and second time in the initial info set for next step.
-pub struct AgentTrajectory<Tr> {
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug)]
+pub struct AgentTrajectory<Tr: Debug> {
 
 
     //top_state: S,
@@ -148,12 +151,12 @@ pub struct AgentTrajectory<Tr> {
 
 }
 pub type StdAgentTrajectory<DP, IS> = AgentTrajectory<AgentTraceStep<DP, IS>>;
-impl<Tr> Default for AgentTrajectory<Tr>{
+impl<Tr: Debug> Default for AgentTrajectory<Tr>{
     fn default() -> Self {
         Self{trace: Default::default()}
     }
 }
-impl<Tr> AgentTrajectory<Tr>
+impl<Tr: Debug> AgentTrajectory<Tr>
 {
 
 
@@ -190,7 +193,7 @@ impl<Tr> AgentTrajectory<Tr>
     }
 }
 
-impl<Tr> Index<usize> for AgentTrajectory<Tr>{
+impl<Tr: Debug> Index<usize> for AgentTrajectory<Tr>{
     type Output = Tr;
 
     fn index(&self, index: usize) -> &Self::Output {

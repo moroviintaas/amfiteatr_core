@@ -1,10 +1,11 @@
+use std::fmt::Debug;
 use crate::agent::{AgentTrajectory};
 use crate::domain::DomainParameters;
 
 
 /// Agent that collects game trajectory, which contains recorded information sets
 /// in the moment of making decisions and collected rewards on the way to the end game.
-pub trait TracingAgent<DP: DomainParameters, Tr>{
+pub trait TracingAgent<DP: DomainParameters, Tr: Debug>{
     /// Resets recorded trajectory
     fn reset_trajectory(&mut self);
     /// Moves out recorded trajectory leaving new initialized in place

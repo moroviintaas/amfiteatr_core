@@ -145,6 +145,9 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
         std::mem::swap(&mut episodes, &mut self.episodes);
         episodes
     }
+    pub fn episodes(&self) -> &Vec<AgentTrajectory<AgentTraceStep<DP, P::InfoSetType>>>{
+        &self.episodes
+    }
 
 }
 
