@@ -52,13 +52,13 @@ impl<DP: DomainParameters, T: PresentPossibleActions<DP>> PresentPossibleActions
 /// Primary use case is to allow agent interpret it's situation, for example instead of
 /// one numeric value as reward agent may be interested in some vector of numeric values representing
 /// his multi-criterion view on game's result.
-pub trait ScoringInformationSet<DP: DomainParameters>: InformationSet<DP>{
+pub trait EvaluatedInformationSet<DP: DomainParameters>: InformationSet<DP>{
     type RewardType: Reward;
     fn current_subjective_score(&self) -> Self::RewardType;
     fn penalty_for_illegal(&self) -> Self::RewardType;
 }
 
-impl<T: ScoringInformationSet<Spec>, Spec: DomainParameters> ScoringInformationSet<Spec> for Box<T> {
+impl<T: EvaluatedInformationSet<Spec>, Spec: DomainParameters> EvaluatedInformationSet<Spec> for Box<T> {
     type RewardType = T::RewardType;
 
     fn current_subjective_score(&self) -> Self::RewardType {

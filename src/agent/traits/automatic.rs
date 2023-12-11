@@ -1,5 +1,5 @@
 
-use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, EnvRewardedAgent, InternalRewardedAgent, ScoringInformationSet, PresentPossibleActions, AgentWithId, TracingAgent};
+use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, RewardedAgent, SelfEvaluatingAgent, EvaluatedInformationSet, PresentPossibleActions, AgentWithId, TracingAgent};
 use crate::error::{CommunicationError, AmfiError};
 use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
 use crate::error::AmfiError::Protocol;
@@ -26,20 +26,20 @@ pub trait AutomaticAgent<DP: DomainParameters>: AgentWithId<DP>{
 /// without waiting for interrupting interaction from anyone but environment.
 /// Difference between [`AutomaticAgent`](AutomaticAgent) is that
 /// this method should collect rewards and somehow store rewards sent by environment.
-pub trait AutomaticAgentRewarded<DP: DomainParameters>: AutomaticAgent<DP> + EnvRewardedAgent<DP>{
+pub trait AutomaticAgentRewarded<DP: DomainParameters>: AutomaticAgent<DP> + RewardedAgent<DP>{
     /// Runs agent beginning in it's current state (information set)
     /// and returns when game is finished.
     fn run_rewarded(&mut self) -> Result<(), AmfiError<DP>>;
 }
 
-pub trait AutomaticAgentBothPayoffs<DP: DomainParameters>: AutomaticAgentRewarded<DP> + InternalRewardedAgent<DP>{
+pub trait AutomaticAgentRewardedAndEvaluated<DP: DomainParameters>: AutomaticAgentRewarded<DP> + SelfEvaluatingAgent<DP>{
 
 }
-impl<DP: DomainParameters, T: AutomaticAgentRewarded<DP> + InternalRewardedAgent<DP>> AutomaticAgentBothPayoffs<DP> for T{}
+impl<DP: DomainParameters, T: AutomaticAgentRewarded<DP> + SelfEvaluatingAgent<DP>> AutomaticAgentRewardedAndEvaluated<DP> for T{}
 
-pub trait TracingAutomaticAgent<DP: DomainParameters, IS: ScoringInformationSet<DP>>: AutomaticAgentBothPayoffs<DP> + TracingAgent<DP, IS>{}
+pub trait TracingAutomaticAgent<DP: DomainParameters, IS: EvaluatedInformationSet<DP>>: AutomaticAgentRewardedAndEvaluated<DP> + TracingAgent<DP, IS>{}
 
-impl<DP: DomainParameters, IS: ScoringInformationSet<DP>, T: AutomaticAgentBothPayoffs<DP> + TracingAgent<DP, IS>> TracingAutomaticAgent<DP, IS> for T{
+impl<DP: DomainParameters, IS: EvaluatedInformationSet<DP>, T: AutomaticAgentRewardedAndEvaluated<DP> + TracingAgent<DP, IS>> TracingAutomaticAgent<DP, IS> for T{
 
 }
 
@@ -49,9 +49,9 @@ impl<Agnt, DP> AutomaticAgent<DP> for Agnt
 where Agnt: StatefulAgent<DP> + ActingAgent<DP>
     + CommunicatingAgent<DP, CommunicationError=CommunicationError<DP>>
     + PolicyAgent<DP>
-    + InternalRewardedAgent<DP>,
+    + SelfEvaluatingAgent<DP>,
       DP: DomainParameters,
-      <Agnt as StatefulAgent<DP>>::InfoSetType: ScoringInformationSet<DP> + PresentPossibleActions<DP>
+      <Agnt as StatefulAgent<DP>>::InfoSetType: EvaluatedInformationSet<DP> + PresentPossibleActions<DP>
 {
     fn run(&mut self) -> Result<(), AmfiError<DP>> {
         info!("Agent {} starts", self.id());
@@ -80,7 +80,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                         }
                     }
                     EnvMessage::MoveRefused => {
-                        self.add_explicit_subjective_score(&self.penalty_for_illegal_action())
+                        self.add_explicit_assessment(&self.penalty_for_illegal_action())
                             /*&<Self as InternalRewardedAgent<DP>>::InternalReward
                             ::penalty_for_illegal())
 
@@ -134,10 +134,10 @@ impl<Agnt, DP> AutomaticAgentRewarded<DP> for Agnt
 where Agnt: StatefulAgent<DP> + ActingAgent<DP>
     + CommunicatingAgent<DP, CommunicationError=CommunicationError<DP>>
     + PolicyAgent<DP>
-    + EnvRewardedAgent<DP>
-    + InternalRewardedAgent<DP>,
+    + RewardedAgent<DP>
+    + SelfEvaluatingAgent<DP>,
       DP: DomainParameters,
-    <Agnt as StatefulAgent<DP>>::InfoSetType: ScoringInformationSet<DP>
+    <Agnt as StatefulAgent<DP>>::InfoSetType: EvaluatedInformationSet<DP>
     + PresentPossibleActions<DP>{
     fn run_rewarded(&mut self) -> Result<(), AmfiError<DP>>
     {
@@ -163,7 +163,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                         }
                     }
                     EnvMessage::MoveRefused => {
-                        self.add_explicit_subjective_score(&self.penalty_for_illegal_action())
+                        self.add_explicit_assessment(&self.penalty_for_illegal_action())
                         /*(
                             &<<Self as StatefulAgent<DP>>::InfoSetType as ScoringInformationSet<DP>>
                             ::penalty_for_illegal())

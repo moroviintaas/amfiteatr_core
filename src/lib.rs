@@ -10,7 +10,7 @@
 //! ```
 //! use std::collections::HashMap;
 //! use std::thread;
-//! use amfi::agent::{AgentGen, AgentGenT, AutomaticAgent, AutomaticAgentRewarded, EnvRewardedAgent, RandomPolicy};
+//! use amfi::agent::{AgentGen, AgentGenT, AutomaticAgent, AutomaticAgentRewarded, RewardedAgent, RandomPolicy};
 //! use amfi::comm::SyncCommEnv;
 //! use amfi::demo::{DemoInfoSet, DemoDomain, DemoState, DemoAgentID, DemoPolicySelectFirst};
 //! use amfi::env::{*, generic::*};

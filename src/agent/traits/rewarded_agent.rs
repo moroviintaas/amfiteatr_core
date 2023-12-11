@@ -2,7 +2,7 @@ use crate::domain::DomainParameters;
 
 /// Trait for agents collecting rewards sent them by environment.
 ///
-pub trait EnvRewardedAgent<DP: DomainParameters>{
+pub trait RewardedAgent<DP: DomainParameters>{
     /// Returns currently stored universal reward
     /// This should be sum of partial rewards
     /// received by agent since his last action.

@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 use crate::agent::*;
-use crate::agent::info_set::{InformationSet, ScoringInformationSet};
+use crate::agent::info_set::{InformationSet, EvaluatedInformationSet};
 use crate::agent::policy::Policy;
 use crate::comm::CommPort;
 use crate::error::CommunicationError;
@@ -9,7 +9,7 @@ use crate::domain::{AgentMessage, EnvMessage, DomainParameters, Reward, Renew};
 /// Generic agent implementing traits proposed in this crate.
 /// This agent implements minimal functionality to work automatically with environment.
 /// This agents does not collect trace of game, for are agent collecting it look for [AgentGenT](crate::agent::AgentGenT).
-/// This agent can be built if used Policy operates on information set that is [`ScoringInformationSet`](crate::agent::ScoringInformationSet)
+/// This agent can be built if used Policy operates on information set that is [`ScoringInformationSet`](crate::agent::EvaluatedInformationSet)
 pub struct AgentGen<
     DP: DomainParameters,
     P: Policy<DP>,
@@ -17,7 +17,7 @@ pub struct AgentGen<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>>>
-where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
     /// Information Set (State as viewed by agent)
     information_set: <P as Policy<DP>>::InfoSetType,
     /// Communication endpoint, should be paired with environment's.
@@ -28,7 +28,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
 
     constructed_universal_reward: <DP as DomainParameters>::UniversalReward,
     committed_universal_score: <DP as DomainParameters>::UniversalReward,
-    explicit_subjective_reward_component: <P::InfoSetType as ScoringInformationSet<DP>>::RewardType,
+    explicit_subjective_reward_component: <P::InfoSetType as EvaluatedInformationSet<DP>>::RewardType,
 }
 
 impl<
@@ -41,7 +41,7 @@ impl<
     >
 >
     AgentGen<DP, P, Comm>
-where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>
+where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>
 {
 
 
@@ -53,7 +53,7 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>
             _phantom:PhantomData::default(),
             constructed_universal_reward: Reward::neutral(),
             committed_universal_score: Reward::neutral(),
-            explicit_subjective_reward_component: <P::InfoSetType as ScoringInformationSet<DP>>::RewardType::neutral()
+            explicit_subjective_reward_component: <P::InfoSetType as EvaluatedInformationSet<DP>>::RewardType::neutral()
         }
     }
 
@@ -117,12 +117,12 @@ where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>
     }
     /// Using [`std::mem::swap`](::std::mem::swap) swaps communication endpoints between two instances.
     pub fn swap_comms<P2: Policy<DP>>(&mut self, other: &mut AgentGen<DP, P2, Comm>)
-    where <P2 as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
+    where <P2 as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
         std::mem::swap(&mut self.comm, &mut other.comm)
     }
     /// Using [`std::mem::swap`](::std::mem::swap) swaps communication endpoints with instance of [`AgentGentT`](crate::agent::AgentGenT).
     pub fn swap_comms_with_tracing<P2: Policy<DP>>(&mut self, other: &mut AgentGenT<DP, P2, Comm>)
-    where <P2 as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
+    where <P2 as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
         std::mem::swap(&mut self.comm, &mut other.comm_mut())
     }
 
@@ -150,7 +150,7 @@ impl<
     >
 >
     CommunicatingAgent<DP> for AgentGen<DP, P, Comm>
-where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>
+where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>
 {
 
     type CommunicationError = CommunicationError<DP>;
@@ -175,7 +175,7 @@ impl<
     >
 >
 StatefulAgent<DP> for AgentGen<DP, P, Comm>
-where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
     type InfoSetType = <P as Policy<DP>>::InfoSetType;
 
     fn update(&mut self, state_update: DP::UpdateType) -> Result<(), DP::GameErrorType> {
@@ -196,7 +196,7 @@ impl<
         Error=CommunicationError<DP>>,
     Seed> ReseedAgent<DP, Seed> for AgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: Renew<Seed>
-    + ScoringInformationSet<DP>,
+    + EvaluatedInformationSet<DP>,
 <Self as StatefulAgent<DP>>::InfoSetType: Renew<Seed>{
     fn reseed(&mut self, seed: Seed) {
 
@@ -214,7 +214,7 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>>>
 ActingAgent<DP> for AgentGen<DP, P, Comm>
-where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
 
     fn take_action(&mut self) -> Option<DP::ActionType> {
         //self.commit_reward_to_score();
@@ -237,7 +237,7 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>>>
 PolicyAgent<DP> for AgentGen<DP, P, Comm>
-where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
     type Policy = P;
 
     fn policy(&self) -> &Self::Policy {
@@ -256,8 +256,8 @@ impl<DP: DomainParameters,
     Comm: CommPort<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
-        Error=CommunicationError<DP>>> EnvRewardedAgent<DP> for AgentGen<DP, P, Comm>
-where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
+        Error=CommunicationError<DP>>> RewardedAgent<DP> for AgentGen<DP, P, Comm>
+where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
     fn current_universal_reward(&self) -> DP::UniversalReward {
         self.constructed_universal_reward.clone()
     }
@@ -285,7 +285,7 @@ impl<
         InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>>>
 ReinitAgent<DP> for AgentGen<DP, P, Comm>
-where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
+where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
 
     fn reinit(&mut self, initial_state: <Self as StatefulAgent<DP>>::InfoSetType) {
         self.information_set = initial_state;
@@ -301,19 +301,19 @@ impl<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvMessage<DP>,
         Error=CommunicationError<DP>>>
-InternalRewardedAgent<DP> for AgentGen<DP, P, Comm>
-where <Self as StatefulAgent<DP>>::InfoSetType: ScoringInformationSet<DP>,
-      <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>{
-    type InternalReward = <<Self as StatefulAgent<DP>>::InfoSetType as ScoringInformationSet<DP>>::RewardType;
-    fn current_subjective_score(&self) ->  Self::InternalReward{
+SelfEvaluatingAgent<DP> for AgentGen<DP, P, Comm>
+where <Self as StatefulAgent<DP>>::InfoSetType: EvaluatedInformationSet<DP>,
+      <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
+    type Assessment = <<Self as StatefulAgent<DP>>::InfoSetType as EvaluatedInformationSet<DP>>::RewardType;
+    fn current_assessment_total(&self) ->  Self::Assessment {
         self.information_set.current_subjective_score() + &self.explicit_subjective_reward_component
     }
 
-    fn add_explicit_subjective_score(&mut self, explicit_reward: &Self::InternalReward) {
+    fn add_explicit_assessment(&mut self, explicit_reward: &Self::Assessment) {
         self.explicit_subjective_reward_component += explicit_reward
     }
 
-    fn penalty_for_illegal_action(&self) -> Self::InternalReward {
+    fn penalty_for_illegal_action(&self) -> Self::Assessment {
         self.info_set().penalty_for_illegal()
     }
 }
@@ -327,7 +327,7 @@ impl<
         Error=CommunicationError<DP>>,
     Seed>
 MultiEpisodeAgent <DP, Seed> for AgentGen<DP, P, Comm>
-where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP>,
+where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>,
       <Self as StatefulAgent<DP>>::InfoSetType: Renew<Seed>{
     fn store_episode(&mut self) {
     }

@@ -6,7 +6,7 @@ use crate::agent::{AgentGen,
                    AutomaticAgent,
                    Policy,
                    PresentPossibleActions,
-                   ScoringInformationSet};
+                   EvaluatedInformationSet};
 use crate::env::{EnvironmentBuilderTrait, EnvironmentStateUniScore};
 use crate::env::automatons::rr::RoundRobinModel;
 use crate::comm::{EnvCommEndpoint, SyncCommEnv};
@@ -36,7 +36,7 @@ RoundRobinModelBuilder<DP, EnvState,  SyncCommEnv<DP>>
         initial_state: <P as Policy<DP>>::InfoSetType,
         policy: P)
         -> Result<Self, WorldError<DP>>
-        where <P as Policy<DP>>::InfoSetType: ScoringInformationSet<DP> + PresentPossibleActions<DP>{
+        where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP> + PresentPossibleActions<DP>{
 
         let (comm_env, comm_agent) = SyncCommEnv::new_pair();
         let agent = AgentGen::new( initial_state, comm_agent, policy);

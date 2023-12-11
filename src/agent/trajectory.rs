@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::Index;
-use crate::agent::info_set::ScoringInformationSet;
+use crate::agent::info_set::EvaluatedInformationSet;
 use crate::domain::DomainParameters;
 
 /// This struct contains information about _information set (game state from view of agent)_
@@ -10,7 +10,7 @@ use crate::domain::DomainParameters;
 ///
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug)]
-pub struct AgentTraceStep<DP: DomainParameters, S: ScoringInformationSet<DP>> {
+pub struct AgentTraceStep<DP: DomainParameters, S: EvaluatedInformationSet<DP>> {
     initial_info_set: S,
     taken_action: DP::ActionType,
     initial_universal_state_score: DP::UniversalReward,
@@ -22,7 +22,7 @@ pub struct AgentTraceStep<DP: DomainParameters, S: ScoringInformationSet<DP>> {
 
 }
 
-impl<DP: DomainParameters, S: ScoringInformationSet<DP>> AgentTraceStep<DP, S>
+impl<DP: DomainParameters, S: EvaluatedInformationSet<DP>> AgentTraceStep<DP, S>
 //where for <'a> &'a<DP as DomainParameters>::UniversalReward: Sub<&'a <DP as DomainParameters>::UniversalReward, Output=<DP as DomainParameters>::UniversalReward>,
 //    for<'a> &'a <S as ScoringInformationSet<DP>>::RewardType: Sub<&'a  <S as ScoringInformationSet<DP>>::RewardType, Output = <S as ScoringInformationSet<DP>>::RewardType>
 
@@ -115,12 +115,12 @@ impl<DP: DomainParameters, S: ScoringInformationSet<DP>> AgentTraceStep<DP, S>
     //pub fn s_a_r(&self, source:S RewardSource) -
 }
 
-impl<DP: DomainParameters, S: ScoringInformationSet<DP>> Display for AgentTraceStep<DP, S>
+impl<DP: DomainParameters, S: EvaluatedInformationSet<DP>> Display for AgentTraceStep<DP, S>
 where
     S: Display,
     <DP as DomainParameters>::UniversalReward: Display,
     <DP as DomainParameters>::ActionType: Display,
-    <S as  ScoringInformationSet<DP>>::RewardType : Display{
+    <S as  EvaluatedInformationSet<DP>>::RewardType : Display{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "[State: {} ][From Score: U = {} | A = {}][Action: {} ][To Score: U = {} | A = {}]",
                self.initial_info_set,

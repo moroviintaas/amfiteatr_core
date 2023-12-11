@@ -6,7 +6,7 @@ use crate::demo::DemoAgentID::{Blue, Red};
 use crate::domain::{Action, DomainParameters, Renew};
 use crate::env::{EnvStateSequential, EnvironmentStateUniScore};
 use rand::distributions::Distribution;
-use crate::agent::{InformationSet, ScoringInformationSet};
+use crate::agent::{InformationSet, EvaluatedInformationSet};
 
 #[derive(Clone, Debug)]
 pub struct DemoAction(u8);
@@ -164,7 +164,7 @@ impl PresentPossibleActions<DemoDomain> for DemoInfoSet{
     }
 }
 
-impl ScoringInformationSet<DemoDomain> for DemoInfoSet{
+impl EvaluatedInformationSet<DemoDomain> for DemoInfoSet{
     type RewardType = f32;
 
     fn current_subjective_score(&self) -> Self::RewardType {
