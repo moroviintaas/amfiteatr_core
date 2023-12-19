@@ -1,8 +1,9 @@
-use crate::env::{EnvStateSequential, EnvTrace, GameTrajectory};
+use crate::agent::AgentTrajectory;
+use crate::env::{EnvStateSequential, EnvTrace};
 use crate::domain::DomainParameters;
 
 pub trait TracingEnv<DP: DomainParameters, S: EnvStateSequential<DP>>{
 
-    fn trajectory(&self) -> &GameTrajectory<EnvTrace<DP, S>>;
+    fn trajectory(&self) -> &AgentTrajectory<EnvTrace<DP, S>>;
 
 }

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
+use crate::agent::AgentTrajectory;
 use crate::comm::EnvCommEndpoint;
-use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvStateSequential, EnvironmentStateUniScore, EnvironmentWithAgents, GameTrajectory, EnvTrace, ScoreEnvironment, StatefulEnvironment, TracingEnv, ReinitEnvironment};
+use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvStateSequential, EnvironmentStateUniScore, EnvironmentWithAgents, EnvTrace, ScoreEnvironment, StatefulEnvironment, TracingEnv, ReinitEnvironment};
 use crate::env::generic::{HashMapEnv};
 use crate::error::CommunicationError;
 use crate::domain::{AgentMessage, DomainParameters, EnvMessage};
@@ -11,7 +12,7 @@ pub struct HashMapEnvT<
     C: EnvCommEndpoint<DP>>{
 
     base_environment: HashMapEnv<DP, S,C>,
-    history: GameTrajectory<EnvTrace<DP, S>>
+    history: AgentTrajectory<EnvTrace<DP, S>>
 }
 
 impl<
@@ -80,11 +81,11 @@ StatefulEnvironment<DP> for HashMapEnvT<DP, S,C>{
          */
         match self.base_environment.process_action(agent, action){
             Ok(updates) => {
-                self.history.push(EnvTrace::new(state_clone, agent.clone(), action.clone(), true));
+                self.history.push_trace_step(EnvTrace::new(state_clone, agent.clone(), action.clone(), true));
                 Ok(updates)
             }
             Err(e) => {
-                self.history.push(EnvTrace::new(state_clone, agent.clone(), action.clone(), false));
+                self.history.push_trace_step(EnvTrace::new(state_clone, agent.clone(), action.clone(), false));
                 Err(e)
             }
         }
@@ -103,11 +104,11 @@ ScoreEnvironment<DP> for HashMapEnvT<DP, S, C>{
         let state_clone = self.state().clone();
         match self.base_environment.process_action_penalise_illegal(agent, action, penalty_reward){
             Ok(updates) => {
-                self.history.push(EnvTrace::new(state_clone, agent.clone(), action.clone(), true));
+                self.history.push_trace_step(EnvTrace::new(state_clone, agent.clone(), action.clone(), true));
                 Ok(updates)
             }
             Err(e) => {
-                self.history.push(EnvTrace::new(state_clone, agent.clone(), action.clone(), false));
+                self.history.push_trace_step(EnvTrace::new(state_clone, agent.clone(), action.clone(), false));
                 Err(e)
             }
         }
@@ -175,7 +176,7 @@ impl<'a, DP: DomainParameters + 'a,
     S: EnvStateSequential<DP>,
     C: EnvCommEndpoint<DP>>
 TracingEnv<DP, S> for HashMapEnvT<DP, S, C>{
-    fn trajectory(&self) -> &GameTrajectory<EnvTrace<DP, S>> {
+    fn trajectory(&self) -> &AgentTrajectory<EnvTrace<DP, S>> {
         &self.history
     }
 }

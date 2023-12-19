@@ -147,13 +147,13 @@ pub struct AgentTrajectory<Tr: Debug> {
 
 
     //top_state: S,
-    pub trace: Vec<Tr>
+    pub history: Vec<Tr>
 
 }
 pub type StdAgentTrajectory<DP, IS> = AgentTrajectory<AgentTraceStep<DP, IS>>;
 impl<Tr: Debug> Default for AgentTrajectory<Tr>{
     fn default() -> Self {
-        Self{trace: Default::default()}
+        Self{ history: Default::default()}
     }
 }
 impl<Tr: Debug> AgentTrajectory<Tr>
@@ -161,30 +161,33 @@ impl<Tr: Debug> AgentTrajectory<Tr>
 
 
     pub fn new() -> Self{
-        Self{trace: Default::default()}
+        Self{ history: Default::default()}
     }
     /*pub fn register_line(&mut self, state: S, action: DP::ActionType, reward_for_action: S::RewardType){
         self.trace.push(GameTraceLine::new(state, action, reward_for_action));
 
     }*/
+    pub fn new_reserve(capacity: usize) -> Self{
+        Self{ history: Vec::with_capacity(capacity)}
+    }
 
     /// Pushes trace step on the end of trajectory.
     pub fn push_trace_step(&mut self, trace_step: Tr){
-        self.trace.push(trace_step);
+        self.history.push(trace_step);
     }
     /// Clears trajectory using [`Vec::clear()`](std::vec::Vec::clear)
     pub fn clear(&mut self){
-        self.trace.clear();
+        self.history.clear();
     }
 
     /// Returns reference to `Vec` inside the structure.
     pub fn list(&self) -> &Vec<Tr>{
-        &self.trace
+        &self.history
     }
 
     /// Pops step from trajectory using [`Vec::pop()`](std::vec::Vec::pop)
     pub fn pop_step(&mut self) -> Option<Tr>{
-        self.trace.pop()
+        self.history.pop()
     }
 
 
@@ -197,6 +200,6 @@ impl<Tr: Debug> Index<usize> for AgentTrajectory<Tr>{
     type Output = Tr;
 
     fn index(&self, index: usize) -> &Self::Output {
-        &self.trace[index]
+        &self.history[index]
     }
 }

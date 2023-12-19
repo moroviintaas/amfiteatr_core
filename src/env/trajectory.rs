@@ -1,4 +1,5 @@
 use std::fmt::{Display, Formatter, write};
+pub use crate::agent::AgentTrajectory;
 use crate::env::EnvStateSequential;
 use crate::domain::DomainParameters;
 /*
@@ -100,6 +101,8 @@ impl<DP: DomainParameters, S: EnvStateSequential<DP>> EnvTrace<DP, S>{
     }
 }
 
+pub type StdEnvTrajectory<DP, S> = AgentTrajectory<EnvTrace<DP, S>>;
+/*
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct GameTrajectory<Tr>{
@@ -131,6 +134,8 @@ impl<DP: DomainParameters, S: EnvStateSequential<DP>> Default for GameTrajectory
         Self{history: Default::default()}
     }
 }
+
+ */
 
 /*
 impl<'a, DP: DomainParameters, S: EnvironmentState<DP>> IntoIterator for &'a EnvHistory<DP, S>{

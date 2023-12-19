@@ -1,10 +1,8 @@
-
-
-
+use std::fmt::Debug;
 use crate::domain::{Construct, DomainParameters};
 use crate::error::AmfiError;
 
-pub trait EnvStateSequential<DP: DomainParameters>: Send{
+pub trait EnvStateSequential<DP: DomainParameters>: Send + Debug{
     type Updates: IntoIterator<Item = (DP::AgentId, DP::UpdateType)>;
 
     fn current_player(&self) -> Option<DP::AgentId>;
