@@ -1,5 +1,5 @@
 use std::fmt::{Display, Formatter, write};
-pub use crate::agent::AgentTrajectory;
+pub use crate::agent::Trajectory;
 use crate::env::EnvStateSequential;
 use crate::domain::DomainParameters;
 /*
@@ -101,7 +101,7 @@ impl<DP: DomainParameters, S: EnvStateSequential<DP>> EnvTrace<DP, S>{
     }
 }
 
-pub type StdEnvTrajectory<DP, S> = AgentTrajectory<EnvTrace<DP, S>>;
+pub type StdEnvTrajectory<DP, S> = Trajectory<EnvTrace<DP, S>>;
 /*
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

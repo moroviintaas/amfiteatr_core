@@ -1,5 +1,5 @@
 use std::fmt::Debug;
-use crate::agent::{AgentTrajectory};
+use crate::agent::{Trajectory};
 use crate::domain::DomainParameters;
 
 
@@ -9,10 +9,10 @@ pub trait TracingAgent<DP: DomainParameters, Tr: Debug>{
     /// Resets recorded trajectory
     fn reset_trajectory(&mut self);
     /// Moves out recorded trajectory leaving new initialized in place
-    fn take_trajectory(&mut self) -> AgentTrajectory<Tr>;
+    fn take_trajectory(&mut self) -> Trajectory<Tr>;
     //fn set_new_state(&mut self);
     /// Returns reference to held trajectory.
-    fn game_trajectory(&self) -> &AgentTrajectory<Tr>;
+    fn game_trajectory(&self) -> &Trajectory<Tr>;
     /// Adds new record to stored trajectory, information set before taking action, and
     /// rewards in which resulted performed action.
     fn commit_trace(&mut self);

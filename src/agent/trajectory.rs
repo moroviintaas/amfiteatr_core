@@ -143,20 +143,20 @@ where
 /// and second time in the initial info set for next step.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug)]
-pub struct AgentTrajectory<Tr: Debug> {
+pub struct Trajectory<Tr: Debug> {
 
 
     //top_state: S,
     pub history: Vec<Tr>
 
 }
-pub type StdAgentTrajectory<DP, IS> = AgentTrajectory<AgentTraceStep<DP, IS>>;
-impl<Tr: Debug> Default for AgentTrajectory<Tr>{
+pub type StdAgentTrajectory<DP, IS> = Trajectory<AgentTraceStep<DP, IS>>;
+impl<Tr: Debug> Default for Trajectory<Tr>{
     fn default() -> Self {
         Self{ history: Default::default()}
     }
 }
-impl<Tr: Debug> AgentTrajectory<Tr>
+impl<Tr: Debug> Trajectory<Tr>
 {
 
 
@@ -196,7 +196,7 @@ impl<Tr: Debug> AgentTrajectory<Tr>
     }
 }
 
-impl<Tr: Debug> Index<usize> for AgentTrajectory<Tr>{
+impl<Tr: Debug> Index<usize> for Trajectory<Tr>{
     type Output = Tr;
 
     fn index(&self, index: usize) -> &Self::Output {

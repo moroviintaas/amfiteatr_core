@@ -29,11 +29,11 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
     constructed_universal_reward: <DP as DomainParameters>::UniversalReward,
     committed_universal_score: <DP as DomainParameters>::UniversalReward,
 
-    game_trajectory: AgentTrajectory<AgentTraceStep<DP, P::InfoSetType>>,
+    game_trajectory: Trajectory<AgentTraceStep<DP, P::InfoSetType>>,
     last_action: Option<DP::ActionType>,
     state_before_last_action: Option<<P as Policy<DP>>::InfoSetType>,
     explicit_subjective_reward_component: <P::InfoSetType as EvaluatedInformationSet<DP>>::RewardType,
-    episodes: Vec< AgentTrajectory<AgentTraceStep<DP, P::InfoSetType>>>,
+    episodes: Vec< Trajectory<AgentTraceStep<DP, P::InfoSetType>>>,
 }
 
 impl <DP: DomainParameters,
@@ -53,7 +53,7 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
             _phantom:PhantomData::default(),
             constructed_universal_reward: Reward::neutral(),
             committed_universal_score: Reward::neutral(),
-            game_trajectory: AgentTrajectory::new(),
+            game_trajectory: Trajectory::new(),
             state_before_last_action: None,
             last_action: None,
             explicit_subjective_reward_component: <P::InfoSetType as EvaluatedInformationSet<DP>>::RewardType::neutral(),
@@ -140,12 +140,12 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
         &mut self.comm
     }
 
-    pub fn take_episodes(&mut self) -> Vec<AgentTrajectory<AgentTraceStep<DP, P::InfoSetType>>>{
+    pub fn take_episodes(&mut self) -> Vec<Trajectory<AgentTraceStep<DP, P::InfoSetType>>>{
         let mut episodes = Vec::with_capacity(self.episodes.len());
         std::mem::swap(&mut episodes, &mut self.episodes);
         episodes
     }
-    pub fn episodes(&self) -> &Vec<AgentTrajectory<AgentTraceStep<DP, P::InfoSetType>>>{
+    pub fn episodes(&self) -> &Vec<Trajectory<AgentTraceStep<DP, P::InfoSetType>>>{
         &self.episodes
     }
 
@@ -258,11 +258,11 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP> ,
         self.last_action = None;
     }
 
-    fn take_trajectory(&mut self) -> AgentTrajectory<AgentTraceStep<DP, <P as Policy<DP>>::InfoSetType>> {
+    fn take_trajectory(&mut self) -> Trajectory<AgentTraceStep<DP, <P as Policy<DP>>::InfoSetType>> {
         std::mem::take(&mut self.game_trajectory)
     }
 
-    fn game_trajectory(&self) -> &AgentTrajectory<AgentTraceStep<DP, <P as Policy<DP>>::InfoSetType>> {
+    fn game_trajectory(&self) -> &Trajectory<AgentTraceStep<DP, <P as Policy<DP>>::InfoSetType>> {
         &self.game_trajectory
     }
 
@@ -409,7 +409,7 @@ MultiEpisodeAgent <DP, Seed> for AgentGenT<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>,
       <Self as StatefulAgent<DP>>::InfoSetType: Renew<Seed>{
     fn store_episode(&mut self) {
-        let mut new_trajectory = AgentTrajectory::new();
+        let mut new_trajectory = Trajectory::new();
         std::mem::swap(&mut new_trajectory, &mut self.game_trajectory);
         self.episodes.push(new_trajectory);
 

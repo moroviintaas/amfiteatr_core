@@ -5,7 +5,7 @@ use crate::{
     domain::*,
     comm::{EnvironmentAdapter, BroadcastingEnvironmentAdapter}
 };
-use crate::agent::{AgentTrajectory, ListPlayers};
+use crate::agent::{Trajectory, ListPlayers};
 use crate::domain::Renew;
 use crate::env::generic::BasicEnvironment;
 
@@ -15,7 +15,7 @@ pub struct TracingEnvironment<DP: DomainParameters,
     CP: EnvironmentAdapter<DP>>{
 
     base_environment: BasicEnvironment<DP, S, CP>,
-    history: AgentTrajectory<EnvTrace<DP, S>>
+    history: Trajectory<EnvTrace<DP, S>>
 }
 
 impl <
@@ -184,7 +184,7 @@ impl<'a, DP: DomainParameters + 'a,
     S: EnvStateSequential<DP>,
     CP: EnvironmentAdapter<DP>>
 TracingEnv<DP, S> for TracingEnvironment<DP, S, CP>{
-    fn trajectory(&self) -> &AgentTrajectory<EnvTrace<DP, S>> {
+    fn trajectory(&self) -> &Trajectory<EnvTrace<DP, S>> {
         &self.history
     }
 }
