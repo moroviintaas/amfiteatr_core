@@ -15,7 +15,7 @@ pub struct TracingEnvironment<DP: DomainParameters,
     CP: EnvironmentAdapter<DP>>{
 
     base_environment: BasicEnvironment<DP, S, CP>,
-    history: EnvTrajectory<DP, S>
+    history: GameTrajectory<EnvTrace<DP, S>>
 }
 
 impl <
@@ -184,7 +184,7 @@ impl<'a, DP: DomainParameters + 'a,
     S: EnvStateSequential<DP>,
     CP: EnvironmentAdapter<DP>>
 TracingEnv<DP, S> for TracingEnvironment<DP, S, CP>{
-    fn trajectory(&self) -> &EnvTrajectory<DP, S> {
+    fn trajectory(&self) -> &GameTrajectory<EnvTrace<DP, S>> {
         &self.history
     }
 }

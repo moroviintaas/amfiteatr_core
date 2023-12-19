@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use crate::comm::EnvCommEndpoint;
-use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvStateSequential, EnvironmentStateUniScore, EnvironmentWithAgents, EnvTrajectory, EnvTrace, ScoreEnvironment, StatefulEnvironment, TracingEnv, ReinitEnvironment};
+use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvStateSequential, EnvironmentStateUniScore, EnvironmentWithAgents, GameTrajectory, EnvTrace, ScoreEnvironment, StatefulEnvironment, TracingEnv, ReinitEnvironment};
 use crate::env::generic::{HashMapEnv};
 use crate::error::CommunicationError;
 use crate::domain::{AgentMessage, DomainParameters, EnvMessage};
@@ -11,7 +11,7 @@ pub struct HashMapEnvT<
     C: EnvCommEndpoint<DP>>{
 
     base_environment: HashMapEnv<DP, S,C>,
-    history: EnvTrajectory<DP, S>
+    history: GameTrajectory<EnvTrace<DP, S>>
 }
 
 impl<
@@ -175,7 +175,7 @@ impl<'a, DP: DomainParameters + 'a,
     S: EnvStateSequential<DP>,
     C: EnvCommEndpoint<DP>>
 TracingEnv<DP, S> for HashMapEnvT<DP, S, C>{
-    fn trajectory(&self) -> &EnvTrajectory<DP, S> {
+    fn trajectory(&self) -> &GameTrajectory<EnvTrace<DP, S>> {
         &self.history
     }
 }
