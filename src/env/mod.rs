@@ -1,6 +1,6 @@
 mod builder;
 mod automatons;
-pub mod generic;
+mod generic;
 mod traits;
 mod trajectory;
 mod state;
@@ -11,4 +11,4 @@ pub use builder::*;
 pub use automatons::rr::*;
 pub use trajectory::*;
 pub use state::*;
-
+pub use generic::*;

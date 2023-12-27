@@ -13,12 +13,12 @@ pub use traits::*;
 pub use trajectory::*;
 pub use generic::*;
 pub use info_set::*;
-use crate::comm::CommPort;
-use crate::domain::{AgentMessage, DomainParameters, EnvMessage};
+use crate::comm::BidirectionalEndpoint;
+use crate::domain::{AgentMessage, DomainParameters, EnvironmentMessage};
 use crate::error::CommunicationError;
 
 pub trait AgentCommPort<DP: DomainParameters>
-    :CommPort<OutwardType = AgentMessage<DP>, InwardType=EnvMessage<DP>, Error = CommunicationError<DP>>{}
+    : BidirectionalEndpoint<OutwardType = AgentMessage<DP>, InwardType=EnvironmentMessage<DP>, Error = CommunicationError<DP>>{}
 
-impl<DP: DomainParameters, T: CommPort<OutwardType = AgentMessage<DP>, InwardType=EnvMessage<DP>, Error = CommunicationError<DP>>>
+impl<DP: DomainParameters, T: BidirectionalEndpoint<OutwardType = AgentMessage<DP>, InwardType=EnvironmentMessage<DP>, Error = CommunicationError<DP>>>
 AgentCommPort<DP> for T{}

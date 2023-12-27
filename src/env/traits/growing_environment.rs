@@ -1,10 +1,10 @@
-use crate::{comm::CommPort};
+use crate::{comm::BidirectionalEndpoint};
 use crate::env::CommunicatingEnv;
 use crate::error::{CommunicationError, WorldError};
-use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
+use crate::domain::{AgentMessage, EnvironmentMessage, DomainParameters};
 
 pub trait ExtendableEnv<DP: DomainParameters>: CommunicatingEnv<DP>{
-    type Port: CommPort<OutwardType=EnvMessage<DP>, InwardType=AgentMessage<DP>, Error=CommunicationError<DP>> + ?Sized;
-    fn connect_agent(&mut self, agent_id: DP::AgentId, endpoint: Self::Port) -> Result<(), WorldError<DP>>;
+    type Endpoint: BidirectionalEndpoint<OutwardType=EnvironmentMessage<DP>, InwardType=AgentMessage<DP>, Error=CommunicationError<DP>> + ?Sized;
+    fn connect_agent(&mut self, agent_id: DP::AgentId, endpoint: Self::Endpoint) -> Result<(), WorldError<DP>>;
 
 }

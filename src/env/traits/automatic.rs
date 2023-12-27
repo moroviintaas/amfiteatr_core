@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use log::{warn, info, error};
 
-use crate::{error::{AmfiError, CommunicationError}, domain::{DomainParameters, EnvMessage, AgentMessage}, env::EnvStateSequential};
+use crate::{error::{AmfiError, CommunicationError}, domain::{DomainParameters, EnvironmentMessage, AgentMessage}, env::EnvStateSequential};
 use crate::agent::ListPlayers;
 use crate::domain::Reward;
 use crate::env::ScoreEnvironment;
@@ -26,7 +26,7 @@ pub trait AutoEnvironmentWithScoresAndPenalties<DP: DomainParameters>{
 
 pub(crate) trait AutoEnvInternals<DP: DomainParameters>{
     fn notify_error(&mut self, error: AmfiError<DP>) -> Result<(), CommunicationError<DP>>;
-    fn send_message(&mut self, agent: &DP::AgentId, message: EnvMessage<DP>) -> Result<(), CommunicationError<DP>>;
+    fn send_message(&mut self, agent: &DP::AgentId, message: EnvironmentMessage<DP>) -> Result<(), CommunicationError<DP>>;
     fn process_action_and_inform(&mut self, player: DP::AgentId, action: &DP::ActionType) -> Result<(), AmfiError<DP>>;
 }
 
@@ -37,10 +37,10 @@ impl <
         + BroadConnectedEnvironment<DP>
 > AutoEnvInternals<DP> for E{
     fn notify_error(&mut self, error: AmfiError<DP>) -> Result<(), CommunicationError<DP>> {
-        self.send_all(EnvMessage::ErrorNotify(error))
+        self.send_all(EnvironmentMessage::ErrorNotify(error))
     }
 
-    fn send_message(&mut self, agent: &<DP as DomainParameters>::AgentId, message: EnvMessage<DP>) -> Result<(), CommunicationError<DP>> {
+    fn send_message(&mut self, agent: &<DP as DomainParameters>::AgentId, message: EnvironmentMessage<DP>) -> Result<(), CommunicationError<DP>> {
         self.send(agent, message)
             .map_err(|e|{
                 self.notify_error(e.clone().into())
@@ -53,7 +53,7 @@ impl <
         match self.process_action(&player, action){
             Ok(iter) => {
                 for (ag, update) in iter{
-                    self.send_message(&ag, EnvMessage::UpdateState(update))?;
+                    self.send_message(&ag, EnvironmentMessage::UpdateState(update))?;
                 }
                 Ok(())
             }
@@ -78,7 +78,7 @@ impl <
             Some(n) => n
         };
         info!("Sending YourMove signal to first agent: {:?}", &first_player);
-        self.send(&first_player, EnvMessage::YourMove).map_err(|e|e.specify_id(first_player))?;
+        self.send(&first_player, EnvironmentMessage::YourMove).map_err(|e|e.specify_id(first_player))?;
         loop{
             match self.receive_blocking(){
                 Ok((player, message)) => {
@@ -89,9 +89,9 @@ impl <
                             match self.process_action(&player, &action){
                                 Ok(updates) => {
                                     for (ag, update) in updates{
-                                        self.send_message(&ag, EnvMessage::UpdateState(update))
+                                        self.send_message(&ag, EnvironmentMessage::UpdateState(update))
                                             .map_err(|e| {
-                                                let _ = self.send_all(EnvMessage::ErrorNotify(e.clone().into()));
+                                                let _ = self.send_all(EnvironmentMessage::ErrorNotify(e.clone().into()));
                                                 e
                                             })?;
 
@@ -100,23 +100,23 @@ impl <
                                 }
                                 Err(e) => {
                                     error!("Action was refused or caused error in updating state: {e:}");
-                                    let _ = self.send(&player, EnvMessage::MoveRefused);
-                                    let _ = self.send_all(EnvMessage::GameFinishedWithIllegalAction(player.clone()));
+                                    let _ = self.send(&player, EnvironmentMessage::MoveRefused);
+                                    let _ = self.send_all(EnvironmentMessage::GameFinishedWithIllegalAction(player.clone()));
                                     return Err(AmfiError::GameA(e, player));
                                 }
                             }
                             if let Some(next_player) = self.current_player(){
-                                self.send_message(&next_player, EnvMessage::YourMove)
+                                self.send_message(&next_player, EnvironmentMessage::YourMove)
                                     .map_err(|e| {
                                         let er = e.specify_id(next_player);
-                                        let _ = self.send_all(EnvMessage::ErrorNotify(er.clone().into()));
+                                        let _ = self.send_all(EnvironmentMessage::ErrorNotify(er.clone().into()));
                                         er
 
                                     })?;
                             }
                             if self.state().is_finished(){
                                 info!("Game reached finished state");
-                                self.send_all(EnvMessage::GameFinished)?;
+                                self.send_all(EnvironmentMessage::GameFinished)?;
                                 return Ok(());
 
                             }
@@ -143,7 +143,7 @@ impl <
                     },
                     err => {
                         error!("Failed trying to receive message");
-                        self.send_all(EnvMessage::ErrorNotify(err.clone().into()))?;
+                        self.send_all(EnvironmentMessage::ErrorNotify(err.clone().into()))?;
                         return Err(AmfiError::Communication(err));
                     }
 
@@ -176,7 +176,7 @@ impl <
             Some(n) => n
         };
         info!("Sending YourMove signal to first agent: {:?}", &first_player);
-        self.send(&first_player, EnvMessage::YourMove).map_err(|e|e.specify_id(first_player))?;
+        self.send(&first_player, EnvironmentMessage::YourMove).map_err(|e|e.specify_id(first_player))?;
         loop{
             match self.receive_blocking(){
                 Ok((player, message)) => {
@@ -187,9 +187,9 @@ impl <
                             match self.process_action(&player, &action){
                                 Ok(updates) => {
                                     for (ag, update) in updates{
-                                        self.send_message(&ag, EnvMessage::UpdateState(update))
+                                        self.send_message(&ag, EnvironmentMessage::UpdateState(update))
                                             .map_err(|e| {
-                                                let _ = self.send_all(EnvMessage::ErrorNotify(e.clone().into()));
+                                                let _ = self.send_all(EnvironmentMessage::ErrorNotify(e.clone().into()));
                                                 e
                                             })?;
 
@@ -198,29 +198,29 @@ impl <
 
                                         let reward = self.actual_score_of_player(player) - score.clone();
                                         *score = self.actual_score_of_player(player);
-                                        self.send(player, EnvMessage::RewardFragment(reward))?;
+                                        self.send(player, EnvironmentMessage::RewardFragment(reward))?;
                                     }
 
                                 }
                                 Err(e) => {
                                     error!("Action was refused or caused error in updating state: {e:}");
-                                    let _ = self.send(&player, EnvMessage::MoveRefused);
-                                    let _ = self.send_all(EnvMessage::GameFinishedWithIllegalAction(player.clone()));
+                                    let _ = self.send(&player, EnvironmentMessage::MoveRefused);
+                                    let _ = self.send_all(EnvironmentMessage::GameFinishedWithIllegalAction(player.clone()));
                                     return Err(AmfiError::GameA(e, player));
                                 }
                             }
                             if let Some(next_player) = self.current_player(){
-                                self.send_message(&next_player, EnvMessage::YourMove)
+                                self.send_message(&next_player, EnvironmentMessage::YourMove)
                                     .map_err(|e| {
                                         let er = e.specify_id(next_player);
-                                        let _ = self.send_all(EnvMessage::ErrorNotify(er.clone().into()));
+                                        let _ = self.send_all(EnvironmentMessage::ErrorNotify(er.clone().into()));
                                         er
 
                                     })?;
                             }
                             if self.state().is_finished(){
                                 info!("Game reached finished state");
-                                self.send_all(EnvMessage::GameFinished)?;
+                                self.send_all(EnvironmentMessage::GameFinished)?;
                                 return Ok(());
 
                             }
@@ -247,7 +247,7 @@ impl <
                     },
                     err => {
                         error!("Failed trying to receive message");
-                        self.send_all(EnvMessage::ErrorNotify(err.clone().into()))?;
+                        self.send_all(EnvironmentMessage::ErrorNotify(err.clone().into()))?;
                         return Err(AmfiError::Communication(err));
                     }
 
@@ -281,7 +281,7 @@ impl <
             Some(n) => n
         };
         info!("Sending YourMove signal to first agent: {:?}", &first_player);
-        self.send(&first_player, EnvMessage::YourMove).map_err(|e|e.specify_id(first_player))?;
+        self.send(&first_player, EnvironmentMessage::YourMove).map_err(|e|e.specify_id(first_player))?;
         loop{
             match self.receive_blocking(){
                 Ok((player, message)) => {
@@ -292,9 +292,9 @@ impl <
                             match self.process_action(&player, &action){
                                 Ok(updates) => {
                                     for (ag, update) in updates{
-                                        self.send_message(&ag, EnvMessage::UpdateState(update))
+                                        self.send_message(&ag, EnvironmentMessage::UpdateState(update))
                                             .map_err(|e| {
-                                                let _ = self.send_all(EnvMessage::ErrorNotify(e.clone().into()));
+                                                let _ = self.send_all(EnvironmentMessage::ErrorNotify(e.clone().into()));
                                                 e
                                             })?;
 
@@ -303,36 +303,36 @@ impl <
 
                                         let reward = self.actual_score_of_player(player) - score.clone();
                                         *score = self.actual_score_of_player(player);
-                                        self.send(player, EnvMessage::RewardFragment(reward))?;
+                                        self.send(player, EnvironmentMessage::RewardFragment(reward))?;
                                     }
 
                                 }
                                 Err(e) => {
                                     error!("Player {player:} performed illegal action: {action:}");
-                                    let _ = self.send(&player, EnvMessage::MoveRefused);
-                                    let _ = self.send(&player, EnvMessage::RewardFragment(penalty(&player)));
+                                    let _ = self.send(&player, EnvironmentMessage::MoveRefused);
+                                    let _ = self.send(&player, EnvironmentMessage::RewardFragment(penalty(&player)));
                                     for (player, score) in actual_universal_scores.iter_mut(){
 
                                         let reward = self.actual_score_of_player(player) - score.clone();
                                         *score = self.actual_score_of_player(player);
-                                        let _ = self.send(player, EnvMessage::RewardFragment(reward));
+                                        let _ = self.send(player, EnvironmentMessage::RewardFragment(reward));
                                     }
-                                    let _ = self.send_all(EnvMessage::GameFinishedWithIllegalAction(player.clone()));
+                                    let _ = self.send_all(EnvironmentMessage::GameFinishedWithIllegalAction(player.clone()));
                                     return Err(GameA(e, player));
                                 }
                             }
                             if let Some(next_player) = self.current_player(){
-                                self.send_message(&next_player, EnvMessage::YourMove)
+                                self.send_message(&next_player, EnvironmentMessage::YourMove)
                                     .map_err(|e| {
                                         let er = e.specify_id(next_player);
-                                        let _ = self.send_all(EnvMessage::ErrorNotify(er.clone().into()));
+                                        let _ = self.send_all(EnvironmentMessage::ErrorNotify(er.clone().into()));
                                         er
 
                                     })?;
                             }
                             if self.state().is_finished(){
                                 info!("Game reached finished state");
-                                self.send_all(EnvMessage::GameFinished)?;
+                                self.send_all(EnvironmentMessage::GameFinished)?;
                                 return Ok(());
 
                             }
@@ -359,7 +359,7 @@ impl <
                     },
                     err => {
                         error!("Failed trying to receive message");
-                        self.send_all(EnvMessage::ErrorNotify(err.clone().into()))?;
+                        self.send_all(EnvironmentMessage::ErrorNotify(err.clone().into()))?;
                         return Err(AmfiError::Communication(err));
                     }
 

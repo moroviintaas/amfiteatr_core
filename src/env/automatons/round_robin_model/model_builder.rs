@@ -2,14 +2,14 @@
 use std::collections::{HashMap};
 use std::sync::{Arc, Mutex};
 use crate::agent::{AgentGen,
-                   AgentWithId,
+                   IdAgent,
                    AutomaticAgent,
                    Policy,
                    PresentPossibleActions,
                    EvaluatedInformationSet};
 use crate::env::{EnvironmentBuilderTrait, EnvironmentStateUniScore};
 use crate::env::automatons::rr::RoundRobinModel;
-use crate::comm::{EnvCommEndpoint, SyncCommEnv};
+use crate::comm::{EnvironmentEndpoint, StdEnvironmentEndpoint};
 use crate::env::generic::{GenericEnvironmentBuilder};
 
 use crate::domain::{DomainParameters};
@@ -18,7 +18,7 @@ use crate::error::WorldError;
 pub struct RoundRobinModelBuilder<
     DP: DomainParameters,
     EnvState: EnvironmentStateUniScore<DP>,
-    Comm: EnvCommEndpoint<DP> >{
+    Comm: EnvironmentEndpoint<DP> >{
     env_builder: GenericEnvironmentBuilder<DP, EnvState,  Comm>,
     local_agents: HashMap<DP::AgentId, Arc<Mutex<dyn AutomaticAgent<DP> + Send>>>,
 
@@ -28,7 +28,7 @@ pub struct RoundRobinModelBuilder<
 impl<
     DP: DomainParameters,
     EnvState: EnvironmentStateUniScore<DP>>
-RoundRobinModelBuilder<DP, EnvState,  SyncCommEnv<DP>>
+RoundRobinModelBuilder<DP, EnvState,  StdEnvironmentEndpoint<DP>>
 {
     pub fn with_local_generic_agent<P: Policy<DP> + 'static>(
         mut self,
@@ -38,7 +38,7 @@ RoundRobinModelBuilder<DP, EnvState,  SyncCommEnv<DP>>
         -> Result<Self, WorldError<DP>>
         where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP> + PresentPossibleActions<DP>{
 
-        let (comm_env, comm_agent) = SyncCommEnv::new_pair();
+        let (comm_env, comm_agent) = StdEnvironmentEndpoint::new_pair();
         let agent = AgentGen::new( initial_state, comm_agent, policy);
         self.env_builder = self.env_builder.add_comm(&agent.id(), comm_env)?;
         self.local_agents.insert(agent.id().clone(), Arc::new(Mutex::new(agent)));
@@ -52,7 +52,7 @@ RoundRobinModelBuilder<DP, EnvState,  SyncCommEnv<DP>>
 impl<
     DP: DomainParameters,
     EnvState: EnvironmentStateUniScore<DP>,
-    Comm: EnvCommEndpoint<DP>>
+    Comm: EnvironmentEndpoint<DP>>
 RoundRobinModelBuilder<DP, EnvState,  Comm>{
     pub fn new() -> Self{
         Self{ env_builder: GenericEnvironmentBuilder::new(), local_agents:HashMap::new() }
@@ -111,7 +111,7 @@ RoundRobinModelBuilder<DP, EnvState,  Comm>{
 }
 
 impl<Spec: DomainParameters, EnvState: EnvironmentStateUniScore<Spec>,
- Comm: EnvCommEndpoint<Spec>> Default for RoundRobinModelBuilder<Spec, EnvState, Comm> {
+ Comm: EnvironmentEndpoint<Spec>> Default for RoundRobinModelBuilder<Spec, EnvState, Comm> {
     fn default() -> Self {
         Self::new()
     }

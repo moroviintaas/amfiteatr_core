@@ -133,7 +133,7 @@ impl <
     S: EnvStateSequential<DP>,
     CP: BroadcastingEnvironmentAdapter<DP>
 > ConnectedEnvironment<DP> for TracingEnvironment<DP, S, CP>{
-    fn send(&mut self, agent_id: &<DP as DomainParameters>::AgentId,  message: crate::domain::EnvMessage<DP>)
+    fn send(&mut self, agent_id: &<DP as DomainParameters>::AgentId,  message: crate::domain::EnvironmentMessage<DP>)
         -> Result<(), crate::error::CommunicationError<DP>> {
         self.base_environment.send(agent_id, message)
     }
@@ -157,7 +157,7 @@ impl <
 > BroadConnectedEnvironment<DP> for TracingEnvironment<DP, S, CP>{
 
 
-    fn send_all(&mut self, message: crate::domain::EnvMessage<DP>) -> Result<(), crate::error::CommunicationError<DP>> {
+    fn send_all(&mut self, message: crate::domain::EnvironmentMessage<DP>) -> Result<(), crate::error::CommunicationError<DP>> {
         self.base_environment.send_all(message)
     }
 }

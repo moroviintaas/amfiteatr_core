@@ -11,7 +11,7 @@ pub trait ActingAgent<DP: DomainParameters>{
     /// in the very moment when agent needs to select action.
     /// In the same moment agent may want to mutate itself for example to separate steps of game for purpose of saving trajectory.
     /// This behaviour is used by [`AgentGen`](crate::agent::AgentGen) to add rewards obtained since last action to current store.
-    /// [`AgentGenT`](crate::agent::AgentGenT) uses it also to add new step entry to his/her game trajectory.
+    /// [`AgentGenT`](crate::agent::TracingAgentGen) uses it also to add new step entry to his/her game trajectory.
     /// __Note__ that this method should not affect agents _information set_, as the way of changing it is through [`DomainParameters::UpdateType`](crate::domain::DomainParameters::UpdateType)
     /// provided by _environment_.
     fn take_action(&mut self) -> Option<DP::ActionType>;

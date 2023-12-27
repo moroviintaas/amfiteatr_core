@@ -1,5 +1,5 @@
 
-mod growing_environment;
+//mod growing_environment;
 mod communication_env;
 mod contructed_environment;
 mod environment_with_agents;
@@ -9,7 +9,7 @@ mod reset_environment;
 mod tracing_env;
 mod automatic;
 
-pub use growing_environment::*;
+//pub use growing_environment::*;
 pub use communication_env::*;
 pub use contructed_environment::*;
 pub use environment_with_agents::*;

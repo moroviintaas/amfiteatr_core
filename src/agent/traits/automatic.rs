@@ -1,9 +1,9 @@
 
-use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, RewardedAgent, SelfEvaluatingAgent, EvaluatedInformationSet, PresentPossibleActions, AgentWithId, TracingAgent};
+use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, RewardedAgent, SelfEvaluatingAgent, EvaluatedInformationSet, PresentPossibleActions, IdAgent, TracingAgent};
 use crate::error::{CommunicationError, AmfiError};
 use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
 use crate::error::AmfiError::Protocol;
-use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
+use crate::domain::{AgentMessage, EnvironmentMessage, DomainParameters};
 use log::{info, debug, error, warn, trace};
 
 /// Trait for agents that perform their interactions with environment automatically,
@@ -13,7 +13,7 @@ use log::{info, debug, error, warn, trace};
 /// Implementations are perfectly fine to skip messages about rewards coming
 /// from environment. As trait suited for running game regarding collected rewards
 /// refer to [`AutomaticAgentRewarded`](AutomaticAgentRewarded)
-pub trait AutomaticAgent<DP: DomainParameters>: AgentWithId<DP>{
+pub trait AutomaticAgent<DP: DomainParameters>: IdAgent<DP>{
     /// Runs agent beginning in it's current state (information set)
     /// and returns when game is finished.
     /// > __Note__ It is not specified how agent should react when encountering error.
@@ -59,7 +59,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
         loop{
             match self.recv(){
                 Ok(message) => match message{
-                    EnvMessage::YourMove => {
+                    EnvironmentMessage::YourMove => {
                         trace!("Agent {} received 'YourMove' signal.", self.id());
                         //current_score = Default::default();
 
@@ -79,30 +79,30 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                             }
                         }
                     }
-                    EnvMessage::MoveRefused => {
+                    EnvironmentMessage::MoveRefused => {
                         self.add_explicit_assessment(&self.penalty_for_illegal_action())
                             /*&<Self as InternalRewardedAgent<DP>>::InternalReward
                             ::penalty_for_illegal())
 
                              */
                     }
-                    EnvMessage::GameFinished => {
+                    EnvironmentMessage::GameFinished => {
                         info!("Agent {} received information that game is finished.", self.id());
                         self.finalize();
                         return Ok(())
 
                     }
-                    EnvMessage::GameFinishedWithIllegalAction(id) => {
+                    EnvironmentMessage::GameFinishedWithIllegalAction(id) => {
                         warn!("Agent {} received information that game is finished with agent {id:} performing illegal action.", self.id());
                         self.finalize();
                         return Ok(())
 
                     }
-                    EnvMessage::Kill => {
+                    EnvironmentMessage::Kill => {
                         info!("Agent {:?} received kill signal.", self.id());
                         return Err(Protocol(ReceivedKill(self.id().clone())))
                     }
-                    EnvMessage::UpdateState(su) => {
+                    EnvironmentMessage::UpdateState(su) => {
                         trace!("Agent {} received state update {:?}", self.id(), &su);
                         match self.update(su){
                             Ok(_) => {
@@ -115,13 +115,13 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                             }
                         }
                     }
-                    EnvMessage::ActionNotify(a) => {
+                    EnvironmentMessage::ActionNotify(a) => {
                         trace!("Agent {} received information that agent {} took action {:#}", self.id(), a.agent(), a.action());
                     }
-                    EnvMessage::ErrorNotify(e) => {
+                    EnvironmentMessage::ErrorNotify(e) => {
                         error!("Agent {} received error notification {}", self.id(), &e)
                     }
-                    EnvMessage::RewardFragment(_r) =>{
+                    EnvironmentMessage::RewardFragment(_r) =>{
                     }
                 }
                 Err(e) => return Err(e.into())
@@ -146,7 +146,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
         loop{
             match self.recv(){
                 Ok(message) => match message{
-                    EnvMessage::YourMove => {
+                    EnvironmentMessage::YourMove => {
                         debug!("Agent {} received 'YourMove' signal.", self.id());
                         debug!("Agent's {:?} possible actions: {}]", self.id(), self.info_set().available_actions().into_iter()
                             .fold(String::from("["), |a, b| a + &format!("{b:#}") + ", ").trim_end());
@@ -162,7 +162,7 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                             }
                         }
                     }
-                    EnvMessage::MoveRefused => {
+                    EnvironmentMessage::MoveRefused => {
                         self.add_explicit_assessment(&self.penalty_for_illegal_action())
                         /*(
                             &<<Self as StatefulAgent<DP>>::InfoSetType as ScoringInformationSet<DP>>
@@ -170,23 +170,23 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
 
                          */
                     }
-                    EnvMessage::GameFinished => {
+                    EnvironmentMessage::GameFinished => {
                         info!("Agent {} received information that game is finished.", self.id());
                         self.finalize();
                         return Ok(())
 
                     }
-                    EnvMessage::GameFinishedWithIllegalAction(id)=> {
+                    EnvironmentMessage::GameFinishedWithIllegalAction(id)=> {
                         warn!("Agent {} received information that game is finished with agent {id:} performing illegal action.", self.id());
                         self.finalize();
                         return Ok(())
 
                     }
-                    EnvMessage::Kill => {
+                    EnvironmentMessage::Kill => {
                         info!("Agent {:?} received kill signal.", self.id());
                         return Err(Protocol(ReceivedKill(self.id().clone())))
                     }
-                    EnvMessage::UpdateState(su) => {
+                    EnvironmentMessage::UpdateState(su) => {
                         debug!("Agent {} received state update {:?}", self.id(), &su);
                         match self.update(su){
                             Ok(_) => {
@@ -199,13 +199,13 @@ where Agnt: StatefulAgent<DP> + ActingAgent<DP>
                             }
                         }
                     }
-                    EnvMessage::ActionNotify(a) => {
+                    EnvironmentMessage::ActionNotify(a) => {
                         debug!("Agent {} received information that agent {} took action {:#}", self.id(), a.agent(), a.action());
                     }
-                    EnvMessage::ErrorNotify(e) => {
+                    EnvironmentMessage::ErrorNotify(e) => {
                         error!("Agent {} received error notification {}", self.id(), &e)
                     }
-                    EnvMessage::RewardFragment(r) =>{
+                    EnvironmentMessage::RewardFragment(r) =>{
                         //current_score = current_score + r;
                         //self.set_current_universal_reward(current_score.clone());
                         debug!("Agent {} received reward fragment: {:?}", self.id(), r);

@@ -2,21 +2,21 @@ use std::marker::PhantomData;
 
 use crate::agent::*;
 use crate::agent::info_set::EvaluatedInformationSet;
-use crate::comm::CommPort;
+use crate::comm::BidirectionalEndpoint;
 use crate::error::CommunicationError;
-use crate::domain::{AgentMessage, DomainParameters, EnvMessage, Renew, Reward};
+use crate::domain::{AgentMessage, DomainParameters, EnvironmentMessage, Renew, Reward};
 
 
 /// Generic agent implementing traits proposed in this crate.
 /// This agent implements minimal functionality to work automatically with environment.
 /// This agents  collects trace of game, for are agent not collecting it look for [AgentGen](crate::agent::AgentGen).
 /// This agent can be built if used Policy operates on information set that is [`ScoringInformationSet`](crate::agent::EvaluatedInformationSet)
-pub struct AgentGenT<
+pub struct TracingAgentGen<
     DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommPort<
+    Comm: BidirectionalEndpoint<
         OutwardType=AgentMessage<DP>,
-        InwardType=EnvMessage<DP>,
+        InwardType=EnvironmentMessage<DP>,
         Error=CommunicationError<DP>>>
 where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
 
@@ -38,11 +38,11 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
 
 impl <DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommPort<
+    Comm: BidirectionalEndpoint<
         OutwardType=AgentMessage<DP>,
-        InwardType=EnvMessage<DP>,
+        InwardType=EnvironmentMessage<DP>,
         Error=CommunicationError<DP>>>
-AgentGenT<DP, P, Comm>
+TracingAgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
 
     pub fn new(state: <P as Policy<DP>>::InfoSetType, comm: Comm, policy: P) -> Self{
@@ -65,16 +65,16 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
     /// New agent has now provided policy. Previous policy is dropped.
     /// # Example:
     /// ```
-    /// use amfi::agent::{AgentGenT, RandomPolicy};
-    /// use amfi::comm::SyncCommEnv;
+    /// use amfi::agent::{TracingAgentGen, RandomPolicy};
+    /// use amfi::comm::StdEnvironmentEndpoint;
     /// use amfi::demo::{DemoAgentID, DemoInfoSet, DemoPolicySelectFirst};
-    /// let (_, comm) = SyncCommEnv::new_pair();
-    /// let agent = AgentGenT::new(DemoInfoSet::new(DemoAgentID::Red, 10), comm, RandomPolicy::new());
+    /// let (_, comm) = StdEnvironmentEndpoint::new_pair();
+    /// let agent = TracingAgentGen::new(DemoInfoSet::new(DemoAgentID::Red, 10), comm, RandomPolicy::new());
     /// let agent_2 = agent.transform_replace_policy(DemoPolicySelectFirst{});
     /// ```
-    pub fn transform_replace_policy<P2: Policy<DP, InfoSetType=P::InfoSetType>>(self, new_policy: P2) -> AgentGenT<DP, P2, Comm>
+    pub fn transform_replace_policy<P2: Policy<DP, InfoSetType=P::InfoSetType>>(self, new_policy: P2) -> TracingAgentGen<DP, P2, Comm>
     {
-        AgentGenT::<DP, P2, Comm>{
+        TracingAgentGen::<DP, P2, Comm>{
             information_set: self.information_set,
             policy: new_policy,
             _phantom: Default::default(),
@@ -94,17 +94,17 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
     /// New agent has now provided policy. Previous policy is returned as second element in tuple.
     /// # Example:
     /// ```
-    /// use amfi::agent::{AgentGenT, RandomPolicy};
-    /// use amfi::comm::SyncCommEnv;
+    /// use amfi::agent::{TracingAgentGen, RandomPolicy};
+    /// use amfi::comm::StdEnvironmentEndpoint;
     /// use amfi::demo::{DemoAgentID, DemoInfoSet, DemoPolicySelectFirst};
-    /// let (_, comm) = SyncCommEnv::new_pair();
-    /// let agent = AgentGenT::new(DemoInfoSet::new(DemoAgentID::Red, 10), comm, RandomPolicy::new());
+    /// let (_, comm) = StdEnvironmentEndpoint::new_pair();
+    /// let agent = TracingAgentGen::new(DemoInfoSet::new(DemoAgentID::Red, 10), comm, RandomPolicy::new());
     /// let (agent_2, old_policy) = agent.transform_replace_policy_ret(DemoPolicySelectFirst{});
     /// ```
-    pub fn transform_replace_policy_ret<P2: Policy<DP, InfoSetType=P::InfoSetType>>(self, new_policy: P2) -> (AgentGenT<DP, P2, Comm>, P)
+    pub fn transform_replace_policy_ret<P2: Policy<DP, InfoSetType=P::InfoSetType>>(self, new_policy: P2) -> (TracingAgentGen<DP, P2, Comm>, P)
     {
         let p = self.policy;
-        (AgentGenT::<DP, P2, Comm>{
+        (TracingAgentGen::<DP, P2, Comm>{
             information_set: self.information_set,
             policy: new_policy,
             _phantom: Default::default(),
@@ -125,7 +125,7 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
         comm
     }
     /// Using [`std::mem::swap`](::std::mem::swap) swaps communication endpoints between two instances.
-    pub fn swap_comms<P2: Policy<DP>>(&mut self, other: &mut AgentGenT<DP, P2, Comm>)
+    pub fn swap_comms<P2: Policy<DP>>(&mut self, other: &mut TracingAgentGen<DP, P2, Comm>)
     where <P2 as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP> + Clone{
         std::mem::swap(&mut self.comm, &mut other.comm)
     }
@@ -156,11 +156,11 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
 impl<
     DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommPort<
+    Comm: BidirectionalEndpoint<
         OutwardType=AgentMessage<DP>,
-        InwardType=EnvMessage<DP>,
+        InwardType=EnvironmentMessage<DP>,
         Error=CommunicationError<DP>>>
-    CommunicatingAgent<DP> for AgentGenT<DP, P, Comm>
+    CommunicatingAgent<DP> for TracingAgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP> + Clone{
 
     type CommunicationError = CommunicationError<DP>;
@@ -169,7 +169,7 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP> + Clone{
         self.comm.send(message)
     }
 
-    fn recv(&mut self) -> Result<EnvMessage<DP>, Self::CommunicationError> {
+    fn recv(&mut self) -> Result<EnvironmentMessage<DP>, Self::CommunicationError> {
         self.comm.receive_blocking()
     }
 }
@@ -177,11 +177,11 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP> + Clone{
 impl<
     DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommPort<
+    Comm: BidirectionalEndpoint<
         OutwardType=AgentMessage<DP>,
-        InwardType=EnvMessage<DP>,
+        InwardType=EnvironmentMessage<DP>,
         Error=CommunicationError<DP>>>
-StatefulAgent<DP> for AgentGenT<DP, P, Comm>
+StatefulAgent<DP> for TracingAgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
 
     type InfoSetType = <P as Policy<DP>>::InfoSetType;
@@ -198,11 +198,11 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
 impl<
     DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommPort<
+    Comm: BidirectionalEndpoint<
         OutwardType=AgentMessage<DP>,
-        InwardType=EnvMessage<DP>,
+        InwardType=EnvironmentMessage<DP>,
         Error=CommunicationError<DP>>,
-    Seed> ReseedAgent<DP, Seed> for AgentGenT<DP, P, Comm>
+    Seed> ReseedAgent<DP, Seed> for TracingAgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: Renew<Seed>
     + EvaluatedInformationSet<DP>,
 <Self as StatefulAgent<DP>>::InfoSetType: Renew<Seed>{
@@ -218,11 +218,11 @@ where <P as Policy<DP>>::InfoSetType: Renew<Seed>
 impl<
     DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommPort<
+    Comm: BidirectionalEndpoint<
         OutwardType=AgentMessage<DP>,
-        InwardType=EnvMessage<DP>,
+        InwardType=EnvironmentMessage<DP>,
         Error=CommunicationError<DP>>>
-ActingAgent<DP> for AgentGenT<DP, P, Comm>
+ActingAgent<DP> for TracingAgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP> + Clone{
 
     /// Firstly, agent commits last step to stack.
@@ -244,11 +244,11 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP> + Clone{
 impl<
     DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommPort<
+    Comm: BidirectionalEndpoint<
         OutwardType=AgentMessage<DP>,
-        InwardType=EnvMessage<DP>,
+        InwardType=EnvironmentMessage<DP>,
         Error=CommunicationError<DP>>>
-TracingAgent<DP, AgentTraceStep<DP, <P as Policy<DP>>::InfoSetType>> for AgentGenT<DP, P, Comm>
+TracingAgent<DP, AgentTraceStep<DP, <P as Policy<DP>>::InfoSetType>> for TracingAgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP> ,
 //for <'a> &'a<DP as DomainParameters>::UniversalReward: Sub<&'a <DP as DomainParameters>::UniversalReward, Output=<DP as DomainParameters>::UniversalReward>,
 //for<'a> &'a <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType: Sub<&'a  <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType, Output = <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType>
@@ -308,11 +308,11 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP> ,
 impl<
     DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommPort<
+    Comm: BidirectionalEndpoint<
         OutwardType=AgentMessage<DP>,
-        InwardType=EnvMessage<DP>,
+        InwardType=EnvironmentMessage<DP>,
         Error=CommunicationError<DP>>>
-PolicyAgent<DP> for AgentGenT<DP, P, Comm>
+PolicyAgent<DP> for TracingAgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
     type Policy = P;
 
@@ -328,11 +328,11 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
 impl<
     DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommPort<
+    Comm: BidirectionalEndpoint<
         OutwardType=AgentMessage<DP>,
-        InwardType=EnvMessage<DP>,
+        InwardType=EnvironmentMessage<DP>,
         Error=CommunicationError<DP>>>
-RewardedAgent<DP> for AgentGenT<DP, P, Comm>
+RewardedAgent<DP> for TracingAgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
 
     fn current_universal_reward(&self) -> DP::UniversalReward {
@@ -356,11 +356,11 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
 impl<
     DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommPort<
+    Comm: BidirectionalEndpoint<
         OutwardType=AgentMessage<DP>,
-        InwardType=EnvMessage<DP>,
+        InwardType=EnvironmentMessage<DP>,
         Error=CommunicationError<DP>>>
-ReinitAgent<DP> for AgentGenT<DP, P, Comm>
+ReinitAgent<DP> for TracingAgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
 
     fn reinit(&mut self, initial_state: <Self as StatefulAgent<DP>>::InfoSetType) {
@@ -377,11 +377,11 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
 impl<
     DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommPort<
+    Comm: BidirectionalEndpoint<
         OutwardType=AgentMessage<DP>,
-        InwardType=EnvMessage<DP>,
+        InwardType=EnvironmentMessage<DP>,
         Error=CommunicationError<DP>>>
-SelfEvaluatingAgent<DP> for AgentGenT<DP, P, Comm>
+SelfEvaluatingAgent<DP> for TracingAgentGen<DP, P, Comm>
 where <Self as StatefulAgent<DP>>::InfoSetType: EvaluatedInformationSet<DP>,
 <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
     type Assessment = <<Self as StatefulAgent<DP>>::InfoSetType as EvaluatedInformationSet<DP>>::RewardType;
@@ -400,12 +400,12 @@ where <Self as StatefulAgent<DP>>::InfoSetType: EvaluatedInformationSet<DP>,
 impl<
     DP: DomainParameters,
     P: Policy<DP>,
-    Comm: CommPort<
+    Comm: BidirectionalEndpoint<
         OutwardType=AgentMessage<DP>,
-        InwardType=EnvMessage<DP>,
+        InwardType=EnvironmentMessage<DP>,
         Error=CommunicationError<DP>>,
     Seed>
-MultiEpisodeAgent <DP, Seed> for AgentGenT<DP, P, Comm>
+MultiEpisodeAgent <DP, Seed> for TracingAgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>,
       <Self as StatefulAgent<DP>>::InfoSetType: Renew<Seed>{
     fn store_episode(&mut self) {

@@ -4,7 +4,7 @@ use crate::domain::v1::domain_parameters::DomainParameters;
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "speedy", derive(speedy::Writable, speedy::Readable))]
-pub enum EnvMessage<Spec: DomainParameters>{
+pub enum EnvironmentMessage<Spec: DomainParameters>{
     YourMove,
     MoveRefused,
     GameFinished,

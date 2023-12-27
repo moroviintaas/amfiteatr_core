@@ -1,5 +1,5 @@
 use std::error::Error;
-use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
+use crate::domain::{AgentMessage, EnvironmentMessage, DomainParameters};
 
 /// Trait for agents able to communicate with environment.
 /// This trait is meant to work synchronously.
@@ -16,5 +16,5 @@ pub trait CommunicatingAgent<DP: DomainParameters>{
     fn send(&mut self, message: AgentMessage<DP>) -> Result<(), Self::CommunicationError>;
     /// Wait for message from environment - this should block to the moment of
     /// receiving message
-    fn recv(&mut self) -> Result<EnvMessage<DP>, Self::CommunicationError>;
+    fn recv(&mut self) -> Result<EnvironmentMessage<DP>, Self::CommunicationError>;
 }

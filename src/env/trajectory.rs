@@ -1,4 +1,4 @@
-use std::fmt::{Display, Formatter, write};
+use std::fmt::{Display, Formatter};
 pub use crate::agent::Trajectory;
 use crate::env::EnvStateSequential;
 use crate::domain::DomainParameters;

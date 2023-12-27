@@ -10,24 +10,24 @@
 //! ```
 //! use std::collections::HashMap;
 //! use std::thread;
-//! use amfi::agent::{AgentGen, AgentGenT, AutomaticAgent, AutomaticAgentRewarded, RewardedAgent, RandomPolicy};
-//! use amfi::comm::SyncCommEnv;
+//! use amfi::agent::{AgentGen, TracingAgentGen, AutomaticAgent, AutomaticAgentRewarded, RewardedAgent, RandomPolicy};
+//! use amfi::comm::StdEnvironmentEndpoint;
 //! use amfi::demo::{DemoInfoSet, DemoDomain, DemoState, DemoAgentID, DemoPolicySelectFirst};
-//! use amfi::env::{*, generic::*};
+//! use amfi::env::*;
 //!
 //!
 //! let bandits = vec![5.0, 11.5, 6.0];
 //! let number_of_bandits = bandits.len();
 //! let state = DemoState::new(bandits, 100);
-//! let (comm_env_r, comm_agent_r) = SyncCommEnv::new_pair();
-//! let (comm_env_b, comm_agent_b) = SyncCommEnv::new_pair();
+//! let (comm_env_r, comm_agent_r) = StdEnvironmentEndpoint::new_pair();
+//! let (comm_env_b, comm_agent_b) = StdEnvironmentEndpoint::new_pair();
 //! let mut env_comms = HashMap::new();
 //! env_comms.insert(DemoAgentID::Blue, comm_env_b);
 //! env_comms.insert(DemoAgentID::Red, comm_env_r);
-//! let mut environment = HashMapEnvT::new(state, env_comms);
+//! let mut environment = TracingHashMapEnvironment::new(state, env_comms);
 //! let blue_info_set = DemoInfoSet::new(DemoAgentID::Blue, number_of_bandits);
 //! let red_info_set = DemoInfoSet::new(DemoAgentID::Red, number_of_bandits);
-//! let mut agent_blue = AgentGenT::new(blue_info_set, comm_agent_b, RandomPolicy::<DemoDomain, DemoInfoSet>::new());
+//! let mut agent_blue = TracingAgentGen::new(blue_info_set, comm_agent_b, RandomPolicy::<DemoDomain, DemoInfoSet>::new());
 //! let mut agent_red = AgentGen::new(red_info_set, comm_agent_r, DemoPolicySelectFirst{});
 //!
 //! thread::scope(|s|{

@@ -1,4 +1,4 @@
-use crate::agent::AgentWithId;
+use crate::agent::IdAgent;
 use crate::agent::info_set::InformationSet;
 use crate::domain::DomainParameters;
 
@@ -17,7 +17,7 @@ pub trait StatefulAgent<DP: DomainParameters>{
 
 }
 
-impl<DP:DomainParameters, T: StatefulAgent<DP>> AgentWithId<DP> for T{
+impl<DP:DomainParameters, T: StatefulAgent<DP>> IdAgent<DP> for T{
     fn id(&self) -> &<DP as DomainParameters>::AgentId {
         self.info_set().agent_id()
     }

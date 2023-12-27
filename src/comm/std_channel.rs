@@ -4,11 +4,11 @@ use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::sync::mpsc::{channel, Receiver, RecvError, Sender, SendError, TryRecvError};
 use crate::agent::ListPlayers;
-use crate::comm::endpoint::CommPort;
+use crate::comm::endpoint::BidirectionalEndpoint;
 use crate::error::CommunicationError;
-use crate::domain::{AgentMessage, EnvMessage, DomainParameters};
+use crate::domain::{AgentMessage, EnvironmentMessage, DomainParameters};
 
-use super::{AgentAdapter, EnvironmentAdapter, EnvCommEndpoint, BroadcastingEnvironmentAdapter};
+use super::{AgentAdapter, EnvironmentAdapter, EnvironmentEndpoint, BroadcastingEnvironmentAdapter};
 
 
 #[derive(Debug)]
@@ -27,34 +27,34 @@ use super::{AgentAdapter, EnvironmentAdapter, EnvCommEndpoint, BroadcastingEnvir
 /// ```
 
  */
-pub struct SyncComm<OT, IT, E: Error>{
+pub struct StdEndpoint<OT, IT, E: Error>{
     sender: Sender<OT>,
     receiver: Receiver<IT>,
     _phantom: PhantomData<E>
 }
 
 
-pub type SyncCommEnv<Spec> = SyncComm<EnvMessage<Spec>, AgentMessage<Spec>, CommunicationError<Spec>>;
-pub type SyncCommAgent<Spec> = SyncComm<AgentMessage<Spec>, EnvMessage<Spec>,  CommunicationError<Spec>>;
+pub type StdEnvironmentEndpoint<DP> = StdEndpoint<EnvironmentMessage<DP>, AgentMessage<DP>, CommunicationError<DP>>;
+pub type StdAgentEndpoint<DP> = StdEndpoint<AgentMessage<DP>, EnvironmentMessage<DP>,  CommunicationError<DP>>;
 
-impl<OT, IT, E: Error> SyncComm<OT, IT, E>
-where SyncComm<OT, IT, E> :  CommPort<OutwardType = OT, InwardType = IT, Error = E>{
+impl<OT, IT, E: Error> StdEndpoint<OT, IT, E>
+where StdEndpoint<OT, IT, E> :  BidirectionalEndpoint<OutwardType = OT, InwardType = IT, Error = E>{
     pub fn new(sender: Sender<OT>, receiver: Receiver<IT>) -> Self{
         Self{sender, receiver, _phantom: PhantomData::default()}
     }
-    pub fn new_pair() -> (Self, SyncComm<IT, OT, E>) {
+    pub fn new_pair() -> (Self, StdEndpoint<IT, OT, E>) {
         let (tx_1, rx_1) = channel();
         let (tx_2, rx_2) = channel();
 
         (Self{sender: tx_1, receiver: rx_2, _phantom: PhantomData::default()},
-        SyncComm{sender: tx_2, receiver: rx_1, _phantom: PhantomData::default()})
+         StdEndpoint {sender: tx_2, receiver: rx_1, _phantom: PhantomData::default()})
     }
     pub fn _decompose(self) -> (Sender<OT>, Receiver<IT>){
         (self.sender, self.receiver)
     }
 }
 
-impl<OT, IT, E> CommPort for SyncComm<OT, IT, E>
+impl<OT, IT, E> BidirectionalEndpoint for StdEndpoint<OT, IT, E>
 where E: Debug + Error + From<RecvError> + From<SendError<OT>> + From<TryRecvError> + From<SendError<IT>>,
 OT: Debug, IT:Debug{
     type OutwardType = OT;
@@ -86,12 +86,12 @@ OT: Debug, IT:Debug{
 }
 
 
-pub enum DynComm<OT, IT, E: Error>{
-    Std(SyncComm<OT, IT, E>),
-    Dynamic(Box<dyn CommPort<OutwardType = OT, InwardType = IT, Error = E>>)
+pub enum DynEndpoint<OT, IT, E: Error>{
+    Std(StdEndpoint<OT, IT, E>),
+    Dynamic(Box<dyn BidirectionalEndpoint<OutwardType = OT, InwardType = IT, Error = E>>)
 }
 
-impl <OT: Debug, IT: Debug, E: Error> CommPort for DynComm<OT, IT, E>
+impl <OT: Debug, IT: Debug, E: Error> BidirectionalEndpoint for DynEndpoint<OT, IT, E>
 where E: From<RecvError> + From<SendError<OT>> + From<TryRecvError> + From<SendError<IT>>{
     type OutwardType = OT;
     type InwardType = IT;
@@ -99,22 +99,22 @@ where E: From<RecvError> + From<SendError<OT>> + From<TryRecvError> + From<SendE
 
     fn send(&mut self, message: Self::OutwardType) -> Result<(), Self::Error> {
         match self{
-            DynComm::Std(c) => c.send(message),
-            DynComm::Dynamic(c) => {c.as_mut().send(message)}
+            DynEndpoint::Std(c) => c.send(message),
+            DynEndpoint::Dynamic(c) => {c.as_mut().send(message)}
         }
     }
 
     fn receive_blocking(&mut self) -> Result<Self::InwardType, Self::Error> {
         match self{
-            DynComm::Std(c) => c.receive_blocking(),
-            DynComm::Dynamic(c) => {c.as_mut().receive_blocking()}
+            DynEndpoint::Std(c) => c.receive_blocking(),
+            DynEndpoint::Dynamic(c) => {c.as_mut().receive_blocking()}
         }
     }
 
     fn receive_non_blocking(&mut self) -> Result<Option<Self::InwardType>, Self::Error> {
         match self{
-            DynComm::Std(c) => c.receive_non_blocking(),
-            DynComm::Dynamic(c) => {c.as_mut().receive_non_blocking()}
+            DynEndpoint::Std(c) => c.receive_non_blocking(),
+            DynEndpoint::Dynamic(c) => {c.as_mut().receive_non_blocking()}
         }
     }
 }
@@ -123,14 +123,14 @@ where E: From<RecvError> + From<SendError<OT>> + From<TryRecvError> + From<SendE
 pub struct AgentMpscPort<DP: DomainParameters>{
     id: DP::AgentId,
     sender: Sender<(DP::AgentId, AgentMessage<DP>)>,
-    receiver: Receiver<EnvMessage<DP>>,
+    receiver: Receiver<EnvironmentMessage<DP>>,
 }
 
 impl<DP: DomainParameters> AgentMpscPort<DP>{
     pub(crate) fn new(
         id: DP::AgentId, 
         sender: Sender<(DP::AgentId, AgentMessage<DP>)>,
-        receiver: Receiver<EnvMessage<DP>> 
+        receiver: Receiver<EnvironmentMessage<DP>>
     ) -> Self{
         Self{id, sender, receiver}
     }
@@ -141,14 +141,14 @@ impl<DP: DomainParameters> AgentAdapter<DP> for AgentMpscPort<DP>{
         self.sender.send((self.id.to_owned(), message)).map_err(|e| e.into())
     }
 
-    fn receive(&mut self) -> Result<EnvMessage<DP>, CommunicationError<DP>> {
+    fn receive(&mut self) -> Result<EnvironmentMessage<DP>, CommunicationError<DP>> {
         self.receiver.recv().map_err(|e| e.into())
     }
 }
 
-impl<DP: DomainParameters> CommPort for AgentMpscPort<DP> {
+impl<DP: DomainParameters> BidirectionalEndpoint for AgentMpscPort<DP> {
     type OutwardType = AgentMessage<DP>;
-    type InwardType = EnvMessage<DP>;
+    type InwardType = EnvironmentMessage<DP>;
     type Error = CommunicationError<DP>;
 
     fn send(&mut self, message: Self::OutwardType) -> Result<(), Self::Error> {
@@ -169,13 +169,13 @@ impl<DP: DomainParameters> CommPort for AgentMpscPort<DP> {
 }
 
 
-pub struct EnvMpscPort<DP: DomainParameters>{
+pub struct EnvironmentMpscPort<DP: DomainParameters>{
     sender_template: Sender<(DP::AgentId, AgentMessage<DP>)>,
     receiver: Receiver<(DP::AgentId, AgentMessage<DP>)>,
-    senders: HashMap<DP::AgentId, Sender<EnvMessage<DP>>>
+    senders: HashMap<DP::AgentId, Sender<EnvironmentMessage<DP>>>
 }
 
-impl<DP: DomainParameters> EnvMpscPort<DP>{
+impl<DP: DomainParameters> EnvironmentMpscPort<DP>{
     pub fn new() -> Self{
         let (sender_template, receiver) = channel();
         Self{receiver, sender_template, senders: HashMap::new()}
@@ -198,8 +198,8 @@ impl<DP: DomainParameters> EnvMpscPort<DP>{
     }
 }
 
-impl<DP: DomainParameters> EnvironmentAdapter<DP> for EnvMpscPort<DP>{
-    fn send(&mut self, agent: &<DP as DomainParameters>::AgentId, message: EnvMessage<DP>) 
+impl<DP: DomainParameters> EnvironmentAdapter<DP> for EnvironmentMpscPort<DP>{
+    fn send(&mut self, agent: &<DP as DomainParameters>::AgentId, message: EnvironmentMessage<DP>)
     -> Result<(), CommunicationError<DP>> {
         let s = self.senders.get(agent)
             .ok_or_else(|| CommunicationError::ConnectionToAgentNotFound(agent.to_owned()))?;
@@ -225,8 +225,8 @@ impl<DP: DomainParameters> EnvironmentAdapter<DP> for EnvMpscPort<DP>{
     }
 }
 
-impl<DP: DomainParameters> BroadcastingEnvironmentAdapter<DP> for EnvMpscPort<DP>{
-    fn send_all(&mut self, message: EnvMessage<DP>) ->  Result<(), CommunicationError<DP>> {
+impl<DP: DomainParameters> BroadcastingEnvironmentAdapter<DP> for EnvironmentMpscPort<DP>{
+    fn send_all(&mut self, message: EnvironmentMessage<DP>) ->  Result<(), CommunicationError<DP>> {
         let mut result = Ok(());
         for (_agent, tx) in self.senders.iter_mut(){
             let r = tx.send(message.clone());
@@ -241,7 +241,7 @@ impl<DP: DomainParameters> BroadcastingEnvironmentAdapter<DP> for EnvMpscPort<DP
     }
 }
 
-impl<DP: DomainParameters> ListPlayers<DP> for EnvMpscPort<DP>{
+impl<DP: DomainParameters> ListPlayers<DP> for EnvironmentMpscPort<DP>{
     type IterType = <Vec<DP::AgentId> as IntoIterator>::IntoIter;
 
     fn players(&self) -> Self::IterType {
@@ -252,11 +252,11 @@ impl<DP: DomainParameters> ListPlayers<DP> for EnvMpscPort<DP>{
 
 //impl 
 
-pub struct EnvRRAdapter<DP: DomainParameters, T: EnvCommEndpoint<DP>>{
+pub struct EnvRRAdapter<DP: DomainParameters, T: EnvironmentEndpoint<DP>>{
     endpoints: HashMap<DP::AgentId, T>,
 }
 
-impl <DP: DomainParameters, T: EnvCommEndpoint<DP>> EnvRRAdapter<DP, T>{
+impl <DP: DomainParameters, T: EnvironmentEndpoint<DP>> EnvRRAdapter<DP, T>{
 
     pub fn new() -> Self{
         Self { endpoints: Default::default() }
@@ -272,13 +272,13 @@ impl <DP: DomainParameters, T: EnvCommEndpoint<DP>> EnvRRAdapter<DP, T>{
     }
 }
 
-impl<DP: DomainParameters> EnvRRAdapter<DP, SyncCommEnv<DP>>{
+impl<DP: DomainParameters> EnvRRAdapter<DP, StdEnvironmentEndpoint<DP>>{
 
-    pub fn create_local_connection(&mut self, agent_id: DP::AgentId) -> Result<SyncCommAgent<DP>, CommunicationError<DP>>{
+    pub fn create_local_connection(&mut self, agent_id: DP::AgentId) -> Result<StdAgentEndpoint<DP>, CommunicationError<DP>>{
         if self.endpoints.contains_key(&agent_id){
             return Err(CommunicationError::DuplicatedAgent(agent_id));
         } else {
-            let (env_comm, agent_comm) = SyncCommEnv::<DP>::new_pair();
+            let (env_comm, agent_comm) = StdEnvironmentEndpoint::<DP>::new_pair();
             //let (tx_e, rx_a) = channel();
             //let (tx_a, rx_e) = channel();
             self.endpoints.insert(agent_id, env_comm);
@@ -288,13 +288,13 @@ impl<DP: DomainParameters> EnvRRAdapter<DP, SyncCommEnv<DP>>{
 }
 
 
-impl<DP: DomainParameters> EnvRRAdapter<DP, Box<dyn EnvCommEndpoint<DP>>>{
+impl<DP: DomainParameters> EnvRRAdapter<DP, Box<dyn EnvironmentEndpoint<DP>>>{
 
-    pub fn create_local_connection(&mut self, agent_id: DP::AgentId) -> Result<SyncCommAgent<DP>, CommunicationError<DP>>{
+    pub fn create_local_connection(&mut self, agent_id: DP::AgentId) -> Result<StdAgentEndpoint<DP>, CommunicationError<DP>>{
         if self.endpoints.contains_key(&agent_id){
             return Err(CommunicationError::DuplicatedAgent(agent_id));
         } else {
-            let (env_comm, agent_comm) = SyncCommEnv::<DP>::new_pair();
+            let (env_comm, agent_comm) = StdEnvironmentEndpoint::<DP>::new_pair();
             //let (tx_e, rx_a) = channel();
             //let (tx_a, rx_e) = channel();
             self.endpoints.insert(agent_id, Box::new(env_comm));
@@ -304,8 +304,8 @@ impl<DP: DomainParameters> EnvRRAdapter<DP, Box<dyn EnvCommEndpoint<DP>>>{
 }
 
 
-impl <DP: DomainParameters, T: EnvCommEndpoint<DP>> EnvironmentAdapter<DP> for EnvRRAdapter<DP, T>{
-    fn send(&mut self, agent: &<DP as DomainParameters>::AgentId, message: EnvMessage<DP>) 
+impl <DP: DomainParameters, T: EnvironmentEndpoint<DP>> EnvironmentAdapter<DP> for EnvRRAdapter<DP, T>{
+    fn send(&mut self, agent: &<DP as DomainParameters>::AgentId, message: EnvironmentMessage<DP>)
     -> Result<(), CommunicationError<DP>> {
         if let Some(s) = self.endpoints.get_mut(agent){
             s.send(message)
@@ -352,8 +352,8 @@ impl <DP: DomainParameters, T: EnvCommEndpoint<DP>> EnvironmentAdapter<DP> for E
     }
 }
 
-impl <DP: DomainParameters, T: EnvCommEndpoint<DP>> BroadcastingEnvironmentAdapter<DP> for EnvRRAdapter<DP, T>{
-    fn send_all(&mut self, message: EnvMessage<DP>) ->  Result<(), CommunicationError<DP>> {
+impl <DP: DomainParameters, T: EnvironmentEndpoint<DP>> BroadcastingEnvironmentAdapter<DP> for EnvRRAdapter<DP, T>{
+    fn send_all(&mut self, message: EnvironmentMessage<DP>) ->  Result<(), CommunicationError<DP>> {
         let mut result = Ok(());
         for (_agent, endpoint) in self.endpoints.iter_mut(){
             let r = endpoint.send(message.clone());
