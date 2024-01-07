@@ -1,7 +1,7 @@
 use std::collections::{HashMap};
 
 use log::debug;
-use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvironmentBuilderTrait, EnvStateSequential, EnvironmentStateUniScore, EnvironmentWithAgents, ReinitEnvironment, ScoreEnvironment, StatefulEnvironment};
+use crate::env::{BroadcastingEndpointEnvironment, CommunicatingEndpointEnvironment, EnvironmentBuilderTrait, EnvStateSequential, EnvironmentStateUniScore, EnvironmentWithAgents, ReinitEnvironment, ScoreEnvironment, StatefulEnvironment};
 use crate::{comm::EnvironmentEndpoint};
 use crate::error::{CommunicationError, WorldError};
 use crate::domain::{AgentMessage, DomainParameters, EnvironmentMessage, Reward};
@@ -108,7 +108,7 @@ impl<
     DP: DomainParameters,
     S: EnvStateSequential<DP>,
     C: EnvironmentEndpoint<DP>>
-CommunicatingEnv<DP> for HashMapEnvironment<DP, S, C> {
+CommunicatingEndpointEnvironment<DP> for HashMapEnvironment<DP, S, C> {
     type CommunicationError = CommunicationError<DP>;
 
     fn send_to(&mut self, agent_id: &DP::AgentId, message: EnvironmentMessage<DP>)
@@ -118,15 +118,15 @@ CommunicatingEnv<DP> for HashMapEnvironment<DP, S, C> {
             .map(|v| v.send(message))?
     }
 
-    fn recv_from(&mut self, agent_id: &DP::AgentId)
-        -> Result<AgentMessage<DP>, Self::CommunicationError> {
+    fn blocking_receive_from(&mut self, agent_id: &DP::AgentId)
+                             -> Result<AgentMessage<DP>, Self::CommunicationError> {
 
         self.comm_endpoints.get_mut(agent_id).ok_or(CommunicationError::NoSuchConnection)
             .map(|v| v.receive_blocking())?
     }
 
-    fn try_recv_from(&mut self, agent_id: &DP::AgentId)
-        -> Result<Option<AgentMessage<DP>>, Self::CommunicationError> {
+    fn nonblocking_receive_from(&mut self, agent_id: &DP::AgentId)
+                                -> Result<Option<AgentMessage<DP>>, Self::CommunicationError> {
 
         self.comm_endpoints.get_mut(agent_id).ok_or(CommunicationError::NoSuchConnection)
             .map(|v| v.receive_non_blocking())?
@@ -137,7 +137,7 @@ impl<
     DP: DomainParameters,
     S: EnvStateSequential<DP>,
     C: EnvironmentEndpoint<DP>>
-BroadcastingEnv<DP> for HashMapEnvironment<DP, S, C>{
+BroadcastingEndpointEnvironment<DP> for HashMapEnvironment<DP, S, C>{
     fn send_to_all(&mut self, message: EnvironmentMessage<DP>) -> Result<(), Self::CommunicationError> {
         let mut result:Option<Self::CommunicationError> = None;
 

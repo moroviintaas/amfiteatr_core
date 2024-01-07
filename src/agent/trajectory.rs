@@ -150,6 +150,8 @@ pub struct Trajectory<Tr: Debug> {
     pub history: Vec<Tr>
 
 }
+/// This is proposed default agent trajectory, where single step is of type
+/// [`AgentTraceStep`]
 pub type StdAgentTrajectory<DP, IS> = Trajectory<AgentTraceStep<DP, IS>>;
 impl<Tr: Debug> Default for Trajectory<Tr>{
     fn default() -> Self {

@@ -37,6 +37,7 @@ pub trait AutomaticAgentRewardedAndEvaluated<DP: DomainParameters>: AutomaticAge
 }
 impl<DP: DomainParameters, T: AutomaticAgentRewarded<DP> + SelfEvaluatingAgent<DP>> AutomaticAgentRewardedAndEvaluated<DP> for T{}
 
+/// [`AutomaticAgent`](AutomaticAgent) that is also a [`TracingAgent`](crate::agent::TracingAgent).
 pub trait TracingAutomaticAgent<DP: DomainParameters, IS: EvaluatedInformationSet<DP>>: AutomaticAgentRewardedAndEvaluated<DP> + TracingAgent<DP, IS>{}
 
 impl<DP: DomainParameters, IS: EvaluatedInformationSet<DP>, T: AutomaticAgentRewardedAndEvaluated<DP> + TracingAgent<DP, IS>> TracingAutomaticAgent<DP, IS> for T{
@@ -45,13 +46,13 @@ impl<DP: DomainParameters, IS: EvaluatedInformationSet<DP>, T: AutomaticAgentRew
 
 /// Generic implementation of AutomaticAgent - probably will be done via macro
 /// in the future to avoid conflicts with custom implementations.
-impl<Agnt, DP> AutomaticAgent<DP> for Agnt
-where Agnt: StatefulAgent<DP> + ActingAgent<DP>
+impl<A, DP> AutomaticAgent<DP> for A
+where A: StatefulAgent<DP> + ActingAgent<DP>
     + CommunicatingAgent<DP, CommunicationError=CommunicationError<DP>>
     + PolicyAgent<DP>
     + SelfEvaluatingAgent<DP>,
       DP: DomainParameters,
-      <Agnt as StatefulAgent<DP>>::InfoSetType: EvaluatedInformationSet<DP> + PresentPossibleActions<DP>
+      <A as StatefulAgent<DP>>::InfoSetType: EvaluatedInformationSet<DP> + PresentPossibleActions<DP>
 {
     fn run(&mut self) -> Result<(), AmfiError<DP>> {
         info!("Agent {} starts", self.id());

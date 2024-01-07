@@ -2,25 +2,36 @@ use std::collections::HashMap;
 use log::{warn, info, error};
 
 use crate::{error::{AmfiError, CommunicationError}, domain::{DomainParameters, EnvironmentMessage, AgentMessage}, env::EnvStateSequential};
-use crate::agent::ListPlayers;
+use crate::env::ListPlayers;
 use crate::domain::Reward;
 use crate::env::ScoreEnvironment;
 use crate::error::AmfiError::GameA;
 
-use super::{StatefulEnvironment, ConnectedEnvironment, BroadConnectedEnvironment};
+use super::{StatefulEnvironment, CommunicatingAdapterEnvironment, BroadConnectedEnvironment};
 use crate::error::ProtocolError::PlayerExited;
 
+/// Trait for environment automatically running a game.
 pub trait AutoEnvironment<DP: DomainParameters>{
+    /// This method is meant to automatically run game and communicate with agents
+    /// until is the game is finished.
+    /// This method is not required to send agents messages with their scores.
     fn run(&mut self) -> Result<(), AmfiError<DP>>;
 }
 
+/// Trait for environment automatically running a game with informing agents about their
+/// rewards during game.
 pub trait AutoEnvironmentWithScores<DP: DomainParameters>{
+    /// Method analogous to [`AutoEnvironment::run`](AutoEnvironment::run),
+    /// but it should implement sending rewards to agents.
     fn run_with_scores(&mut self) -> Result<(), AmfiError<DP>>;
     //fn run_with_scores_and_penalties<P: Fn(&DP::AgentId) -> DP::UniversalReward>(&mut self, penalty: P) -> Result<(), AmfiError<DP>>;
 }
-
-pub trait AutoEnvironmentWithScoresAndPenalties<DP: DomainParameters>{
-    fn run_with_scores_and_penalties<P: Fn(&DP::AgentId) -> DP::UniversalReward>(&mut self, penalty: P) -> Result<(), AmfiError<DP>>;
+/// Trait for environment automatically running a game with informing agents about their
+/// rewards during game and applying penalties to agents who
+/// perform illegal (wrong) actions.
+pub trait AutoEnvironmentWithScoresAndPenalties<DP: DomainParameters>: StatefulEnvironment<DP>{
+    fn run_with_scores_and_penalties<P: Fn(&<Self as StatefulEnvironment<DP>>::State, &DP::AgentId)
+        -> DP::UniversalReward>(&mut self, penalty: P) -> Result<(), AmfiError<DP>>;
 }
 
 
@@ -33,7 +44,7 @@ pub(crate) trait AutoEnvInternals<DP: DomainParameters>{
 impl <
     DP: DomainParameters,
     E: StatefulEnvironment<DP> 
-        + ConnectedEnvironment<DP> 
+        + CommunicatingAdapterEnvironment<DP>
         + BroadConnectedEnvironment<DP>
 > AutoEnvInternals<DP> for E{
     fn notify_error(&mut self, error: AmfiError<DP>) -> Result<(), CommunicationError<DP>> {
@@ -65,7 +76,7 @@ impl <
 impl <
     DP: DomainParameters,
     E: ScoreEnvironment<DP>
-        + ConnectedEnvironment<DP> 
+        + CommunicatingAdapterEnvironment<DP>
         + BroadConnectedEnvironment<DP>
 > AutoEnvironment<DP> for E{
     fn run(&mut self) -> Result<(), AmfiError<DP>> {
@@ -80,7 +91,7 @@ impl <
         info!("Sending YourMove signal to first agent: {:?}", &first_player);
         self.send(&first_player, EnvironmentMessage::YourMove).map_err(|e|e.specify_id(first_player))?;
         loop{
-            match self.receive_blocking(){
+            match self.blocking_receive(){
                 Ok((player, message)) => {
                     match message{
                         AgentMessage::TakeAction(action) => {
@@ -159,7 +170,7 @@ impl <
 impl <
     DP: DomainParameters,
     E: ScoreEnvironment<DP>
-        + ConnectedEnvironment<DP>
+        + CommunicatingAdapterEnvironment<DP>
         + BroadConnectedEnvironment<DP>
         + ListPlayers<DP>
 > AutoEnvironmentWithScores<DP> for E{
@@ -178,7 +189,7 @@ impl <
         info!("Sending YourMove signal to first agent: {:?}", &first_player);
         self.send(&first_player, EnvironmentMessage::YourMove).map_err(|e|e.specify_id(first_player))?;
         loop{
-            match self.receive_blocking(){
+            match self.blocking_receive(){
                 Ok((player, message)) => {
                     match message{
                         AgentMessage::TakeAction(action) => {
@@ -264,11 +275,12 @@ impl <
 impl <
     DP: DomainParameters,
     E: ScoreEnvironment<DP>
-        + ConnectedEnvironment<DP>
+        + CommunicatingAdapterEnvironment<DP>
         + BroadConnectedEnvironment<DP>
         + ListPlayers<DP>
 > AutoEnvironmentWithScoresAndPenalties<DP> for E{
-    fn run_with_scores_and_penalties<P: Fn(&DP::AgentId) -> DP::UniversalReward>(&mut self, penalty: P) -> Result<(), AmfiError<DP>> {
+    fn run_with_scores_and_penalties<P: Fn(&<Self as StatefulEnvironment<DP>>::State,&DP::AgentId)
+        -> DP::UniversalReward>(&mut self, penalty: P) -> Result<(), AmfiError<DP>> {
         let mut actual_universal_scores: HashMap<DP::AgentId, DP::UniversalReward> = self.players().into_iter()
             .map(|id|{
                 (id, DP::UniversalReward::neutral())
@@ -283,7 +295,7 @@ impl <
         info!("Sending YourMove signal to first agent: {:?}", &first_player);
         self.send(&first_player, EnvironmentMessage::YourMove).map_err(|e|e.specify_id(first_player))?;
         loop{
-            match self.receive_blocking(){
+            match self.blocking_receive(){
                 Ok((player, message)) => {
                     match message{
                         AgentMessage::TakeAction(action) => {
@@ -310,7 +322,7 @@ impl <
                                 Err(e) => {
                                     error!("Player {player:} performed illegal action: {action:}");
                                     let _ = self.send(&player, EnvironmentMessage::MoveRefused);
-                                    let _ = self.send(&player, EnvironmentMessage::RewardFragment(penalty(&player)));
+                                    let _ = self.send(&player, EnvironmentMessage::RewardFragment(penalty(&self.state(), &player)));
                                     for (player, score) in actual_universal_scores.iter_mut(){
 
                                         let reward = self.actual_score_of_player(player) - score.clone();

@@ -9,7 +9,7 @@ use crate::domain::DomainParameters;
 /// The reason why this trait needs specifying information set is that it is part of tracing interface
 /// which operates on [`AgentTraceStep<...>`](AgentTraceStep).
 /// If you don't need access to tracing and want to avoid providing concrete info set you could
-/// probably use [`MultiEpisodeAutoAgent`](MultiEpisodeAutoAgent) or [`MultiEpisodeAutoAgentRewarded`](MultiEpisodeAutoAgentRewarded).
+/// probably use [`MultiEpisodeAutoAgent`](EpisodeMemoryAutoAgent) or [`MultiEpisodeAutoAgentRewarded`](MultiEpisodeAutoAgentRewarded).
 /// ```
 /// use std::sync::{Arc, Mutex};
 /// use amfi::agent::ModelAgent;

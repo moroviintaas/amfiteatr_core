@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use crate::agent::Trajectory;
 use crate::comm::EnvironmentEndpoint;
-use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvStateSequential, EnvironmentStateUniScore, EnvironmentWithAgents, EnvTrace, ScoreEnvironment, StatefulEnvironment, TracingEnv, ReinitEnvironment};
+use crate::env::{BroadcastingEndpointEnvironment, CommunicatingEndpointEnvironment, EnvStateSequential, EnvironmentStateUniScore, EnvironmentWithAgents, EnvTrace, ScoreEnvironment, StatefulEnvironment, TracingEnv, ReinitEnvironment};
 use crate::env::generic::{HashMapEnvironment};
 use crate::error::CommunicationError;
 use crate::domain::{AgentMessage, DomainParameters, EnvironmentMessage};
@@ -128,7 +128,7 @@ impl<
     DP: DomainParameters,
     S: EnvStateSequential<DP>,
     C: EnvironmentEndpoint<DP>>
-CommunicatingEnv<DP> for TracingHashMapEnvironment<DP, S, C>{
+CommunicatingEndpointEnvironment<DP> for TracingHashMapEnvironment<DP, S, C>{
     type CommunicationError = CommunicationError<DP>;
 
     fn send_to(&mut self, agent_id: &DP::AgentId, message: EnvironmentMessage<DP>)
@@ -137,16 +137,16 @@ CommunicatingEnv<DP> for TracingHashMapEnvironment<DP, S, C>{
         self.base_environment.send_to(agent_id, message)
     }
 
-    fn recv_from(&mut self, agent_id: &DP::AgentId)
-        -> Result<AgentMessage<DP>, Self::CommunicationError> {
+    fn blocking_receive_from(&mut self, agent_id: &DP::AgentId)
+                             -> Result<AgentMessage<DP>, Self::CommunicationError> {
 
-        self.base_environment.recv_from(agent_id)
+        self.base_environment.blocking_receive_from(agent_id)
     }
 
-    fn try_recv_from(&mut self, agent_id: &DP::AgentId)
-        -> Result<Option<AgentMessage<DP>>, Self::CommunicationError> {
+    fn nonblocking_receive_from(&mut self, agent_id: &DP::AgentId)
+                                -> Result<Option<AgentMessage<DP>>, Self::CommunicationError> {
 
-        self.base_environment.try_recv_from(agent_id)
+        self.base_environment.nonblocking_receive_from(agent_id)
     }
 }
 
@@ -154,7 +154,7 @@ impl<
     DP: DomainParameters,
     S: EnvStateSequential<DP>,
     C: EnvironmentEndpoint<DP>>
-BroadcastingEnv<DP> for TracingHashMapEnvironment<DP, S, C>{
+BroadcastingEndpointEnvironment<DP> for TracingHashMapEnvironment<DP, S, C>{
     fn send_to_all(&mut self, message: EnvironmentMessage<DP>) -> Result<(), Self::CommunicationError> {
         self.base_environment.send_to_all(message)
     }

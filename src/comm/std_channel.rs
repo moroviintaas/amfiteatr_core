@@ -3,7 +3,7 @@ use std::error::Error;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::sync::mpsc::{channel, Receiver, RecvError, Sender, SendError, TryRecvError};
-use crate::agent::ListPlayers;
+use crate::env::ListPlayers;
 use crate::comm::endpoint::BidirectionalEndpoint;
 use crate::error::CommunicationError;
 use crate::domain::{AgentMessage, EnvironmentMessage, DomainParameters};
@@ -27,14 +27,18 @@ use super::{AgentAdapter, EnvironmentAdapter, EnvironmentEndpoint, BroadcastingE
 /// ```
 
  */
+
+/// This is standard endpoint dedicated for local agents.
+/// It uses Rust's built-in [`mpsc`](std::sync::mpsc) communication channel.
 pub struct StdEndpoint<OT, IT, E: Error>{
     sender: Sender<OT>,
     receiver: Receiver<IT>,
     _phantom: PhantomData<E>
 }
 
-
+/// Standard endpoint to be used by environment to connect with local agents.
 pub type StdEnvironmentEndpoint<DP> = StdEndpoint<EnvironmentMessage<DP>, AgentMessage<DP>, CommunicationError<DP>>;
+/// Standard endpoint to be used by local agent to connect with environment
 pub type StdAgentEndpoint<DP> = StdEndpoint<AgentMessage<DP>, EnvironmentMessage<DP>,  CommunicationError<DP>>;
 
 impl<OT, IT, E: Error> StdEndpoint<OT, IT, E>
@@ -85,7 +89,8 @@ OT: Debug, IT:Debug{
 
 }
 
-
+/// Dynamic endpoint, actually enum with static variant of using [`StdEndpoint`](crate::comm::StdEndpoint),
+/// and [`Box`](std::boxed::Box) with [`BidirectionalEndpoint`](crate::comm::BidirectionalEndpoint)
 pub enum DynEndpoint<OT, IT, E: Error>{
     Std(StdEndpoint<OT, IT, E>),
     Dynamic(Box<dyn BidirectionalEndpoint<OutwardType = OT, InwardType = IT, Error = E>>)
@@ -119,14 +124,15 @@ where E: From<RecvError> + From<SendError<OT>> + From<TryRecvError> + From<SendE
     }
 }
 
-
-pub struct AgentMpscPort<DP: DomainParameters>{
+/// Standard agent adapter using [`mpsc`](std::sync::mpsc) to be paired with
+/// [`EnvironmentMpscPort`](crate::comm::EnvironmentMpscPort)
+pub struct AgentMpscAdapter<DP: DomainParameters>{
     id: DP::AgentId,
     sender: Sender<(DP::AgentId, AgentMessage<DP>)>,
     receiver: Receiver<EnvironmentMessage<DP>>,
 }
 
-impl<DP: DomainParameters> AgentMpscPort<DP>{
+impl<DP: DomainParameters> AgentMpscAdapter<DP>{
     pub(crate) fn new(
         id: DP::AgentId, 
         sender: Sender<(DP::AgentId, AgentMessage<DP>)>,
@@ -136,7 +142,7 @@ impl<DP: DomainParameters> AgentMpscPort<DP>{
     }
 }
 
-impl<DP: DomainParameters> AgentAdapter<DP> for AgentMpscPort<DP>{
+impl<DP: DomainParameters> AgentAdapter<DP> for AgentMpscAdapter<DP>{
     fn send(&mut self, message: AgentMessage<DP>) -> Result<(), CommunicationError<DP>> {
         self.sender.send((self.id.to_owned(), message)).map_err(|e| e.into())
     }
@@ -146,7 +152,7 @@ impl<DP: DomainParameters> AgentAdapter<DP> for AgentMpscPort<DP>{
     }
 }
 
-impl<DP: DomainParameters> BidirectionalEndpoint for AgentMpscPort<DP> {
+impl<DP: DomainParameters> BidirectionalEndpoint for AgentMpscAdapter<DP> {
     type OutwardType = AgentMessage<DP>;
     type InwardType = EnvironmentMessage<DP>;
     type Error = CommunicationError<DP>;
@@ -180,12 +186,12 @@ impl<DP: DomainParameters> EnvironmentMpscPort<DP>{
         let (sender_template, receiver) = channel();
         Self{receiver, sender_template, senders: HashMap::new()}
     }
-    pub fn register_agent(&mut self, id: DP::AgentId) -> Result<AgentMpscPort<DP>, CommunicationError<DP>>{
+    pub fn register_agent(&mut self, id: DP::AgentId) -> Result<AgentMpscAdapter<DP>, CommunicationError<DP>>{
         if self.senders.contains_key(&id){
             return Err(CommunicationError::DuplicatedAgent(id));
         } else {
             let (env_tx, agent_rx) = channel();
-            let agent_adapter = AgentMpscPort::new(
+            let agent_adapter = AgentMpscAdapter::new(
                 id.clone(),
                 self.sender_template.clone(),
                 agent_rx,
@@ -252,6 +258,9 @@ impl<DP: DomainParameters> ListPlayers<DP> for EnvironmentMpscPort<DP>{
 
 //impl 
 
+/// This is environment communication adapter using HashMap of
+/// [`BidirectionalEndpoint`s](crate::comm::BidirectionalEndpoint) and
+/// round robin listening strategy.
 pub struct EnvRRAdapter<DP: DomainParameters, T: EnvironmentEndpoint<DP>>{
     endpoints: HashMap<DP::AgentId, T>,
 }
@@ -262,6 +271,8 @@ impl <DP: DomainParameters, T: EnvironmentEndpoint<DP>> EnvRRAdapter<DP, T>{
         Self { endpoints: Default::default() }
     }
 
+    /// Adds new agent, inserts communication endpoint to HashMap.
+    /// Returns error if there is already enpdoint dedicated to this agent.
     pub fn register_agent(&mut self, agent_id: DP::AgentId, comm: T) -> Result<(), CommunicationError<DP>>{
         if self.endpoints.contains_key(&agent_id){
             return Err(CommunicationError::DuplicatedAgent(agent_id));
@@ -274,6 +285,9 @@ impl <DP: DomainParameters, T: EnvironmentEndpoint<DP>> EnvRRAdapter<DP, T>{
 
 impl<DP: DomainParameters> EnvRRAdapter<DP, StdEnvironmentEndpoint<DP>>{
 
+    /// Creates local connection for agent given his id.
+    /// Creates endpoint pair, environment side is stored in HashMap
+    /// and endpoint of agent is returned.
     pub fn create_local_connection(&mut self, agent_id: DP::AgentId) -> Result<StdAgentEndpoint<DP>, CommunicationError<DP>>{
         if self.endpoints.contains_key(&agent_id){
             return Err(CommunicationError::DuplicatedAgent(agent_id));

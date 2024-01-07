@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use log::{debug, error, info, warn};
-use crate::env::{BroadcastingEnv, CommunicatingEnv, EnvStateSequential, EnvironmentWithAgents, ScoreEnvironment, StatefulEnvironment};
+use crate::env::{BroadcastingEndpointEnvironment, CommunicatingEndpointEnvironment, EnvStateSequential, EnvironmentWithAgents, ScoreEnvironment, StatefulEnvironment};
 use crate::error::{CommunicationError, AmfiError};
 use crate::error::ProtocolError::PlayerExited;
 use crate::domain::{AgentMessage, EnvironmentMessage, DomainParameters, Reward};
@@ -29,10 +29,10 @@ pub(crate) trait EnvironmentRRInternal<DP: DomainParameters>{
 }
 
 impl<'a, Env, DP: DomainParameters + 'a> EnvironmentRRInternal<DP> for Env
-where Env: CommunicatingEnv<DP, CommunicationError=CommunicationError<DP>>
+where Env: CommunicatingEndpointEnvironment<DP, CommunicationError=CommunicationError<DP>>
  + StatefulEnvironment<DP> + 'a
  + EnvironmentWithAgents<DP>
- + BroadcastingEnv<DP>,
+ + BroadcastingEndpointEnvironment<DP>,
 
 DP: DomainParameters
 {
@@ -70,10 +70,10 @@ DP: DomainParameters
 
 
 impl<'a, Env, DP: DomainParameters + 'a> RoundRobinEnvironment<DP> for Env
-where Env: CommunicatingEnv<DP, CommunicationError=CommunicationError<DP>>
+where Env: CommunicatingEndpointEnvironment<DP, CommunicationError=CommunicationError<DP>>
  + StatefulEnvironment<DP> + 'a
  + EnvironmentWithAgents<DP>
- + BroadcastingEnv<DP>, DP: DomainParameters {
+ + BroadcastingEndpointEnvironment<DP>, DP: DomainParameters {
     fn run_round_robin(&mut self) -> Result<(), AmfiError<DP>> {
         let first_player = match self.current_player(){
             None => {
@@ -86,7 +86,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommunicationError<DP>>
         self.send_to(&first_player, EnvironmentMessage::YourMove).map_err(|e|e.specify_id(first_player))?;
         loop{
             for player in self.players(){
-                match self.try_recv_from(&player){
+                match self.nonblocking_receive_from(&player){
                     Ok(Some(agent_message)) => match agent_message{
                         AgentMessage::TakeAction(action) => {
                             info!("Player {} performs action: {:#}", &player, &action);
@@ -160,10 +160,10 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommunicationError<DP>>
 }
 
 impl<'a, Env, DP: DomainParameters + 'a> RoundRobinUniversalEnvironment<DP> for Env
-where Env: CommunicatingEnv<DP, CommunicationError=CommunicationError<DP>>
+where Env: CommunicatingEndpointEnvironment<DP, CommunicationError=CommunicationError<DP>>
  + ScoreEnvironment<DP> + 'a
  + EnvironmentWithAgents<DP>
- + BroadcastingEnv<DP>, DP: DomainParameters {
+ + BroadcastingEndpointEnvironment<DP>, DP: DomainParameters {
     fn run_round_robin_uni_rewards(&mut self) -> Result<(), AmfiError<DP>> {
         let mut actual_universal_scores: HashMap<DP::AgentId, DP::UniversalReward> = self.players().into_iter()
             .map(|id|{
@@ -180,7 +180,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommunicationError<DP>>
         self.send_to(&first_player, EnvironmentMessage::YourMove).map_err(|e|e.specify_id(first_player))?;
         loop{
             for player in self.players(){
-                match self.try_recv_from(&player){
+                match self.nonblocking_receive_from(&player){
                     Ok(Some(agent_message)) => match agent_message{
                         AgentMessage::TakeAction(action) => {
                             info!("Player {} performs action: {:#}", &player, &action);
@@ -262,10 +262,10 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommunicationError<DP>>
 }
 
 impl<'a, Env, DP: DomainParameters + 'a> RoundRobinPenalisingUniversalEnvironment<DP> for Env
-where Env: CommunicatingEnv<DP, CommunicationError=CommunicationError<DP>>
+where Env: CommunicatingEndpointEnvironment<DP, CommunicationError=CommunicationError<DP>>
  + ScoreEnvironment<DP> + 'a
  + EnvironmentWithAgents<DP>
- + BroadcastingEnv<DP>, DP: DomainParameters{
+ + BroadcastingEndpointEnvironment<DP>, DP: DomainParameters{
     fn run_round_robin_uni_rewards_penalise(&mut self, penalty: DP::UniversalReward) -> Result<(), AmfiError<DP>> {
         let mut actual_universal_scores: HashMap<DP::AgentId, DP::UniversalReward> = self.players().into_iter()
             .map(|id|{
@@ -282,7 +282,7 @@ where Env: CommunicatingEnv<DP, CommunicationError=CommunicationError<DP>>
         self.send_to(&first_player, EnvironmentMessage::YourMove).map_err(|e|e.specify_id(first_player))?;
         loop{
             for player in self.players(){
-                match self.try_recv_from(&player){
+                match self.nonblocking_receive_from(&player){
                     Ok(Some(agent_message)) => match agent_message{
                         AgentMessage::TakeAction(action) => {
                             info!("Player {} performs action: {:#}", &player, &action);

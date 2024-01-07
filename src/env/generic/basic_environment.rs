@@ -5,10 +5,14 @@ use crate::{
     domain::{DomainParameters, Reward}, 
     comm::{EnvironmentAdapter, BroadcastingEnvironmentAdapter}
 };
-use crate::agent::ListPlayers;
+use crate::env::ListPlayers;
 use crate::domain::Renew;
 
 
+/// This is generic implementation of environment using single endpoint construction
+/// ([`EnvironmentAdapter`](crate::comm::EnvironmentAdapter)).
+/// This environment does not provide game tracing.
+/// If you want tracing please refer to [`TracingEnvironment`](crate::env::TracingEnvironment).
 #[derive(Debug, Clone)]
 pub struct BasicEnvironment<
     DP: DomainParameters,
@@ -114,19 +118,19 @@ impl <
     DP: DomainParameters,
     S: EnvStateSequential<DP>,
     CP: BroadcastingEnvironmentAdapter<DP>
-> ConnectedEnvironment<DP> for BasicEnvironment<DP, S, CP>{
+> CommunicatingAdapterEnvironment<DP> for BasicEnvironment<DP, S, CP>{
     fn send(&mut self, agent_id: &<DP as DomainParameters>::AgentId,  message: crate::domain::EnvironmentMessage<DP>)
         -> Result<(), crate::error::CommunicationError<DP>> {
         self.adapter.send( agent_id, message)
     }
 
-    fn receive_blocking(&mut self)
-        -> Result<(<DP as DomainParameters>::AgentId, crate::domain::AgentMessage<DP>), crate::error::CommunicationError<DP>> {
+    fn blocking_receive(&mut self)
+                        -> Result<(<DP as DomainParameters>::AgentId, crate::domain::AgentMessage<DP>), crate::error::CommunicationError<DP>> {
         self.adapter.receive_blocking()
     }
 
-    fn receive_nonblocking(&mut self)
-        -> Result<Option<(<DP as DomainParameters>::AgentId, crate::domain::AgentMessage<DP>)>, crate::error::CommunicationError<DP>> {
+    fn nonblocking_receive(&mut self)
+                           -> Result<Option<(<DP as DomainParameters>::AgentId, crate::domain::AgentMessage<DP>)>, crate::error::CommunicationError<DP>> {
         self.adapter.receive_non_blocking()
     }
 }

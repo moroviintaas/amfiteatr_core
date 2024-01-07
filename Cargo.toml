@@ -27,3 +27,4 @@ chrono = "0.4.26"
 
 speedy = ["dep:speedy"]
 serde = ["dep:serde"]
+demo = []

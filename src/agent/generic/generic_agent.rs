@@ -326,7 +326,7 @@ impl<
         InwardType=EnvironmentMessage<DP>,
         Error=CommunicationError<DP>>,
     Seed>
-MultiEpisodeAgent <DP, Seed> for AgentGen<DP, P, Comm>
+EpisodeMemoryAgent<DP, Seed> for AgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>,
       <Self as StatefulAgent<DP>>::InfoSetType: Renew<Seed>{
     fn store_episode(&mut self) {

@@ -1,4 +1,4 @@
-mod communication_agent;
+mod communicating_agent;
 mod stateful_agent;
 mod automatic;
 mod rewarded_agent;
@@ -7,11 +7,11 @@ mod policy_agent;
 mod reset_agent;
 mod self_evaluating_agent;
 mod id_agent;
-mod list_players;
-mod multi_episode_agent;
+//mod list_players;
+mod episode_memory_agent;
 mod model;
 
-pub use communication_agent::*;
+pub use communicating_agent::*;
 pub use stateful_agent::*;
 pub use automatic::*;
 pub use rewarded_agent::*;
@@ -20,8 +20,8 @@ pub use reset_agent::*;
 pub use policy_agent::*;
 pub use self_evaluating_agent::*;
 pub use id_agent::*;
-pub use list_players::*;
-pub use multi_episode_agent::*;
+//pub use list_players::*;
+pub use episode_memory_agent::*;
 pub use model::*;
 /*
 /// Basic Agent trait, basic agent constrains require it to have id.
