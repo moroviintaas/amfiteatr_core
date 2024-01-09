@@ -1,62 +1,20 @@
 use std::fmt::{Display, Formatter};
 pub use crate::agent::Trajectory;
-use crate::env::EnvStateSequential;
+use crate::env::EnvironmentStateSequential;
 use crate::domain::DomainParameters;
-/*
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Debug)]
-pub enum CheckedAction<DP: DomainParameters>{
-    Valid(DP::ActionType),
-    Invalid(DP::ActionType)
-}
-
-impl <DP: DomainParameters> Display for CheckedAction<DP>
-where <DP as DomainParameters>::ActionType: Display{
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self{
-            CheckedAction::Valid(a) => write!(f, "{a:}"),
-            CheckedAction::Invalid(a) => write!(f, "(INVALID){a:}")
-        }
-    }
-}
-
-impl<DP: DomainParameters> CheckedAction<DP>{
-    pub fn action(&self) -> &DP::ActionType{
-        match &self{
-            CheckedAction::Valid(a) => a,
-            CheckedAction::Invalid(a) => a
-        }
-    }
-    pub fn take(self) -> DP::ActionType{
-        match self{
-            CheckedAction::Valid(a) => {a}
-            CheckedAction::Invalid(a) => {a}
-        }
-    }
-
-    pub fn is_valid(&self) -> bool{
-        match self{
-            CheckedAction::Valid(_) => true,
-            CheckedAction::Invalid(_) => false
-        }
-    }
-}
-
- */
 
 
+/// Trace step of while game (traced by game environment)
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone)]
-//#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct EnvTrace<DP: DomainParameters, S: EnvStateSequential<DP>>{
+pub struct EnvironmentTraceStep<DP: DomainParameters, S: EnvironmentStateSequential<DP>>{
     state_before: S,
     agent: DP::AgentId,
-    //performed_action: CheckedAction<DP>,
     action: DP::ActionType,
     is_action_valid: bool
 }
 
-impl<DP: DomainParameters, S: EnvStateSequential<DP>> Display for EnvTrace<DP, S>
+impl<DP: DomainParameters, S: EnvironmentStateSequential<DP>> Display for EnvironmentTraceStep<DP, S>
 where S: Display, <DP as DomainParameters>::AgentId: Display,
       <DP as DomainParameters>::ActionType: Display{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -70,7 +28,7 @@ where S: Display, <DP as DomainParameters>::AgentId: Display,
 }
 
 
-impl<DP: DomainParameters, S: EnvStateSequential<DP>> EnvTrace<DP, S>{
+impl<DP: DomainParameters, S: EnvironmentStateSequential<DP>> EnvironmentTraceStep<DP, S>{
 
     pub fn new(state_before: S, agent: DP::AgentId,
                action: DP::ActionType, is_valid: bool) -> Self{
@@ -101,50 +59,5 @@ impl<DP: DomainParameters, S: EnvStateSequential<DP>> EnvTrace<DP, S>{
     }
 }
 
-pub type StdEnvTrajectory<DP, S> = Trajectory<EnvTrace<DP, S>>;
-/*
-#[derive(Debug, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct GameTrajectory<Tr>{
-    history: Vec<Tr>,
-
-}
-pub type StdEnvTrajectory<DP, S> = GameTrajectory<EnvTrace<DP, S>>;
-//DP: DomainParameters, S: EnvStateSequential<DP>
-impl<Tr> GameTrajectory<Tr>{
-    pub fn new() -> Self{
-        Self{history: Vec::new()}
-    }
-    pub fn new_reserve(capacity: usize) -> Self{
-        Self{history: Vec::with_capacity(capacity)}
-    }
-    pub fn list(&self) -> &Vec<Tr>{
-        &self.history
-    }
-    pub fn push(&mut self, entry: Tr){
-        self.history.push(entry);
-    }
-    pub fn clear(&mut self){
-        self.history.clear()
-    }
-}
-
-impl<DP: DomainParameters, S: EnvStateSequential<DP>> Default for GameTrajectory<EnvTrace<DP, S>>{
-    fn default() -> Self {
-        Self{history: Default::default()}
-    }
-}
-
- */
-
-/*
-impl<'a, DP: DomainParameters, S: EnvironmentState<DP>> IntoIterator for &'a EnvHistory<DP, S>{
-    type Item = &'a HistoryEntry<DP, S>;
-    type IntoIter = <Vec<HistoryEntry<DP, S>> as IntoIterator>::IntoIter;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.history.into_iter()
-    }
-}
-
- */
+/// Standard trajectory for environment
+pub type StdEnvironmentTrajectory<DP, S> = Trajectory<EnvironmentTraceStep<DP, S>>;

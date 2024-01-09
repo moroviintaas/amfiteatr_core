@@ -1,3 +1,7 @@
+
+/// Trait for constructing structs from another.
+/// This is very similar to trait `From<T>`.
+/// New trait is introduced to allow blanket implementation for Box<> and
 pub trait Construct<S>{
 
     fn construct_from(base: S) -> Self;
@@ -7,6 +11,8 @@ pub trait Construct<S>{
     }
 
 }
+
+
 
 pub trait Renew<S>{
 

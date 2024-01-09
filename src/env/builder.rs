@@ -5,7 +5,7 @@ use crate::env::StatefulEnvironment;
 
 use crate::domain::{DomainParameters};
 use crate::error::WorldError;
-
+/// Interface for building environment that can be dynamically extended to work with more agent.
 pub trait EnvironmentBuilderTrait<DP: DomainParameters, Env: StatefulEnvironment<DP>>: Default{
 
     //type Environment: EnvironmentRR<Spec = Self::ProtocolSpec>;

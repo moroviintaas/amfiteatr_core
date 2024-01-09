@@ -16,7 +16,7 @@ use crate::domain::Renew;
 #[derive(Debug, Clone)]
 pub struct BasicEnvironment<
     DP: DomainParameters,
-    S: EnvStateSequential<DP>,
+    S: EnvironmentStateSequential<DP>,
     CP: EnvironmentAdapter<DP>
 >{
     adapter: CP,
@@ -26,7 +26,7 @@ pub struct BasicEnvironment<
 
 impl <
     DP: DomainParameters,
-    S: EnvStateSequential<DP>,
+    S: EnvironmentStateSequential<DP>,
     CP: EnvironmentAdapter<DP>
 > BasicEnvironment<DP, S, CP>{
 
@@ -46,7 +46,7 @@ impl <
 
 impl<
     DP: DomainParameters,
-    S: EnvStateSequential<DP>,
+    S: EnvironmentStateSequential<DP>,
     CP: EnvironmentAdapter<DP> + ListPlayers<DP>
 > ListPlayers<DP> for BasicEnvironment<DP, S, CP>{
     type IterType = <Vec<DP::AgentId> as IntoIterator>::IntoIter;
@@ -58,7 +58,7 @@ impl<
 
 impl <
     DP: DomainParameters,
-    S: EnvStateSequential<DP>,
+    S: EnvironmentStateSequential<DP>,
     CP: EnvironmentAdapter<DP>
 > StatefulEnvironment<DP> for BasicEnvironment<DP, S, CP>{
     type State = S;
@@ -68,14 +68,14 @@ impl <
     }
 
     fn process_action(&mut self, agent: &<DP as DomainParameters>::AgentId, action: &<DP as DomainParameters>::ActionType) 
-        -> Result<<Self::State as EnvStateSequential<DP>>::Updates, <DP as DomainParameters>::GameErrorType> {
+        -> Result<<Self::State as EnvironmentStateSequential<DP>>::Updates, <DP as DomainParameters>::GameErrorType> {
         self.game_state.forward(agent.clone(), action.clone())
     }
 }
 
 impl <
     DP: DomainParameters,
-    S: EnvStateSequential<DP> + Clone,
+    S: EnvironmentStateSequential<DP> + Clone,
     CP: BroadcastingEnvironmentAdapter<DP>,
     Seed
 > ReseedEnvironment<DP, Seed> for BasicEnvironment<DP, S, CP>
@@ -95,7 +95,7 @@ impl <
         agent: &<DP as DomainParameters>::AgentId,
         action: &<DP as DomainParameters>::ActionType,
         penalty_reward: <DP as DomainParameters>::UniversalReward)
-        -> Result<<Self::State as EnvStateSequential<DP>>::Updates, <DP as DomainParameters>::GameErrorType> {
+        -> Result<<Self::State as EnvironmentStateSequential<DP>>::Updates, <DP as DomainParameters>::GameErrorType> {
         
             self.game_state.forward(agent.clone(), action.clone()).map_err(|e|{
                 let actual_penalty = self.penalties.remove(agent).unwrap_or(<DP::UniversalReward as Reward>::neutral());
@@ -116,7 +116,7 @@ impl <
 
 impl <
     DP: DomainParameters,
-    S: EnvStateSequential<DP>,
+    S: EnvironmentStateSequential<DP>,
     CP: BroadcastingEnvironmentAdapter<DP>
 > CommunicatingAdapterEnvironment<DP> for BasicEnvironment<DP, S, CP>{
     fn send(&mut self, agent_id: &<DP as DomainParameters>::AgentId,  message: crate::domain::EnvironmentMessage<DP>)
@@ -138,7 +138,7 @@ impl <
 
 impl <
     DP: DomainParameters,
-    S: EnvStateSequential<DP>,
+    S: EnvironmentStateSequential<DP>,
     CP: BroadcastingEnvironmentAdapter<DP>
 > BroadConnectedEnvironment<DP> for BasicEnvironment<DP, S, CP>{
     
@@ -150,7 +150,7 @@ impl <
 
 impl <
     DP: DomainParameters,
-    S: EnvStateSequential<DP>,
+    S: EnvironmentStateSequential<DP>,
     CP: BroadcastingEnvironmentAdapter<DP>
 > ReinitEnvironment<DP> for BasicEnvironment<DP, S, CP>{
     fn reinit(&mut self, initial_state: <Self as StatefulEnvironment<DP>>::State) {

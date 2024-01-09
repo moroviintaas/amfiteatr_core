@@ -12,21 +12,7 @@ use super::{AgentAdapter, EnvironmentAdapter, EnvironmentEndpoint, BroadcastingE
 
 
 #[derive(Debug)]
-/*/// # Example:
-/// ```
-/// use std::thread::spawn;
-/// use sztorm::{CommEndpoint};
-/// use sztorm::error::CommError;
-/// use sztorm::SyncComm;
-/// let (mut com1, mut com2) = SyncComm::<String, String, CommError<Spec>>::new_pair();
-/// let h1 = spawn(move || {
-///     com1.send(format!("Hello")).unwrap();
-/// });
-/// let r = com2.recv().unwrap();
-/// assert_eq!(r, format!("Hello"));
-/// ```
 
- */
 
 /// This is standard endpoint dedicated for local agents.
 /// It uses Rust's built-in [`mpsc`](std::sync::mpsc) communication channel.
@@ -93,7 +79,7 @@ OT: Debug, IT:Debug{
 /// and [`Box`](std::boxed::Box) with [`BidirectionalEndpoint`](crate::comm::BidirectionalEndpoint)
 pub enum DynEndpoint<OT, IT, E: Error>{
     Std(StdEndpoint<OT, IT, E>),
-    Dynamic(Box<dyn BidirectionalEndpoint<OutwardType = OT, InwardType = IT, Error = E>>)
+    Dynamic(Box<dyn BidirectionalEndpoint<OutwardType = OT, InwardType = IT, Error = E> + Send>)
 }
 
 impl <OT: Debug, IT: Debug, E: Error> BidirectionalEndpoint for DynEndpoint<OT, IT, E>
@@ -174,7 +160,8 @@ impl<DP: DomainParameters> BidirectionalEndpoint for AgentMpscAdapter<DP> {
     }
 }
 
-
+/// Implementation of [`EnvironmentAdapter`](crate::comm::EnvironmentAdapter) based on Rust's
+/// standard [`mpsc`](std::sync::mpsc).
 pub struct EnvironmentMpscPort<DP: DomainParameters>{
     sender_template: Sender<(DP::AgentId, AgentMessage<DP>)>,
     receiver: Receiver<(DP::AgentId, AgentMessage<DP>)>,
@@ -309,8 +296,6 @@ impl<DP: DomainParameters> EnvRRAdapter<DP, Box<dyn EnvironmentEndpoint<DP>>>{
             return Err(CommunicationError::DuplicatedAgent(agent_id));
         } else {
             let (env_comm, agent_comm) = StdEnvironmentEndpoint::<DP>::new_pair();
-            //let (tx_e, rx_a) = channel();
-            //let (tx_a, rx_e) = channel();
             self.endpoints.insert(agent_id, Box::new(env_comm));
             Ok(agent_comm)
         }

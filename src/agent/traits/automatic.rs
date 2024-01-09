@@ -32,15 +32,29 @@ pub trait AutomaticAgentRewarded<DP: DomainParameters>: AutomaticAgent<DP> + Rew
     fn run_rewarded(&mut self) -> Result<(), AmfiError<DP>>;
 }
 
-pub trait AutomaticAgentRewardedAndEvaluated<DP: DomainParameters>: AutomaticAgentRewarded<DP> + SelfEvaluatingAgent<DP>{
+/*
+/// Combination of traits [`AutomaticAgentRewarded`](AutomaticAgentRewarded),
+/// [`SelfEvaluatingAgent`](SelfEvaluatingAgent).
+pub trait AutomaticAgentRE<DP: DomainParameters>: AutomaticAgentRewarded<DP> + SelfEvaluatingAgent<DP>{
 
 }
-impl<DP: DomainParameters, T: AutomaticAgentRewarded<DP> + SelfEvaluatingAgent<DP>> AutomaticAgentRewardedAndEvaluated<DP> for T{}
 
+
+
+impl<DP: DomainParameters, T: AutomaticAgentRewarded<DP> + SelfEvaluatingAgent<DP>> AutomaticAgentRE<DP> for T{}
+*/
 /// [`AutomaticAgent`](AutomaticAgent) that is also a [`TracingAgent`](crate::agent::TracingAgent).
-pub trait TracingAutomaticAgent<DP: DomainParameters, IS: EvaluatedInformationSet<DP>>: AutomaticAgentRewardedAndEvaluated<DP> + TracingAgent<DP, IS>{}
+pub trait TracingAutomaticAgent<DP: DomainParameters, IS: EvaluatedInformationSet<DP>>:
+    AutomaticAgentRewarded<DP>
+    + SelfEvaluatingAgent<DP, Assessment = IS::RewardType>
+    + TracingAgent<DP, IS>{}
 
-impl<DP: DomainParameters, IS: EvaluatedInformationSet<DP>, T: AutomaticAgentRewardedAndEvaluated<DP> + TracingAgent<DP, IS>> TracingAutomaticAgent<DP, IS> for T{
+impl<
+    DP: DomainParameters,
+    IS: EvaluatedInformationSet<DP>,
+    T: AutomaticAgentRewarded<DP>
+        + TracingAgent<DP, IS>
+        + SelfEvaluatingAgent<DP, Assessment = IS::RewardType>> TracingAutomaticAgent<DP, IS> for T{
 
 }
 

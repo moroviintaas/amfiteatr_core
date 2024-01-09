@@ -24,7 +24,7 @@
 //!
 //! thread::scope(|s|{
 //!     s.spawn(||{
-//!         environment.run_round_robin_uni_rewards().unwrap();
+//!         environment.run_round_robin_with_rewards().unwrap();
 //!     });
 //!     s.spawn(||{
 //!         agent_blue.run_rewarded().unwrap();
@@ -35,10 +35,10 @@
 //! });
 //!
 //! assert_eq!(environment.trajectory().list().len(), 200);
-//! assert!(environment.actual_score_of_player(&DemoAgentID::Blue)> 10.0);
-//! assert!(agent_blue.current_universal_score()> 10.0);
-//! assert!(agent_red.current_universal_score()> 10.0);
-//! assert!(agent_blue.current_universal_score()> agent_red.current_universal_score());
+//! assert!(environment.actual_score_of_player(&DemoAgentID::Blue) > 10.0);
+//! assert!(agent_blue.current_universal_score() > 10.0);
+//! assert!(agent_red.current_universal_score() > 10.0);
+//! assert!(agent_blue.current_universal_score() > agent_red.current_universal_score());
 //! ```
 
 use std::fmt::{Debug, Display, Formatter};
@@ -47,7 +47,7 @@ use rand::distributions::Uniform;
 use crate::agent::{AgentIdentifier, Policy, PresentPossibleActions};
 use crate::demo::DemoAgentID::{Blue, Red};
 use crate::domain::{Action, DomainParameters, Renew};
-use crate::env::{EnvStateSequential, EnvironmentStateUniScore};
+use crate::env::{EnvironmentStateSequential, EnvironmentStateUniScore};
 use rand::distributions::Distribution;
 use crate::agent::{InformationSet, EvaluatedInformationSet};
 
@@ -111,7 +111,7 @@ impl DemoState{
         Self{ceilings, max_rounds, rewards_red: Vec::default(), rewards_blue: Vec::default()}
     }
 }
-impl EnvStateSequential<DemoDomain> for DemoState{
+impl EnvironmentStateSequential<DemoDomain> for DemoState{
     type Updates = Vec<(DemoAgentID, (DemoAgentID, DemoAction, f32))>;
 
     fn current_player(&self) -> Option<DemoAgentID> {

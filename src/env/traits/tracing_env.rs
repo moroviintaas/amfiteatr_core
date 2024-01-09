@@ -1,9 +1,12 @@
 use crate::agent::Trajectory;
-use crate::env::{EnvStateSequential, EnvTrace};
+use crate::env::{EnvironmentStateSequential, EnvironmentTraceStep};
 use crate::domain::DomainParameters;
 
-pub trait TracingEnv<DP: DomainParameters, S: EnvStateSequential<DP>>{
 
-    fn trajectory(&self) -> &Trajectory<EnvTrace<DP, S>>;
+/// Environment that provide tracing game.
+pub trait TracingEnv<DP: DomainParameters, S: EnvironmentStateSequential<DP>>{
+
+    
+    fn trajectory(&self) -> &Trajectory<EnvironmentTraceStep<DP, S>>;
 
 }

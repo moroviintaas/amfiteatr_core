@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use log::{debug, error, info, warn};
-use crate::env::{BroadcastingEndpointEnvironment, CommunicatingEndpointEnvironment, EnvStateSequential, EnvironmentWithAgents, ScoreEnvironment, StatefulEnvironment};
+use crate::env::{BroadcastingEndpointEnvironment, CommunicatingEndpointEnvironment, EnvironmentStateSequential, EnvironmentWithAgents, ScoreEnvironment, StatefulEnvironment};
 use crate::error::{CommunicationError, AmfiError};
 use crate::error::ProtocolError::PlayerExited;
 use crate::domain::{AgentMessage, EnvironmentMessage, DomainParameters, Reward};
@@ -8,14 +8,19 @@ use crate::domain::EnvironmentMessage::ErrorNotify;
 use crate::error::AmfiError::GameA;
 
 
+/// Interface for environment using round robin strategy for listening to agents' messages.
 pub trait RoundRobinEnvironment<DP: DomainParameters>{
     fn run_round_robin(&mut self) -> Result<(), AmfiError<DP>>;
 }
+/// Similar interface to [`RoundRobinEnvironment`], but it must ensure agents receive rewards.
 pub trait RoundRobinUniversalEnvironment<DP: DomainParameters> : RoundRobinEnvironment<DP>{
-    fn run_round_robin_uni_rewards(&mut self) -> Result<(), AmfiError<DP>>;
+    fn run_round_robin_with_rewards(&mut self) -> Result<(), AmfiError<DP>>;
 }
+/// Similar interface to [`RoundRobinEnvironment`] and [`RoundRobinUniversalEnvironment`],
+/// in addition to rewards based on current game state, penalties for illegal actions are sent.
+/// This is __experimental__ interface.
 pub trait RoundRobinPenalisingUniversalEnvironment<DP: DomainParameters>: RoundRobinUniversalEnvironment<DP>{
-    fn run_round_robin_uni_rewards_penalise(&mut self, penalty: DP::UniversalReward) -> Result<(), AmfiError<DP>>;
+    fn run_round_robin_with_rewards_penalise(&mut self, penalty: DP::UniversalReward) -> Result<(), AmfiError<DP>>;
 }
 
 
@@ -164,7 +169,7 @@ where Env: CommunicatingEndpointEnvironment<DP, CommunicationError=Communication
  + ScoreEnvironment<DP> + 'a
  + EnvironmentWithAgents<DP>
  + BroadcastingEndpointEnvironment<DP>, DP: DomainParameters {
-    fn run_round_robin_uni_rewards(&mut self) -> Result<(), AmfiError<DP>> {
+    fn run_round_robin_with_rewards(&mut self) -> Result<(), AmfiError<DP>> {
         let mut actual_universal_scores: HashMap<DP::AgentId, DP::UniversalReward> = self.players().into_iter()
             .map(|id|{
                 (id, DP::UniversalReward::neutral())
@@ -266,7 +271,7 @@ where Env: CommunicatingEndpointEnvironment<DP, CommunicationError=Communication
  + ScoreEnvironment<DP> + 'a
  + EnvironmentWithAgents<DP>
  + BroadcastingEndpointEnvironment<DP>, DP: DomainParameters{
-    fn run_round_robin_uni_rewards_penalise(&mut self, penalty: DP::UniversalReward) -> Result<(), AmfiError<DP>> {
+    fn run_round_robin_with_rewards_penalise(&mut self, penalty: DP::UniversalReward) -> Result<(), AmfiError<DP>> {
         let mut actual_universal_scores: HashMap<DP::AgentId, DP::UniversalReward> = self.players().into_iter()
             .map(|id|{
                 (id, DP::UniversalReward::neutral())

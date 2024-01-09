@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use log::{warn, info, error};
 
-use crate::{error::{AmfiError, CommunicationError}, domain::{DomainParameters, EnvironmentMessage, AgentMessage}, env::EnvStateSequential};
+use crate::{error::{AmfiError, CommunicationError}, domain::{DomainParameters, EnvironmentMessage, AgentMessage}, env::EnvironmentStateSequential};
 use crate::env::ListPlayers;
 use crate::domain::Reward;
 use crate::env::ScoreEnvironment;

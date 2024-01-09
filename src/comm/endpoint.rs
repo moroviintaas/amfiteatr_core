@@ -53,15 +53,32 @@ where T: BidirectionalEndpoint {
     }
 }
 
-pub trait EnvironmentEndpoint<DP: DomainParameters>: BidirectionalEndpoint<OutwardType = EnvironmentMessage<DP>, InwardType = AgentMessage<DP>, Error = CommunicationError<DP>>{}
+/// Help trait for [`BidirectionalEndpoint`](BidirectionalEndpoint) fitted to work on environment
+/// side.
+pub trait EnvironmentEndpoint<DP: DomainParameters>:
+BidirectionalEndpoint<
+    OutwardType = EnvironmentMessage<DP>,
+    InwardType = AgentMessage<DP>,
+    Error = CommunicationError<DP>>{}
 
 impl<DP: DomainParameters, T> EnvironmentEndpoint<DP> for T
-where T: BidirectionalEndpoint<OutwardType = EnvironmentMessage<DP>, InwardType = AgentMessage<DP>, Error = CommunicationError<DP>>{}
+where T: BidirectionalEndpoint<
+    OutwardType = EnvironmentMessage<DP>,
+    InwardType = AgentMessage<DP>,
+    Error = CommunicationError<DP>>{}
 
-pub trait AgentEndpoint<DP: DomainParameters>: BidirectionalEndpoint<OutwardType = AgentMessage<DP>, InwardType = EnvironmentMessage<DP>, Error = CommunicationError<DP>>{}
+/// Help trait for [`BidirectionalEndpoint`](BidirectionalEndpoint) fitted to work on agent
+/// side
+pub trait AgentEndpoint<DP: DomainParameters>: BidirectionalEndpoint<
+    OutwardType = AgentMessage<DP>,
+    InwardType = EnvironmentMessage<DP>,
+    Error = CommunicationError<DP>>{}
 
 impl<DP: DomainParameters, T> AgentEndpoint<DP> for T
-where T: BidirectionalEndpoint<OutwardType = AgentMessage<DP>, InwardType = EnvironmentMessage<DP>, Error = CommunicationError<DP>>{}
+where T: BidirectionalEndpoint<
+    OutwardType = AgentMessage<DP>,
+    InwardType = EnvironmentMessage<DP>,
+    Error = CommunicationError<DP>>{}
 
 /// This trait is to be implemented by structs that are meant to be single
 /// communication endpoint for environment.

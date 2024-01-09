@@ -1,8 +1,10 @@
 use std::fmt::Debug;
 use crate::domain::{Construct, DomainParameters};
-use crate::error::AmfiError;
 
-pub trait EnvStateSequential<DP: DomainParameters>: Send + Debug{
+
+/// Game state to be used in sequential games (where in single time step
+/// only one player is allowed to play).
+pub trait EnvironmentStateSequential<DP: DomainParameters>: Send + Debug{
     type Updates: IntoIterator<Item = (DP::AgentId, DP::UpdateType)>;
 
     fn current_player(&self) -> Option<DP::AgentId>;
@@ -18,7 +20,7 @@ pub trait EnvStateSequential<DP: DomainParameters>: Send + Debug{
 //pub trait EnvStateSimultaneous{}
 
 
-impl<DP: DomainParameters, T: EnvStateSequential<DP>> EnvStateSequential<DP> for Box<T>{
+impl<DP: DomainParameters, T: EnvironmentStateSequential<DP>> EnvironmentStateSequential<DP> for Box<T>{
     type Updates = T::Updates;
 
     fn current_player(&self) -> Option<DP::AgentId> {
@@ -35,22 +37,30 @@ impl<DP: DomainParameters, T: EnvStateSequential<DP>> EnvStateSequential<DP> for
 }
 
 
-pub trait ConstructedEnvState<DP: DomainParameters, B>: EnvStateSequential<DP> + Construct<B>{}
-impl<DP: DomainParameters, B, T: EnvStateSequential<DP> + Construct<B>> ConstructedEnvState<DP, B> for T{}
+/// Combination of traits [`EnvironmentStateSequential`] and [`Construct`]
+pub trait ConstructedEnvironmentStateSequential<DP: DomainParameters, B>:
+    EnvironmentStateSequential<DP> + Construct<B>{}
+
+
+impl<DP: DomainParameters, B, T: EnvironmentStateSequential<DP> + Construct<B>>
+    ConstructedEnvironmentStateSequential<DP, B> for T{}
 
 
 //impl<DP: DomainParameters, B, T: ConstructedEnvState<DP, B>> ConstructedEnvState<DP, B> for Box<T>{}
 
 
-
-pub trait EnvironmentStateUniScore<DP: DomainParameters>: EnvStateSequential<DP>{
+/// Trait adding interface to get current payoff of selected agent.
+pub trait EnvironmentStateUniScore<DP: DomainParameters>: EnvironmentStateSequential<DP>{
 
     fn state_score_of_player(&self, agent: &DP::AgentId) -> DP::UniversalReward;
 
 }
 
+/*
 pub trait ExpandingState<DP: DomainParameters>{
 
     fn register_agent(&mut self, agent_id: DP::AgentId) -> Result<(), AmfiError<DP>>;
 
 }
+
+ */

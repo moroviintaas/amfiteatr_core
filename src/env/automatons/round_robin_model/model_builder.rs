@@ -1,26 +1,22 @@
 
 use std::collections::{HashMap};
 use std::sync::{Arc, Mutex};
-use crate::agent::{AgentGen,
-                   IdAgent,
-                   AutomaticAgent,
-                   Policy,
-                   PresentPossibleActions,
-                   EvaluatedInformationSet};
+use crate::agent::{AgentGen, IdAgent, Policy, PresentPossibleActions, EvaluatedInformationSet, AutomaticAgentRewarded};
 use crate::env::{EnvironmentBuilderTrait, EnvironmentStateUniScore};
 use crate::env::automatons::rr::RoundRobinModel;
 use crate::comm::{EnvironmentEndpoint, StdEnvironmentEndpoint};
-use crate::env::generic::{GenericEnvironmentBuilder};
+use crate::env::generic::{HashMapEnvironmentBuilder};
 
 use crate::domain::{DomainParameters};
 use crate::error::WorldError;
 
+/// __(Experimental)__ Builder for round robin model [`RoundRobinModel`]
 pub struct RoundRobinModelBuilder<
     DP: DomainParameters,
     EnvState: EnvironmentStateUniScore<DP>,
     Comm: EnvironmentEndpoint<DP> >{
-    env_builder: GenericEnvironmentBuilder<DP, EnvState,  Comm>,
-    local_agents: HashMap<DP::AgentId, Arc<Mutex<dyn AutomaticAgent<DP> + Send>>>,
+    env_builder: HashMapEnvironmentBuilder<DP, EnvState,  Comm>,
+    local_agents: HashMap<DP::AgentId, Arc<Mutex<dyn AutomaticAgentRewarded<DP> + Send>>>,
 
 }
 
@@ -55,7 +51,7 @@ impl<
     Comm: EnvironmentEndpoint<DP>>
 RoundRobinModelBuilder<DP, EnvState,  Comm>{
     pub fn new() -> Self{
-        Self{ env_builder: GenericEnvironmentBuilder::new(), local_agents:HashMap::new() }
+        Self{ env_builder: HashMapEnvironmentBuilder::new(), local_agents:HashMap::new() }
     }
     
     pub fn with_env_state(mut self, environment_state: EnvState)
@@ -63,19 +59,15 @@ RoundRobinModelBuilder<DP, EnvState,  Comm>{
         self.env_builder = self.env_builder.with_state(environment_state)?;
         Ok(self)
     }
-    /*
-    pub fn with_env_action_process_fn(mut self, process_fn: ProcessAction) -> Result<Self, SetupError<DP>>{
-        self.env_builder = self.env_builder.with_processor(process_fn)?;
-        Ok(self)
-    }*/
-    pub fn get_agent(&self, s: &DP::AgentId) -> Option<&Arc<Mutex<dyn AutomaticAgent<DP> + Send>>>{
+
+    pub fn get_agent(&self, s: &DP::AgentId) -> Option<&Arc<Mutex<dyn AutomaticAgentRewarded<DP> + Send>>>{
         self.local_agents.get(s)
 
 
     }
 
     pub fn add_local_agent(mut self,
-                           agent: Arc<Mutex<dyn AutomaticAgent<DP>+ Send>>,
+                           agent: Arc<Mutex<dyn AutomaticAgentRewarded<DP>+ Send>>,
                            env_comm: Comm)
                            -> Result<Self, WorldError<DP>>{
 

@@ -1,12 +1,5 @@
 
 use crate::domain::DomainParameters;
-/*
-pub trait EnvironmentWithAgents<'a, Id: AgentIdentifier + 'a>{
-    type PlayerIterator: IntoIterator<Item = &'a Id>;
-
-    fn players(&self) -> Self::PlayerIterator;
-}*/
-
 
 /// Environment interface to list agents taking part in game or simulations
 ///

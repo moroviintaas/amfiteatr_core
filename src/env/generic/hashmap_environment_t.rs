@@ -1,23 +1,28 @@
 use std::collections::HashMap;
 use crate::agent::Trajectory;
 use crate::comm::EnvironmentEndpoint;
-use crate::env::{BroadcastingEndpointEnvironment, CommunicatingEndpointEnvironment, EnvStateSequential, EnvironmentStateUniScore, EnvironmentWithAgents, EnvTrace, ScoreEnvironment, StatefulEnvironment, TracingEnv, ReinitEnvironment};
+use crate::env::{BroadcastingEndpointEnvironment, CommunicatingEndpointEnvironment, EnvironmentStateSequential, EnvironmentStateUniScore, EnvironmentWithAgents, EnvironmentTraceStep, ScoreEnvironment, StatefulEnvironment, TracingEnv, ReinitEnvironment};
 use crate::env::generic::{HashMapEnvironment};
 use crate::error::CommunicationError;
 use crate::domain::{AgentMessage, DomainParameters, EnvironmentMessage};
 
+/// Implementation of environment using [`HashMap`](std::collections::HashMap) to store
+/// individual [`BidirectionalEndpoint`](crate::comm::BidirectionalEndpoint)'s to communicate with
+/// agents. This implementation provides tracing.
+/// If you don't need tracing consider using analogous implementation of
+/// [`HashMapEnvironment`](crate::env::HashMapEnvironment).
 pub struct TracingHashMapEnvironment<
     DP: DomainParameters,
-    S: EnvStateSequential<DP>,
+    S: EnvironmentStateSequential<DP>,
     C: EnvironmentEndpoint<DP>>{
 
     base_environment: HashMapEnvironment<DP, S,C>,
-    history: Trajectory<EnvTrace<DP, S>>
+    history: Trajectory<EnvironmentTraceStep<DP, S>>
 }
 
 impl<
     DP: DomainParameters,
-    S: EnvStateSequential<DP>,
+    S: EnvironmentStateSequential<DP>,
     Comm: EnvironmentEndpoint<DP>> TracingHashMapEnvironment<DP, S, Comm>{
 
     pub fn new(
@@ -48,7 +53,7 @@ impl<
 
 impl<
     DP: DomainParameters,
-    S: EnvStateSequential<DP> + Clone,
+    S: EnvironmentStateSequential<DP> + Clone,
     C: EnvironmentEndpoint<DP>>
 StatefulEnvironment<DP> for TracingHashMapEnvironment<DP, S,C>{
 
@@ -60,7 +65,7 @@ StatefulEnvironment<DP> for TracingHashMapEnvironment<DP, S,C>{
     }
 
     fn process_action(&mut self, agent: &DP::AgentId, action: &DP::ActionType)
-        -> Result<<Self::State as EnvStateSequential<DP>>::Updates, DP::GameErrorType> {
+        -> Result<<Self::State as EnvironmentStateSequential<DP>>::Updates, DP::GameErrorType> {
 
         let state_clone = self.state().clone();
         /*
@@ -81,11 +86,11 @@ StatefulEnvironment<DP> for TracingHashMapEnvironment<DP, S,C>{
          */
         match self.base_environment.process_action(agent, action){
             Ok(updates) => {
-                self.history.push_trace_step(EnvTrace::new(state_clone, agent.clone(), action.clone(), true));
+                self.history.push_trace_step(EnvironmentTraceStep::new(state_clone, agent.clone(), action.clone(), true));
                 Ok(updates)
             }
             Err(e) => {
-                self.history.push_trace_step(EnvTrace::new(state_clone, agent.clone(), action.clone(), false));
+                self.history.push_trace_step(EnvironmentTraceStep::new(state_clone, agent.clone(), action.clone(), false));
                 Err(e)
             }
         }
@@ -99,16 +104,16 @@ impl<
 ScoreEnvironment<DP> for TracingHashMapEnvironment<DP, S, C>{
     fn process_action_penalise_illegal(
         &mut self, agent: &DP::AgentId, action: &DP::ActionType, penalty_reward: DP::UniversalReward)
-        -> Result<<Self::State as EnvStateSequential<DP>>::Updates, DP::GameErrorType> {
+        -> Result<<Self::State as EnvironmentStateSequential<DP>>::Updates, DP::GameErrorType> {
 
         let state_clone = self.state().clone();
         match self.base_environment.process_action_penalise_illegal(agent, action, penalty_reward){
             Ok(updates) => {
-                self.history.push_trace_step(EnvTrace::new(state_clone, agent.clone(), action.clone(), true));
+                self.history.push_trace_step(EnvironmentTraceStep::new(state_clone, agent.clone(), action.clone(), true));
                 Ok(updates)
             }
             Err(e) => {
-                self.history.push_trace_step(EnvTrace::new(state_clone, agent.clone(), action.clone(), false));
+                self.history.push_trace_step(EnvironmentTraceStep::new(state_clone, agent.clone(), action.clone(), false));
                 Err(e)
             }
         }
@@ -126,7 +131,7 @@ ScoreEnvironment<DP> for TracingHashMapEnvironment<DP, S, C>{
 
 impl<
     DP: DomainParameters,
-    S: EnvStateSequential<DP>,
+    S: EnvironmentStateSequential<DP>,
     C: EnvironmentEndpoint<DP>>
 CommunicatingEndpointEnvironment<DP> for TracingHashMapEnvironment<DP, S, C>{
     type CommunicationError = CommunicationError<DP>;
@@ -152,7 +157,7 @@ CommunicatingEndpointEnvironment<DP> for TracingHashMapEnvironment<DP, S, C>{
 
 impl<
     DP: DomainParameters,
-    S: EnvStateSequential<DP>,
+    S: EnvironmentStateSequential<DP>,
     C: EnvironmentEndpoint<DP>>
 BroadcastingEndpointEnvironment<DP> for TracingHashMapEnvironment<DP, S, C>{
     fn send_to_all(&mut self, message: EnvironmentMessage<DP>) -> Result<(), Self::CommunicationError> {
@@ -161,7 +166,7 @@ BroadcastingEndpointEnvironment<DP> for TracingHashMapEnvironment<DP, S, C>{
 }
 
 impl<'a, DP: DomainParameters + 'a,
-    S: EnvStateSequential<DP>,
+    S: EnvironmentStateSequential<DP>,
     C: EnvironmentEndpoint<DP>>
  EnvironmentWithAgents<DP> for TracingHashMapEnvironment<DP, S, C>{
     type PlayerIterator = Vec<DP::AgentId>;
@@ -173,17 +178,17 @@ impl<'a, DP: DomainParameters + 'a,
 
 
 impl<'a, DP: DomainParameters + 'a,
-    S: EnvStateSequential<DP>,
+    S: EnvironmentStateSequential<DP>,
     C: EnvironmentEndpoint<DP>>
 TracingEnv<DP, S> for TracingHashMapEnvironment<DP, S, C>{
-    fn trajectory(&self) -> &Trajectory<EnvTrace<DP, S>> {
+    fn trajectory(&self) -> &Trajectory<EnvironmentTraceStep<DP, S>> {
         &self.history
     }
 }
 
 impl<
 DP: DomainParameters,
-    S: EnvStateSequential<DP> + Clone,
+    S: EnvironmentStateSequential<DP> + Clone,
     C: EnvironmentEndpoint<DP>>
 ReinitEnvironment<DP> for TracingHashMapEnvironment<DP, S, C>{
     fn reinit(&mut self, initial_state: <Self as StatefulEnvironment<DP>>::State) {
