@@ -1,5 +1,5 @@
 use std::fmt::Debug;
-use crate::domain::{Construct, DomainParameters, Reward};
+use crate::domain::{DomainParameters, Reward};
 
 /// Represents agent's point of view on game state.
 /// > Formally _information set_ is subset of game _states_ that are indistinguishable
@@ -76,7 +76,7 @@ impl<T: EvaluatedInformationSet<Spec>, Spec: DomainParameters> EvaluatedInformat
 /// > This is meant to be implemented for every information set
 /// used in game by any agent and for state of environment.
 /// Implementing construction based on common seed allows to reload all info sets and states.
-pub trait ConstructedInfoSet<DP: DomainParameters, B>: InformationSet<DP> + Construct<B> {}
-impl<DP: DomainParameters, B, T: InformationSet<DP> + Construct<B>> ConstructedInfoSet<DP, B> for T{}
+pub trait ConstructedInfoSet<DP: DomainParameters, B>: InformationSet<DP> + From<B> {}
+impl<DP: DomainParameters, B, T: InformationSet<DP> + From<B>> ConstructedInfoSet<DP, B> for T{}
 
 //impl<DP: DomainParameters, B, T: ConstructedInfoSet<DP, B>> ConstructedInfoSet<DP, B> for Box<T>{}

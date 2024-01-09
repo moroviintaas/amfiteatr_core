@@ -1,5 +1,5 @@
 use std::fmt::Debug;
-use crate::domain::{Construct, DomainParameters};
+use crate::domain::{DomainParameters};
 
 
 /// Game state to be used in sequential games (where in single time step
@@ -39,10 +39,10 @@ impl<DP: DomainParameters, T: EnvironmentStateSequential<DP>> EnvironmentStateSe
 
 /// Combination of traits [`EnvironmentStateSequential`] and [`Construct`]
 pub trait ConstructedEnvironmentStateSequential<DP: DomainParameters, B>:
-    EnvironmentStateSequential<DP> + Construct<B>{}
+    EnvironmentStateSequential<DP> + From<B>{}
 
 
-impl<DP: DomainParameters, B, T: EnvironmentStateSequential<DP> + Construct<B>>
+impl<DP: DomainParameters, B, T: EnvironmentStateSequential<DP> + From<B>>
     ConstructedEnvironmentStateSequential<DP, B> for T{}
 
 
