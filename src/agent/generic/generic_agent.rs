@@ -66,9 +66,9 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>
     /// New agent has now provided policy. Previous policy is dropped.
     /// # Example:
     /// ```
-    /// use amfi::agent::{AgentGen, RandomPolicy};
-    /// use amfi::comm::StdEnvironmentEndpoint;
-    /// use amfi::demo::{DemoAgentID, DemoInfoSet, DemoPolicySelectFirst};
+    /// use amfi_core::agent::{AgentGen, RandomPolicy};
+    /// use amfi_core::comm::StdEnvironmentEndpoint;
+    /// use amfi_core::demo::{DemoAgentID, DemoInfoSet, DemoPolicySelectFirst};
     /// let (_, comm) = StdEnvironmentEndpoint::new_pair();
     /// let agent = AgentGen::new(DemoInfoSet::new(DemoAgentID::Red, 10), comm, RandomPolicy::new());
     /// let agent_2 = agent.transform_replace_policy(DemoPolicySelectFirst{});
@@ -89,9 +89,9 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>
     /// New agent has now provided policy. Previous policy is returned as second element in tuple.
     /// # Example:
     /// ```
-    /// use amfi::agent::{AgentGen, RandomPolicy};
-    /// use amfi::comm::StdEnvironmentEndpoint;
-    /// use amfi::demo::{DemoAgentID, DemoInfoSet, DemoPolicySelectFirst};
+    /// use amfi_core::agent::{AgentGen, RandomPolicy};
+    /// use amfi_core::comm::StdEnvironmentEndpoint;
+    /// use amfi_core::demo::{DemoAgentID, DemoInfoSet, DemoPolicySelectFirst};
     /// let (_, comm) = StdEnvironmentEndpoint::new_pair();
     /// let agent = AgentGen::new(DemoInfoSet::new(DemoAgentID::Red, 10), comm, RandomPolicy::new());
     /// let (agent_2, old_policy) = agent.transform_replace_policy_ret(DemoPolicySelectFirst{});
