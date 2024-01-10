@@ -4,5 +4,4 @@ use thiserror::Error;
 pub enum ConvertError{
     #[error("Action convert from {0}")]
     ActionDeserialize(String)
-    //todo
 }

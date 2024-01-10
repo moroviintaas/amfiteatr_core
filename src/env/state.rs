@@ -37,7 +37,7 @@ impl<DP: DomainParameters, T: EnvironmentStateSequential<DP>> EnvironmentStateSe
 }
 
 
-/// Combination of traits [`EnvironmentStateSequential`] and [`Construct`]
+/// Combination of traits [`EnvironmentStateSequential`] and [`From`]
 pub trait ConstructedEnvironmentStateSequential<DP: DomainParameters, B>:
     EnvironmentStateSequential<DP> + From<B>{}
 

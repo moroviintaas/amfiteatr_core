@@ -5,6 +5,7 @@ use crate::domain::Reward;
 use crate::error::{InternalGameError};
 //use crate::state::StateUpdate;
 
+/// Trait locking game domain parameters, to ensure environment and agents can communicate
 pub trait DomainParameters: Clone + Debug + Send + Sync + 'static{
     type ActionType: Action;
     type GameErrorType: InternalGameError<Self> ;

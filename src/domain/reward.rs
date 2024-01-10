@@ -23,6 +23,8 @@ for<'a> &'a Self: Div<&'a Self, Output=Float>{}
 
  */
 
+
+/// Reward that can be compared to another with proportion (division) resulting in float
 pub trait ProportionalReward<Float>: Reward{
     fn proportion(&self, other: &Self) -> Float;
 }
@@ -63,11 +65,15 @@ impl Reward for f64{
     }
 }
 
+
+/*
 #[derive(Debug, Copy, Clone)]
 pub enum RewardSource{
     Env,
     Agent
 }
+
+ */
 
 /*
 impl ProportionalReward<f32> for f32{}

@@ -4,23 +4,23 @@ use crate::domain::DomainParameters;
 
 #[derive(Debug, Clone, PartialEq, Eq, Error)]
 #[cfg_attr(feature = "speedy", derive(speedy::Writable, speedy::Readable))]
-pub enum ProtocolError<Spec: DomainParameters>{
+pub enum ProtocolError<DP: DomainParameters>{
     #[error("lost contact with {:}", .0)]
-    BrokenComm(Spec::AgentId),
+    BrokenComm(DP::AgentId),
     #[error("agent {:} attempted to move on turn of {:}", .0, .1)]
-    ViolatedOrder(Spec::AgentId, Spec::AgentId),
+    ViolatedOrder(DP::AgentId, DP::AgentId),
     #[error("agent {:} called to move, however called states that {:} should move this time", .0, .1)]
-    OrderDesync(Spec::AgentId, Spec::AgentId),
+    OrderDesync(DP::AgentId, DP::AgentId),
     #[error("agent {:} received kill", .0)]
-    ReceivedKill(Spec::AgentId),
+    ReceivedKill(DP::AgentId),
     #[error("agent {:} has no possible action", .0)]
-    NoPossibleAction(Spec::AgentId),
+    NoPossibleAction(DP::AgentId),
     #[error("agent {} has exited the game", .0)]
-    PlayerExited(Spec::AgentId)
+    PlayerExited(DP::AgentId)
 }
 
-impl<Spec: DomainParameters> From<ProtocolError<Spec>> for AmfiError<Spec>{
-    fn from(value: ProtocolError<Spec>) -> Self {
+impl<DP: DomainParameters> From<ProtocolError<DP>> for AmfiError<DP>{
+    fn from(value: ProtocolError<DP>) -> Self {
         Self::Protocol(value)
     }
 }
