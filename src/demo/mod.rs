@@ -54,7 +54,7 @@ use crate::agent::{InformationSet, EvaluatedInformationSet};
 
 
 #[derive(Clone, Debug)]
-pub struct DemoAction(u8);
+pub struct DemoAction(pub u8);
 impl Display for DemoAction{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
