@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::fmt::Debug;
 use std::ops::{Add, AddAssign, Sub};
 
@@ -90,5 +91,65 @@ impl ProportionalReward<f32> for f32{
 impl ProportionalReward<f32> for i32{
     fn proportion(&self, other: &Self) -> f32 {
         *self as f32/ *other as f32
+    }
+}
+
+
+/// Reward of none type, use if reward is irrelevant because some traits expects that reward is defined.
+#[derive(Debug, Copy, Clone, Default, PartialEq, Eq)]
+pub struct NoneReward{}
+
+
+
+impl PartialOrd for NoneReward {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(Ordering::Equal)
+    }
+}
+
+
+impl<'a> Add<&'a Self> for NoneReward {
+    type Output = NoneReward;
+
+    fn add(self, _: &'a Self) -> Self::Output {
+        NoneReward{}
+    }
+}
+
+impl Add for NoneReward {
+    type Output = NoneReward;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        NoneReward{}
+    }
+}
+
+
+impl<'a> AddAssign<&'a Self> for NoneReward {
+    fn add_assign(&mut self, rhs: &'a Self) {
+
+    }
+}
+
+impl Sub for NoneReward {
+    type Output = NoneReward;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        NoneReward{}
+    }
+}
+
+impl<'a> Sub<&'a Self> for NoneReward {
+    type Output = NoneReward;
+
+    fn sub(self, rhs: &'a Self) -> Self::Output {
+        NoneReward{}
+    }
+}
+
+
+impl Reward for NoneReward{
+    fn neutral() -> Self {
+        NoneReward{}
     }
 }
