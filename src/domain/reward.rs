@@ -102,7 +102,7 @@ pub struct NoneReward{}
 
 
 impl PartialOrd for NoneReward {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    fn partial_cmp(&self, _other: &Self) -> Option<Ordering> {
         Some(Ordering::Equal)
     }
 }
@@ -119,14 +119,14 @@ impl<'a> Add<&'a Self> for NoneReward {
 impl Add for NoneReward {
     type Output = NoneReward;
 
-    fn add(self, rhs: Self) -> Self::Output {
+    fn add(self, _rhs: Self) -> Self::Output {
         NoneReward{}
     }
 }
 
 
 impl<'a> AddAssign<&'a Self> for NoneReward {
-    fn add_assign(&mut self, rhs: &'a Self) {
+    fn add_assign(&mut self, _rhs: &'a Self) {
 
     }
 }
@@ -134,7 +134,7 @@ impl<'a> AddAssign<&'a Self> for NoneReward {
 impl Sub for NoneReward {
     type Output = NoneReward;
 
-    fn sub(self, rhs: Self) -> Self::Output {
+    fn sub(self, _rhs: Self) -> Self::Output {
         NoneReward{}
     }
 }
@@ -142,7 +142,7 @@ impl Sub for NoneReward {
 impl<'a> Sub<&'a Self> for NoneReward {
     type Output = NoneReward;
 
-    fn sub(self, rhs: &'a Self) -> Self::Output {
+    fn sub(self, _rhs: &'a Self) -> Self::Output {
         NoneReward{}
     }
 }
