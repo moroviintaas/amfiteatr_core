@@ -1,5 +1,14 @@
 
-use crate::agent::{CommunicatingAgent, ActingAgent, StatefulAgent, PolicyAgent, RewardedAgent, SelfEvaluatingAgent, EvaluatedInformationSet, PresentPossibleActions, IdAgent, TracingAgent};
+use crate::agent::{
+    CommunicatingAgent,
+    ActingAgent,
+    StatefulAgent,
+    PolicyAgent,
+    RewardedAgent,
+    SelfEvaluatingAgent,
+    EvaluatedInformationSet,
+    PresentPossibleActions,
+    IdAgent};
 use crate::error::{CommunicationError, AmfiError};
 use crate::error::ProtocolError::{NoPossibleAction, ReceivedKill};
 use crate::error::AmfiError::Protocol;
@@ -43,8 +52,10 @@ pub trait AutomaticAgentRE<DP: DomainParameters>: AutomaticAgentRewarded<DP> + S
 
 impl<DP: DomainParameters, T: AutomaticAgentRewarded<DP> + SelfEvaluatingAgent<DP>> AutomaticAgentRE<DP> for T{}
 */
-/// [`AutomaticAgent`](AutomaticAgent) that is also a [`TracingAgent`](crate::agent::TracingAgent).
-pub trait TracingAutomaticAgent<DP: DomainParameters, IS: EvaluatedInformationSet<DP>>:
+/*
+/// [`AutomaticAgent`](AutomaticAgent) that is also a [`TracingAgent`](crate::agent::TracingAgent) using
+/// .
+pub trait AutomaticAgentWithStdTrace<DP: DomainParameters, IS: EvaluatedInformationSet<DP>>:
     AutomaticAgentRewarded<DP>
     + SelfEvaluatingAgent<DP, Assessment = IS::RewardType>
     + TracingAgent<DP, IS>{}
@@ -54,9 +65,10 @@ impl<
     IS: EvaluatedInformationSet<DP>,
     T: AutomaticAgentRewarded<DP>
         + TracingAgent<DP, IS>
-        + SelfEvaluatingAgent<DP, Assessment = IS::RewardType>> TracingAutomaticAgent<DP, IS> for T{
+        + SelfEvaluatingAgent<DP, Assessment = IS::RewardType>> AutomaticAgentWithStdTrace<DP, IS> for T{
 
 }
+*/
 
 /// Generic implementation of AutomaticAgent - probably will be done via macro
 /// in the future to avoid conflicts with custom implementations.
