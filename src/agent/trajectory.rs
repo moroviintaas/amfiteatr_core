@@ -138,9 +138,11 @@ where
 /// Trajectory of game from the view of agent. Currently it is stack of independent
 /// trace steps (usually [`AgentTraceStep`](crate::agent::AgentTraceStep)) in struct of vector (wrapped around
 /// for `Display` purpose).
-/// > However in the future it may be structure better optimised in memory -
-/// without redundancy of scores now most scores are stored doubled - once as score after action in step
-/// and second time in the initial info set for next step.
+/// > This structure needs a rework in future. For now it wraps around `Vec` of steps, where single
+/// step typically consists of initial state, taken action, and rewards. It may be helpful to make
+/// single steps have access to another steps (to allow some difference analysis) - in such case
+/// we would like some counted reference ([`Arc`](std::sync::Arc)).
+/// Second problem is that current implementation does not capture final state in trajectory.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug)]
 pub struct Trajectory<Tr: Debug> {
