@@ -12,8 +12,8 @@ use crate::domain::DomainParameters;
 /// probably use [`MultiEpisodeAutoAgent`](EpisodeMemoryAutoAgent) or [`MultiEpisodeAutoAgentRewarded`](MultiEpisodeAutoAgentRewarded).
 /// ```
 /// use std::sync::{Arc, Mutex};
-/// use amfi_core::agent::ModelAgent;
-/// use amfi_core::demo::{DemoDomain, DemoInfoSet};
+/// use amfiteatr_core::agent::ModelAgent;
+/// use amfiteatr_core::demo::{DemoDomain, DemoInfoSet};
 /// let agents: Vec<Arc<Mutex<dyn ModelAgent<DemoDomain,(), DemoInfoSet >>>>;
 /// //                      Domain----------------^
 /// //                      Seed ------------------------^

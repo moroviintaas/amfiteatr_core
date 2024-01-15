@@ -2,10 +2,10 @@
 //! ```
 //! use std::collections::HashMap;
 //! use std::thread;
-//! use amfi_core::agent::{AgentGen, TracingAgentGen, AutomaticAgent, AutomaticAgentRewarded, RewardedAgent, RandomPolicy};
-//! use amfi_core::comm::StdEnvironmentEndpoint;
-//! use amfi_core::demo::{DemoInfoSet, DemoDomain, DemoState, DemoAgentID, DemoPolicySelectFirst};
-//! use amfi_core::env::*;
+//! use amfiteatr_core::agent::{AgentGen, TracingAgentGen, AutomaticAgent, AutomaticAgentRewarded, RewardedAgent, RandomPolicy};
+//! use amfiteatr_core::comm::StdEnvironmentEndpoint;
+//! use amfiteatr_core::demo::{DemoInfoSet, DemoDomain, DemoState, DemoAgentID, DemoPolicySelectFirst};
+//! use amfiteatr_core::env::*;
 //!
 //!
 //! let bandits = vec![5.0, 11.5, 6.0];
