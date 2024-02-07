@@ -27,7 +27,7 @@ pub trait ModelAgent<DP: DomainParameters, Seed, IS: EvaluatedInformationSet<DP>
     + MultiEpisodeAutoAgentRewarded<DP, Seed>
     //+ PolicyAgent<DP>
     + StatefulAgent<DP, InfoSetType=IS>
-    + TracingAgent<DP, AgentTraceStep<DP, IS>>
+    + TracingAgent<DP, IS>
     + Send
 {}
 
@@ -40,7 +40,7 @@ impl<
         + MultiEpisodeAutoAgentRewarded<DP, Seed>
         //+ PolicyAgent<DP>
         + StatefulAgent<DP, InfoSetType=IS>
-        + TracingAgent<DP, AgentTraceStep<DP, IS>>
+        + TracingAgent<DP, IS>
         + Send
 
 > ModelAgent<DP, Seed, IS> for T {}

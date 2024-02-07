@@ -12,7 +12,7 @@ use crate::domain::Renew;
 /// This is generic implementation of environment using single endpoint construction
 /// ([`EnvironmentAdapter`](crate::comm::EnvironmentAdapter)).
 /// This environment does not provide game tracing.
-/// If you want tracing please refer to [`TracingEnvironment`](crate::env::TracingEnvironment).
+/// If you want tracing please refer to [`TracingEnvironment`](crate::env::TracingBasicEnvironment).
 #[derive(Debug, Clone)]
 pub struct BasicEnvironment<
     DP: DomainParameters,

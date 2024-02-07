@@ -29,11 +29,11 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
     constructed_universal_reward: <DP as DomainParameters>::UniversalReward,
     committed_universal_score: <DP as DomainParameters>::UniversalReward,
 
-    game_trajectory: Trajectory<AgentTraceStep<DP, P::InfoSetType>>,
+    game_trajectory: Trajectory<DP, P::InfoSetType>,
     last_action: Option<DP::ActionType>,
     state_before_last_action: Option<<P as Policy<DP>>::InfoSetType>,
     explicit_subjective_reward_component: <P::InfoSetType as EvaluatedInformationSet<DP>>::RewardType,
-    episodes: Vec< Trajectory<AgentTraceStep<DP, P::InfoSetType>>>,
+    episodes: Vec< Trajectory<DP, P::InfoSetType>>,
 }
 
 impl <DP: DomainParameters,
@@ -140,12 +140,12 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP>{
         &mut self.comm
     }
 
-    pub fn take_episodes(&mut self) -> Vec<Trajectory<AgentTraceStep<DP, P::InfoSetType>>>{
+    pub fn take_episodes(&mut self) -> Vec<Trajectory<DP, P::InfoSetType>>{
         let mut episodes = Vec::with_capacity(self.episodes.len());
         std::mem::swap(&mut episodes, &mut self.episodes);
         episodes
     }
-    pub fn episodes(&self) -> &Vec<Trajectory<AgentTraceStep<DP, P::InfoSetType>>>{
+    pub fn episodes(&self) -> &Vec<Trajectory<DP, P::InfoSetType>>{
         &self.episodes
     }
 
@@ -237,6 +237,7 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP> + Clone{
 
     fn finalize(&mut self) {
         self.commit_trace();
+        self.game_trajectory.finalize(self.information_set.clone());
         self.state_before_last_action = Some(self.information_set.clone())
     }
 }
@@ -248,7 +249,7 @@ impl<
         OutwardType=AgentMessage<DP>,
         InwardType=EnvironmentMessage<DP>,
         Error=CommunicationError<DP>>>
-TracingAgent<DP, AgentTraceStep<DP, <P as Policy<DP>>::InfoSetType>> for TracingAgentGen<DP, P, Comm>
+TracingAgent<DP, <P as Policy<DP>>::InfoSetType> for TracingAgentGen<DP, P, Comm>
 where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP> ,
 //for <'a> &'a<DP as DomainParameters>::UniversalReward: Sub<&'a <DP as DomainParameters>::UniversalReward, Output=<DP as DomainParameters>::UniversalReward>,
 //for<'a> &'a <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType: Sub<&'a  <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType, Output = <<P as Policy<DP>>::StateType as ScoringInformationSet<DP>>::RewardType>
@@ -258,11 +259,11 @@ where <P as Policy<DP>>::InfoSetType: EvaluatedInformationSet<DP> ,
         self.last_action = None;
     }
 
-    fn take_trajectory(&mut self) -> Trajectory<AgentTraceStep<DP, <P as Policy<DP>>::InfoSetType>> {
+    fn take_trajectory(&mut self) -> Trajectory<DP, <P as Policy<DP>>::InfoSetType> {
         std::mem::take(&mut self.game_trajectory)
     }
 
-    fn game_trajectory(&self) -> &Trajectory<AgentTraceStep<DP, <P as Policy<DP>>::InfoSetType>> {
+    fn game_trajectory(&self) -> &Trajectory<DP, <P as Policy<DP>>::InfoSetType> {
         &self.game_trajectory
     }
 

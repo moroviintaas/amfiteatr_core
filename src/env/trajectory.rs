@@ -1,4 +1,5 @@
 use std::fmt::{Display, Formatter};
+use std::ops::Index;
 pub use crate::agent::Trajectory;
 use crate::env::EnvironmentStateSequential;
 use crate::domain::DomainParameters;
@@ -60,4 +61,95 @@ impl<DP: DomainParameters, S: EnvironmentStateSequential<DP>> EnvironmentTraceSt
 }
 
 /// Standard trajectory for environment
-pub type StdEnvironmentTrajectory<DP, S> = Trajectory<EnvironmentTraceStep<DP, S>>;
+//pub type StdEnvironmentTrajectory<DP, S> = Trajectory<EnvironmentTraceStep<DP, S>>;
+
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug)]
+pub struct EnvironmentTrajectory<DP: DomainParameters, S: EnvironmentStateSequential<DP>> {
+
+
+    #[cfg_attr(feature = "serde",
+        serde(bound(serialize =
+            "DP::ActionType: serde::Serialize, \
+            DP::UniversalReward:serde::Serialize, \
+            DP::AgentId: serde::Serialize"
+        )))
+    ]
+    #[cfg_attr(feature = "serde",
+        serde(bound(deserialize =
+            "DP::ActionType: serde::Deserialize<'de>, \
+            DP::UniversalReward: serde::Deserialize<'de>, \
+            DP::AgentId: serde::Deserialize<'de>"
+        )))
+    ]
+    history: Vec<EnvironmentTraceStep<DP, S>>,
+    //revoked_steps: Vec<AgentTraceStep<DP, S>>,
+    final_state: Option<S>,
+
+}
+
+impl<DP: DomainParameters, S: EnvironmentStateSequential<DP>> Default for EnvironmentTrajectory<DP, S>{
+    fn default() -> Self {
+        Self{
+            history: Vec::new(),
+            final_state: None
+        }
+    }
+}
+impl<DP: DomainParameters, S: EnvironmentStateSequential<DP>>  EnvironmentTrajectory<DP, S>
+{
+
+
+    pub fn new() -> Self{
+        Self{ history: Default::default(), final_state: Default::default()}
+    }
+    /*pub fn register_line(&mut self, state: S, action: DP::ActionType, reward_for_action: S::RewardType){
+        self.trace.push(GameTraceLine::new(state, action, reward_for_action));
+
+    }*/
+    pub fn new_reserve(capacity: usize) -> Self{
+        Self{ history: Vec::with_capacity(capacity), final_state: Default::default()}
+    }
+
+    /// Pushes trace step on the end of trajectory.
+    pub fn push_trace_step(&mut self, trace_step: EnvironmentTraceStep<DP, S>){
+        self.history.push(trace_step);
+    }
+    /// Clears trajectory using [`Vec::clear()`](std::vec::Vec::clear)
+    pub fn clear(&mut self){
+        self.history.clear();
+        self.final_state = None;
+    }
+
+    /// Returns reference to `Vec` inside the structure.
+    pub fn list(&self) -> &Vec<EnvironmentTraceStep<DP, S>>{
+        &self.history
+    }
+
+    /// Pops step from trajectory using [`Vec::pop()`](std::vec::Vec::pop)
+    pub fn pop_step(&mut self) -> Option<EnvironmentTraceStep<DP, S>>{
+        self.history.pop()
+    }
+
+
+    pub fn is_empty(&self) -> bool{
+        self.list().is_empty()
+    }
+
+    pub fn finalize(&mut self, state: S){
+        self.final_state = Some(state);
+    }
+
+    pub fn final_state(&self) -> &Option<S>{
+        &self.final_state
+    }
+
+}
+
+impl<DP: DomainParameters, S: EnvironmentStateSequential<DP>> Index<usize> for EnvironmentTrajectory<DP, S>{
+    type Output = EnvironmentTraceStep<DP, S>;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.history[index]
+    }
+}

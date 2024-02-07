@@ -5,7 +5,6 @@ use crate::{
     domain::*,
     comm::{EnvironmentAdapter, BroadcastingEnvironmentAdapter}
 };
-use crate::agent::{Trajectory};
 use crate::domain::Renew;
 use crate::env::generic::BasicEnvironment;
 
@@ -15,19 +14,19 @@ use crate::env::generic::BasicEnvironment;
 /// This environment does provide game tracing.
 /// If you don't want tracing consider using [`BasicEnvironment`](crate::env::BasicEnvironment).
 #[derive(Debug)]
-pub struct TracingEnvironment<DP: DomainParameters,
+pub struct TracingBasicEnvironment<DP: DomainParameters,
     S: EnvironmentStateSequential<DP>,
     CP: EnvironmentAdapter<DP>>{
 
     base_environment: BasicEnvironment<DP, S, CP>,
-    history: Trajectory<EnvironmentTraceStep<DP, S>>
+    history: EnvironmentTrajectory<DP, S>
 }
 
 impl <
     DP: DomainParameters,
     S: EnvironmentStateSequential<DP>,
     CP: EnvironmentAdapter<DP>
-> TracingEnvironment<DP, S, CP>{
+> TracingBasicEnvironment<DP, S, CP>{
 
     pub fn new(game_state: S, adapter: CP) -> Self{
         Self{
@@ -50,7 +49,7 @@ impl<
     DP: DomainParameters,
     S: EnvironmentStateSequential<DP>,
     CP: EnvironmentAdapter<DP> + ListPlayers<DP>
-> ListPlayers<DP> for TracingEnvironment<DP, S, CP>{
+> ListPlayers<DP> for TracingBasicEnvironment<DP, S, CP>{
     type IterType = <Vec<DP::AgentId> as IntoIterator>::IntoIter;
 
     fn players(&self) -> Self::IterType {
@@ -62,7 +61,7 @@ impl <
     DP: DomainParameters,
     S: EnvironmentStateSequential<DP>  + Clone,
     CP: EnvironmentAdapter<DP>
-> StatefulEnvironment<DP> for TracingEnvironment<DP, S, CP>{
+> StatefulEnvironment<DP> for TracingBasicEnvironment<DP, S, CP>{
     type State = S;
 
     fn state(&self) -> &Self::State {
@@ -74,11 +73,18 @@ impl <
         let state_clone = self.state().clone();
 
         match self.base_environment.process_action(agent, action){
+
             Ok(updates) => {
+                if self.base_environment.state().is_finished(){
+                    self.history.finalize(self.base_environment.state().clone());
+                }
                 self.history.push_trace_step(EnvironmentTraceStep::new(state_clone, agent.clone(), action.clone(), true));
                 Ok(updates)
             }
             Err(e) => {
+                if self.base_environment.state().is_finished(){
+                    self.history.finalize(self.base_environment.state().clone());
+                }
                 self.history.push_trace_step(EnvironmentTraceStep::new(state_clone, agent.clone(), action.clone(), false));
                 Err(e)
             }
@@ -91,7 +97,7 @@ impl <
     S: EnvironmentStateSequential<DP> + Clone,
     CP: BroadcastingEnvironmentAdapter<DP>,
     Seed
-> ReseedEnvironment<DP, Seed> for TracingEnvironment<DP, S, CP>
+> ReseedEnvironment<DP, Seed> for TracingBasicEnvironment<DP, S, CP>
 where <Self as StatefulEnvironment<DP>>::State: Renew<Seed>{
     fn reseed(&mut self, seed: Seed) {
         self.base_environment.reseed(seed);
@@ -103,7 +109,7 @@ impl <
     DP: DomainParameters,
     S: EnvironmentStateUniScore<DP> + Clone,
     CP: EnvironmentAdapter<DP>
-> ScoreEnvironment<DP> for TracingEnvironment<DP, S, CP>{
+> ScoreEnvironment<DP> for TracingBasicEnvironment<DP, S, CP>{
     fn process_action_penalise_illegal(
         &mut self,
         agent: &<DP as DomainParameters>::AgentId,
@@ -114,10 +120,16 @@ impl <
         let state_clone = self.state().clone();
         match self.base_environment.process_action_penalise_illegal(agent, action, penalty_reward){
             Ok(updates) => {
+                if self.base_environment.state().is_finished(){
+                    self.history.finalize(self.base_environment.state().clone());
+                }
                 self.history.push_trace_step(EnvironmentTraceStep::new(state_clone, agent.clone(), action.clone(), true));
                 Ok(updates)
             }
             Err(e) => {
+                if self.base_environment.state().is_finished(){
+                    self.history.finalize(self.base_environment.state().clone());
+                }
                 self.history.push_trace_step(EnvironmentTraceStep::new(state_clone, agent.clone(), action.clone(), false));
                 Err(e)
             }
@@ -137,7 +149,7 @@ impl <
     DP: DomainParameters,
     S: EnvironmentStateSequential<DP>,
     CP: BroadcastingEnvironmentAdapter<DP>
-> CommunicatingAdapterEnvironment<DP> for TracingEnvironment<DP, S, CP>{
+> CommunicatingAdapterEnvironment<DP> for TracingBasicEnvironment<DP, S, CP>{
     fn send(&mut self, agent_id: &<DP as DomainParameters>::AgentId,  message: crate::domain::EnvironmentMessage<DP>)
         -> Result<(), crate::error::CommunicationError<DP>> {
         self.base_environment.send(agent_id, message)
@@ -159,7 +171,7 @@ impl <
     DP: DomainParameters,
     S: EnvironmentStateSequential<DP>,
     CP: BroadcastingEnvironmentAdapter<DP>
-> BroadConnectedEnvironment<DP> for TracingEnvironment<DP, S, CP>{
+> BroadConnectedEnvironment<DP> for TracingBasicEnvironment<DP, S, CP>{
 
 
     fn send_all(&mut self, message: crate::domain::EnvironmentMessage<DP>) -> Result<(), crate::error::CommunicationError<DP>> {
@@ -174,7 +186,7 @@ impl <
     DP: DomainParameters,
     S: EnvironmentStateSequential<DP> + Clone,
     CP: BroadcastingEnvironmentAdapter<DP>
-> ReinitEnvironment<DP> for TracingEnvironment<DP, S, CP>{
+> ReinitEnvironment<DP> for TracingBasicEnvironment<DP, S, CP>{
     fn reinit(&mut self, initial_state: <Self as StatefulEnvironment<DP>>::State) {
         self.base_environment.reinit(initial_state);
         self.history.clear()
@@ -188,8 +200,8 @@ impl <
 impl<'a, DP: DomainParameters + 'a,
     S: EnvironmentStateSequential<DP>,
     CP: EnvironmentAdapter<DP>>
-TracingEnv<DP, S> for TracingEnvironment<DP, S, CP>{
-    fn trajectory(&self) -> &Trajectory<EnvironmentTraceStep<DP, S>> {
+TracingEnvironment<DP, S> for TracingBasicEnvironment<DP, S, CP>{
+    fn trajectory(&self) -> &EnvironmentTrajectory<DP, S> {
         &self.history
     }
 }
