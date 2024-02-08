@@ -1,11 +1,7 @@
-# amfi_core
+# Repository archived
+Previously this repository was stand-alone and included as
+submodule in [`amfiteatr`](https://github.com/moroviintaas/amfiteatr). 
+Now [`amfiteatr`](https://github.com/moroviintaas/amfiteatr) include crates' code 
+directly. Since these crates will be developed simultaneously they will share the same version. 
 
-Crate providing framework to build models simulating game theory problems. 
-It is designed to help model problems involving many players.
-This is part of project [`amfiteatr`](https://github.com/moroviintaas/amfiteatr.git) 
-where reinforcement learning extension and some examples can be found.
 
-## Examples
-For examples look at [`amfiteatr_examples`](https://github.com/moroviintaas/amfiteatr_examples.git)
-## Development state
-This is early development state, many things can change and vanish in future
